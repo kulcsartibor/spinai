@@ -1,4 +1,4 @@
 export default {
-  actionsDir: "./src/actions",
-  orchestratorsDir: "./src/orchestrators",
+  actionDirectoryPath: "./src/actions",
+  orchestratorDirectoryPath: "./src/orchestrators",
 };

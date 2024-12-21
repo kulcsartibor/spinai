@@ -1,7 +1,7 @@
 import { ActionContext } from "@repo/spinup";
 
 export async function run(context: ActionContext) {
-  const { customerId, preferredTime } = context.input;
+  const { preferredTime } = context.input;
   // Simulate scheduling
   return {
     callbackId: "CB-789",

@@ -6,6 +6,8 @@ import type {
   OrchestratorMessage,
 } from "../types/orchestrator";
 import type { SpinupConfig } from "../types/config";
+import type { ActionModule } from "../types/action";
+import { resolveDependencies } from "../utils/dag";
 import * as path from "path";
 
 const DEFAULT_PORT = 8080;
@@ -56,12 +58,17 @@ async function createServer(config: SpinupConfig) {
       log("New request received", { data: input });
 
       const context = {
-        input: { query: input },
-        availableActions,
+        request: {
+          input,
+          metadata: {}, // For any additional request metadata
+        },
+        store: {},
+        actions: availableActions,
       };
 
       let previousResults = null;
       let isDone = false;
+      const executedActions = new Set<string>();
 
       while (!isDone) {
         log("Consulting orchestrator...");
@@ -82,13 +89,26 @@ async function createServer(config: SpinupConfig) {
         }
 
         // Execute actions
-        for (const actionName of decision.actions) {
+        const orderedActions = resolveDependencies(
+          decision.actions,
+          availableActions,
+          executedActions
+        );
+        for (const actionName of orderedActions) {
           log(`Executing action: ${actionName}`);
           const action = availableActions[actionName];
           if (!action) {
             throw new Error(`Action ${actionName} not found`);
           }
-          previousResults = await action.run(context);
+          const result = await action.run({
+            ...context,
+            store: previousResults || {},
+          });
+          previousResults = {
+            ...previousResults,
+            [actionName]: result,
+          };
+          executedActions.add(actionName);
           log("Action result", { level: "debug", data: previousResults });
         }
 

@@ -1,4 +1,4 @@
-export async function run(context: ActionContext) {
+export async function run() {
   const result = {
     customerId: "abc123",
     name: "Jane Smith",

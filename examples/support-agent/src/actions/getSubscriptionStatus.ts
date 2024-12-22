@@ -1,7 +1,7 @@
 import { ActionContext } from "@repo/spinup";
 
 export async function run(context: ActionContext) {
-  const { customerId } = context.input;
+  const { customerId } = context.store.getCustomerInfo;
   // Simulate subscription check
   return {
     plan: "enterprise",

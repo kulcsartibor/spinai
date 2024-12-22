@@ -6,7 +6,6 @@ import type {
   OrchestratorMessage,
 } from "../types/orchestrator";
 import type { SpinupConfig } from "../types/config";
-import type { ActionModule } from "../types/action";
 import { resolveDependencies } from "../utils/dag";
 import * as path from "path";
 

@@ -104,7 +104,7 @@ async function createServer(config: SpinupConfig) {
             store: previousResults || {},
           });
           previousResults = {
-            ...previousResults,
+            ...(previousResults || {}),
             [actionName]: result,
           };
           executedActions.add(actionName);

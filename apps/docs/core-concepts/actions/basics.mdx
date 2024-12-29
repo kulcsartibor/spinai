@@ -1,0 +1,55 @@
+---
+title: "Action Basics"
+description: "Understanding the fundamentals of Spinai actions"
+---
+
+## What are Actions?
+
+Actions are the fundamental building blocks in Spinai that perform specific tasks. Each action is a modular, reusable component that can be orchestrated to create complex AI workflows.
+
+## Core Concepts
+
+### Action Structure
+
+Every action in Spinai consists of two main parts:
+
+1. Configuration (metadata and behavior settings)
+2. Run function (implementation logic)
+
+### Action Context
+
+Actions receive a context object that provides:
+
+- User input
+- Shared state
+- Access to other actions
+- Request metadata
+
+## Action Interface
+
+```typescript
+interface ActionModule {
+  config: ActionConfig;
+  run: (context: ActionContext) => Promise<any>;
+}
+
+interface ActionConfig {
+  id: string; // Unique identifier
+  dependsOn?: string[]; // Action dependencies
+  allowRerun?: boolean; // Can action run multiple times?
+  retries?: number; // Number of retry attempts
+  metadata?: {
+    description?: string; // Action description
+    [key: string]: any; // Additional metadata
+  };
+}
+```
+
+## State and Dependencies
+
+Actions can:
+
+- Access shared state through `context.store`
+- Specify dependencies on other actions
+- Maintain their own internal state
+- Share results with other actions

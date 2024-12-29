@@ -1,0 +1,197 @@
+---
+title: "Action Best Practices"
+description: "Best practices and patterns for creating Spinai actions"
+---
+
+## Design Principles
+
+### 1. Single Responsibility
+
+Keep actions focused on one specific task:
+
+```typescript
+// Good
+export const config = {
+  id: "sentimentAnalyzer",
+  metadata: {
+    description: "Analyzes text sentiment",
+  },
+};
+
+// Avoid
+export const config = {
+  id: "textProcessor",
+  metadata: {
+    description: "Analyzes sentiment, extracts topics, and summarizes",
+  },
+};
+```
+
+### 2. Clear Dependencies
+
+Explicitly declare dependencies:
+
+```typescript
+export const config = {
+  id: "summarizer",
+  dependsOn: ["textAnalyzer", "topicExtractor"],
+  metadata: {
+    description: "Creates summary based on analysis",
+  },
+};
+```
+
+### 3. Proper Error Handling
+
+Implement comprehensive error handling:
+
+```typescript
+export async function run(context: ActionContext) {
+  try {
+    // Input validation
+    if (!context.request.input) {
+      throw new Error("Input is required");
+    }
+
+    // Processing
+    const result = await processData(context.request.input);
+
+    // Output validation
+    if (!isValidResult(result)) {
+      throw new Error("Invalid result");
+    }
+
+    return result;
+  } catch (error) {
+    // Log error
+    console.error(`Error in action: ${error.message}`);
+    // Rethrow with context
+    throw new Error(`Action failed: ${error.message}`);
+  }
+}
+```
+
+## Advanced Patterns
+
+### Middleware Pattern
+
+Use middleware to add cross-cutting concerns:
+
+```typescript
+function withLogging(action: ActionModule): ActionModule {
+  return {
+    config: action.config,
+    run: async (context) => {
+      console.log(`Starting ${action.config.id}`);
+      const start = Date.now();
+      try {
+        const result = await action.run(context);
+        console.log(`Completed ${action.config.id} in ${Date.now() - start}ms`);
+        return result;
+      } catch (error) {
+        console.error(`Error in ${action.config.id}:`, error);
+        throw error;
+      }
+    },
+  };
+}
+```
+
+### Factory Pattern
+
+Create reusable action factories:
+
+```typescript
+function createApiAction(endpoint: string, options = {}) {
+  return {
+    config: {
+      id: `api-${endpoint}`,
+      retries: options.retries ?? 3,
+      metadata: {
+        description: `API integration for ${endpoint}`,
+        ...options.metadata,
+      },
+    },
+    run: async (context: ActionContext) => {
+      // Implementation
+      const response = await fetch(`https://api.example.com/${endpoint}`);
+      return response.json();
+    },
+  };
+}
+```
+
+## Testing
+
+### Unit Testing
+
+```typescript
+describe("Action Testing", () => {
+  const mockContext = {
+    request: { input: "test" },
+    store: {},
+    actions: {},
+  };
+
+  it("should process input correctly", async () => {
+    const action = createApiAction("endpoint");
+    const result = await action.run(mockContext);
+    expect(result).toBeDefined();
+  });
+});
+```
+
+### Integration Testing
+
+```typescript
+describe("Action Integration", () => {
+  it("should work with dependencies", async () => {
+    const context = {
+      request: { input: "test" },
+      store: {
+        dependency: { result: "data" },
+      },
+      actions: {},
+    };
+
+    const action = require("./myAction");
+    const result = await action.run(context);
+    expect(result).toMatchExpectedOutput();
+  });
+});
+```
+
+## Performance Optimization
+
+### 1. Caching
+
+```typescript
+const cache = new Map();
+
+export async function run(context: ActionContext) {
+  const cacheKey = getCacheKey(context.request);
+
+  if (cache.has(cacheKey)) {
+    return cache.get(cacheKey);
+  }
+
+  const result = await computeExpensiveResult(context);
+  cache.set(cacheKey, result);
+
+  return result;
+}
+```
+
+### 2. Resource Management
+
+```typescript
+export async function run(context: ActionContext) {
+  const resources = await acquireResources();
+
+  try {
+    return await processWithResources(context, resources);
+  } finally {
+    await releaseResources(resources);
+  }
+}
+```

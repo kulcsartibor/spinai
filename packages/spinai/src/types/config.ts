@@ -1,4 +1,4 @@
-export interface SpinupConfig {
+export interface SpinaiConfig {
   actionDirectoryPath: string;
   orchestratorDirectoryPath: string;
 }

@@ -1,5 +1,5 @@
 {
-  "name": "spinup",
+  "name": "spinai",
   "private": true,
   "scripts": {
     "build": "turbo build",

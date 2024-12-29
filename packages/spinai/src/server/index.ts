@@ -5,7 +5,7 @@ import type {
   BaseOrchestrator,
   OrchestratorMessage,
 } from "../types/orchestrator";
-import type { SpinupConfig } from "../types/config";
+import type { SpinaiConfig } from "../types/config";
 import { resolveDependencies } from "../utils/dag";
 import * as path from "path";
 
@@ -32,7 +32,7 @@ async function getNextDecision(
   return orchestrator.decide(messages);
 }
 
-async function createServer(config: SpinupConfig) {
+async function createServer(config: SpinaiConfig) {
   // Load actions and orchestrator
   const availableActions = await loadActions(config.actionDirectoryPath);
   const orchestrator = await loadOrchestrator(config.orchestratorDirectoryPath);
@@ -128,10 +128,10 @@ async function createServer(config: SpinupConfig) {
 }
 
 export async function runAgentServer(port = DEFAULT_PORT) {
-  const config = (await import(path.join(process.cwd(), "spinup.config.ts")))
+  const config = (await import(path.join(process.cwd(), "spinai.config.ts")))
     .default;
   const app = await createServer(config);
   app.listen(port, () => {
-    log(`Spinup server running on port ${port}`);
+    log(`Spinai server running on port ${port}`);
   });
 }

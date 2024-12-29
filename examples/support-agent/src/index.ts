@@ -1,5 +1,5 @@
 import * as dotenv from "dotenv";
-import { runAgentServer } from "@repo/spinup";
+import { runAgentServer } from "@repo/spinai";
 
 dotenv.config();
 

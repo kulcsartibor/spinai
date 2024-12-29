@@ -1,7 +1,7 @@
 import { ActionContext } from "spinai";
 
 export async function run(context: ActionContext) {
-  const { customerId } = context.store.getCustomerInfo;
+  // const { customerId } = context.store.getCustomerInfo;
   // Simulate subscription check
   return {
     plan: "enterprise",

@@ -1,0 +1,62 @@
+---
+title: "Configuration"
+description: "Configuring the Zendesk Support agent"
+---
+
+## Orchestrator Configuration
+
+Create a configuration file for your Zendesk Support agent:
+
+```typescript
+// orchestrator/index.ts
+import { createOpenAIOrchestrator } from "spinai";
+
+export default createOpenAIOrchestrator({
+  apiKey: process.env.OPENAI_API_KEY,
+  systemPrompt: `You are a customer support assistant that:
+    1. Analyzes support tickets
+    2. Determines if more information is needed
+    3. Generates helpful and empathetic responses
+    4. Suggests appropriate actions`,
+});
+```
+
+## Environment Setup
+
+Create a `.env` file with your credentials:
+
+```bash
+OPENAI_API_KEY=your-openai-key
+ZENDESK_TOKEN=your-zendesk-token
+ZENDESK_DOMAIN=your-zendesk-domain
+```
+
+## Project Structure
+
+Organize your project files:
+
+```bash
+zendesk-agent/
+├── actions/
+│   ├── fetchTicket.ts
+│   ├── analyzeTicket.ts
+│   ├── generateResponse.ts
+│   └── updateTicket.ts
+├── orchestrator/
+│   └── index.ts
+├── .env
+└── spinai.config.ts
+```
+
+## Spinai Configuration
+
+Set up your `spinai.config.ts`:
+
+```typescript
+import { SpinaiConfig } from "spinai";
+
+export default {
+  actionDirectoryPath: "./actions",
+  orchestratorDirectoryPath: "./orchestrator",
+} satisfies SpinaiConfig;
+```

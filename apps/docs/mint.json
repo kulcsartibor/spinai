@@ -21,8 +21,8 @@
   },
   "topbarLinks": [
     {
-      "name": "Discord Support",
-      "url": "https://discord.gg/WrsXHWWpTP"
+      "name": "Join our Discord",
+      "url": "https://discord.gg/BFy7hMpT"
     }
   ],
   "topbarCtaButton": {
@@ -33,7 +33,7 @@
     {
       "name": "Community & Support",
       "icon": "discord",
-      "url": "https://discord.gg/WrsXHWWpTP"
+      "url": "https://discord.gg/BFy7hMpT"
     },
     {
       "name": "Github",
@@ -64,14 +64,26 @@
             "core-concepts/actions/examples",
             "core-concepts/actions/best-practices"
           ]
-        },
-        "core-concepts/actions"
+        }
+      ]
+    },
+    {
+      "group": "Examples",
+      "pages": [
+        {
+          "group": "Zendesk Support",
+          "pages": [
+            "examples/zendesk-support/overview",
+            "examples/zendesk-support/implementation",
+            "examples/zendesk-support/configuration",
+            "examples/zendesk-support/deployment"
+          ]
+        }
       ]
     }
   ],
   "footerSocials": {
-    "x": "https://x.com/mintlify",
-    "github": "https://github.com/mintlify",
-    "linkedin": "https://linkedin.com/company/mintlify"
+    "github": "https://github.com/fallomai/spinai",
+    "discord": "https://discord.gg/BFy7hMpT"
   }
 }

@@ -1,81 +1,105 @@
-# Turborepo starter
+<div align="center">
 
-This is an official starter Turborepo.
+![Logo of SpinUp](./docs/SpinUp_logo.png)
 
-## Using this example
+# **SpinUp**
 
-Run the following command:
+🤖 **SpinUp**: A framework that allows you to setup and manage AI agents seamlessly.
 
-```sh
-npx create-turbo@latest
+<h3>
+
+[Homepage](https://www.spinup.com/) | [Examples](https://github.com/Fallomai/spinup/SpinUp-examples)
+
+</h3>
+
+[![GitHub Repo stars](https://img.shields.io/github/stars/Fallomai/spinup)](https://github.com/Fallomai/spinup)
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)
+
+</div>
+
+## Table of contents
+
+- [Why SpinUp?](#why-SpinUp)
+- [Getting Started](#getting-started)
+- [Key Features](#key-features)
+- [Examples](#examples)
+- [Contribution](#contribution)
+- [License](#license)
+
+## Why SpinUp?
+
+SpinUp is a framework that helps you set up and manage teams of AI agents.
+Each agent is given a specific role, tools, and tasks to work on, and they all work together to complete complex jobs.
+
+## Getting Started
+
+### 1. Installation
+
+#### Prerequisites
+
+Ensure you have the following installed:
+
+- Node.js >=14
+- npm or yarn package manager
+- TypeScript >=5.3.3
+
+Install `turbo` globally if you haven't already:
+
+```bash
+npm install turbo --global
 ```
 
-## What's inside?
+#### Clone and Install
 
-This Turborepo includes the following packages/apps:
+Clone the repository and navigate to the project directory:
 
-### Apps and Packages
-
-- `docs`: a [Next.js](https://nextjs.org/) app
-- `web`: another [Next.js](https://nextjs.org/) app
-- `@repo/ui`: a stub React component library shared by both `web` and `docs` applications
-- `@repo/eslint-config`: `eslint` configurations (includes `eslint-config-next` and `eslint-config-prettier`)
-- `@repo/typescript-config`: `tsconfig.json`s used throughout the monorepo
-
-Each package/app is 100% [TypeScript](https://www.typescriptlang.org/).
-
-### Utilities
-
-This Turborepo has some additional tools already setup for you:
-
-- [TypeScript](https://www.typescriptlang.org/) for static type checking
-- [ESLint](https://eslint.org/) for code linting
-- [Prettier](https://prettier.io) for code formatting
-
-### Build
-
-To build all apps and packages, run the following command:
-
-```
-cd my-turborepo
-pnpm build
+```bash
+git clone https://github.com/Fallomai/spinup.git
+cd spinup
 ```
 
-### Develop
+Install the dependencies:
 
-To develop all apps and packages, run the following command:
-
-```
-cd my-turborepo
-pnpm dev
+```bash
+npm install
 ```
 
-### Remote Caching
+### 2. Running the Server
 
-Turborepo can use a technique known as [Remote Caching](https://turbo.build/repo/docs/core-concepts/remote-caching) to share cache artifacts across machines, enabling you to share build caches with your team and CI/CD pipelines.
+Start the development server:
 
-By default, Turborepo will cache locally. To enable Remote Caching you will need an account with Vercel. If you don't have an account you can [create one](https://vercel.com/signup), then enter the following commands:
-
-```
-cd my-turborepo
-npx turbo login
+```bash
+npm run dev
 ```
 
-This will authenticate the Turborepo CLI with your [Vercel account](https://vercel.com/docs/concepts/personal-accounts/overview).
+By default, the server will run on `http://localhost:8080`.
 
-Next, you can link your Turborepo to your Remote Cache by running the following command from the root of your Turborepo:
+### 3. Using the API
 
+Send a POST request to the endpoint `/api/run/` with the following payload:
+
+**Endpoint:**
+
+```plaintext
+http://localhost:8080/api/run/
 ```
-npx turbo link
+
+**Request Body:**
+
+```json
+{
+  "input": "create a new high priority ticket for about the API not working for endpoint /orders"
+}
 ```
 
-## Useful Links
+## Contribution
 
-Learn more about the power of Turborepo:
+SpinUp is an open-source project, and we welcome contributions! If you want to contribute:
 
-- [Tasks](https://turbo.build/repo/docs/core-concepts/monorepos/running-tasks)
-- [Caching](https://turbo.build/repo/docs/core-concepts/caching)
-- [Remote Caching](https://turbo.build/repo/docs/core-concepts/remote-caching)
-- [Filtering](https://turbo.build/repo/docs/core-concepts/monorepos/filtering)
-- [Configuration Options](https://turbo.build/repo/docs/reference/configuration)
-- [CLI Usage](https://turbo.build/repo/docs/reference/command-line-reference)
+1. Fork the repository.
+2. Create a new branch for your feature.
+3. Make your changes and submit a pull request.
+
+## License
+
+SpinUp is released under the [MIT License](https://opensource.org/licenses/MIT).

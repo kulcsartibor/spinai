@@ -1,106 +1,135 @@
 ---
-title: 'Development'
-description: 'Preview changes locally to update your docs'
+title: "Development"
+description: "Build and customize your AI agents with Spinai"
 ---
 
-<Info>
-  **Prerequisite**: Please install Node.js (version 19 or higher) before proceeding.
-</Info>
+## Project Structure
 
-Follow these steps to install and run Mintlify on your operating system:
-
-**Step 1**: Install Mintlify:
-
-<CodeGroup>
-
-  ```bash npm
-  npm i -g mintlify
-  ```
-
-```bash yarn
-yarn global add mintlify
-```
-
-</CodeGroup>
-
-**Step 2**: Navigate to the docs directory (where the `mint.json` file is located) and execute the following command:
+A typical Spinai project has the following structure:
 
 ```bash
-mintlify dev
+my-spinai-project/
+├── actions/              # Your AI actions
+│   ├── search.ts
+│   └── process.ts
+├── orchestrator/         # Orchestrator configuration
+│   └── index.ts
+├── spinai.config.ts     # Spinai configuration
+└── package.json
 ```
 
-A local preview of your documentation will be available at `http://localhost:3000`.
+## Creating Actions
 
-### Custom Ports
+Actions are the building blocks of your AI agent. Each action should be in its own file:
 
-By default, Mintlify uses port 3000. You can customize the port Mintlify runs on by using the `--port` flag. To run Mintlify on port 3333, for instance, use this command:
+```typescript
+import type { ActionModule } from "spinai";
 
-```bash
-mintlify dev --port 3333
+export const config = {
+  id: "myAction",
+  dependsOn: ["otherAction"], // Optional dependencies
+  metadata: {
+    description: "Performs a specific task",
+  },
+};
+
+export async function run(context) {
+  // Action implementation
+  return result;
+}
 ```
 
-If you attempt to run Mintlify on a port that's already in use, it will use the next available port:
+### Action Context
 
-```md
-Port 3000 is already in use. Trying 3001 instead.
+The context object provides access to:
+
+- `request.input`: User input string
+- `request.metadata`: Additional request metadata
+- `store`: Shared state between actions
+- `actions`: Access to other registered actions
+
+## Configuring Orchestrators
+
+Orchestrators manage the flow of your AI agent. The OpenAI orchestrator is included by default:
+
+```typescript
+import { createOpenAIOrchestrator } from "spinai";
+
+export default createOpenAIOrchestrator({
+  apiKey: process.env.OPENAI_API_KEY,
+  model: "gpt-4-turbo-preview", // Optional, defaults to gpt-4-turbo-preview
+  temperature: 0.7, // Optional
+  systemPrompt: `Your system prompt here...`,
+});
 ```
 
-## Mintlify Versions
+## Dependency Management
 
-Please note that each CLI release is associated with a specific version of Mintlify. If your local website doesn't align with the production version, please update the CLI:
+Spinai automatically handles action dependencies:
 
-<CodeGroup>
-
-```bash npm
-npm i -g mintlify@latest
+```typescript
+export const config = {
+  id: "processData",
+  dependsOn: ["fetchData", "validateData"],
+  allowRerun: false, // Optional, prevents multiple runs
+};
 ```
 
-```bash yarn
-yarn global upgrade mintlify
+## Debugging
+
+Use the built-in logger for debugging:
+
+```typescript
+import { log } from "spinai";
+
+export async function run(context) {
+  log("Processing request", { level: "debug", data: context.request });
+  // Action implementation
+}
 ```
 
-</CodeGroup>
+Log levels:
 
-## Validating Links
+- `debug`: Detailed debugging information
+- `info`: General information (default)
+- `error`: Error conditions
 
-The CLI can assist with validating reference links made in your documentation. To identify any broken links, use the following command:
+## Testing
 
-```bash
-mintlify broken-links
+We recommend testing your actions in isolation:
+
+```typescript
+import { ActionContext } from "spinai";
+
+describe("myAction", () => {
+  it("should process input correctly", async () => {
+    const context: ActionContext = {
+      request: { input: "test" },
+      store: {},
+      actions: {},
+    };
+
+    const result = await myAction.run(context);
+    expect(result).toBeDefined();
+  });
+});
 ```
 
-## Deployment
+## Best Practices
 
-<Tip>
-  Unlimited editors available under the [Pro
-  Plan](https://mintlify.com/pricing) and above.
-</Tip>
+1. Keep actions focused and single-purpose
+2. Use descriptive action IDs and metadata
+3. Handle errors gracefully
+4. Use dependency management for complex workflows
+5. Log important information for debugging
 
-If the deployment is successful, you should see the following:
+## Next Steps
 
-<Frame>
-  <img src="/images/checks-passed.png" style={{ borderRadius: '0.5rem' }} />
-</Frame>
-
-## Code Formatting
-
-We suggest using extensions on your IDE to recognize and format MDX. If you're a VSCode user, consider the [MDX VSCode extension](https://marketplace.visualstudio.com/items?itemName=unifiedjs.vscode-mdx) for syntax highlighting, and [Prettier](https://marketplace.visualstudio.com/items?itemName=esbenp.prettier-vscode) for code formatting.
-
-## Troubleshooting
-
-<AccordionGroup>
-  <Accordion title='Error: Could not load the "sharp" module using the darwin-arm64 runtime'>
-
-    This may be due to an outdated version of node. Try the following:
-    1. Remove the currently-installed version of mintlify: `npm remove -g mintlify`
-    2. Upgrade to Node v19 or higher.
-    3. Reinstall mintlify: `npm install -g mintlify`
-  </Accordion>
-
-  <Accordion title="Issue: Encountering an unknown error">
-  
-    Solution: Go to the root of your device and delete the \~/.mintlify folder. Afterwards, run `mintlify dev` again.
-  </Accordion>
-</AccordionGroup>
-
-Curious about what changed in the CLI version? [Check out the CLI changelog.](https://www.npmjs.com/package/mintlify?activeTab=versions)
+<CardGroup>
+  <Card title="API Reference" icon="code" href="/api-reference">
+    Complete API documentation
+  </Card>
+  <Card title="Examples" icon="lightbulb" href="/examples">
+    Real-world usage examples
+  </Card>
+</CardGroup>

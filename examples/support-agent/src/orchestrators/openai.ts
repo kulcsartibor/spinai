@@ -1,4 +1,4 @@
-import { createOpenAIOrchestrator, type BaseOrchestrator } from "@repo/spinai";
+import { createOpenAIOrchestrator, type BaseOrchestrator } from "spinai";
 
 const orchestrator: BaseOrchestrator = createOpenAIOrchestrator({
   apiKey: process.env.OPENAI_API_KEY!,

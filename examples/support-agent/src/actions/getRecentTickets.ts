@@ -1,4 +1,4 @@
-import { ActionContext } from "@repo/spinai";
+import { ActionContext } from "spinai";
 
 export async function run(context: ActionContext) {
   const { customerId } = context.store.getCustomerInfo;

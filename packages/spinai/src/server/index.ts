@@ -33,7 +33,7 @@ async function getNextDecision(
 }
 
 async function createServer(config: SpinaiConfig) {
-  // Load actions and orchestrator
+  // Load actions and the orchestrator
   const availableActions = await loadActions(config.actionDirectoryPath);
   const orchestrator = await loadOrchestrator(config.orchestratorDirectoryPath);
   await orchestrator.initialize();

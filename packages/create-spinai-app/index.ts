@@ -40,13 +40,11 @@ new Command("create-spinai-app")
     pkg.name = name;
     fs.writeFileSync(pkgPath, JSON.stringify(pkg, null, 2));
 
-    // Install dependencies
-    spawn.sync("npm", ["install"], { stdio: "inherit", cwd: root });
-
     console.log(`
 Project created successfully!
 
   cd ${name}
+  npm install
   npm run dev
 `);
   })
@@ -56,7 +54,11 @@ function copyDir(src: string, dest: string) {
   fs.mkdirSync(dest, { recursive: true });
   for (const entry of fs.readdirSync(src, { withFileTypes: true })) {
     // Skip dist and node_modules directories
-    if (entry.name === "dist" || entry.name === "node_modules") {
+    if (
+      entry.name === "dist" ||
+      entry.name === "node_modules" ||
+      entry.name === "package-lock.json"
+    ) {
       continue;
     }
 

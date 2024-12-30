@@ -3,99 +3,61 @@ title: "Quickstart"
 description: "Get started with Spinai in under 5 minutes"
 ---
 
-## Installation
+## Create a New Project
 
-Get started with Spinai by installing it in your project:
+Create a new Spinai project using our CLI:
 
 <CodeGroup>
 
 ```bash npm
-npm install spinai
+npx create-spinai-app my-agent
 ```
 
 ```bash yarn
-yarn add spinai
+yarn create spinai-app my-agent
 ```
 
 </CodeGroup>
 
-## Basic Setup
+This will create a new directory with a fully configured Spinai project including:
 
-### 1. Create Your Project Structure
-
-Create the following directory structure for your AI agent:
+- Example actions for ticket management
+- OpenAI orchestrator configuration
+- TypeScript configuration
+- Environment setup
 
 ```bash
-my-ai-agent/
+my-agent/
 ├── actions/
-│   └── example.ts
+│   ├── createTicket.ts
+│   └── getCustomerInfo.ts
 ├── orchestrator/
-│   └── index.ts
-└── spinai.config.ts
+│   └── openai.ts
+├── .env.example
+├── spinai.config.ts
+└── tsconfig.json
 ```
 
-### 2. Configure Your Orchestrator
+## Start Development
 
-Create an OpenAI orchestrator in `orchestrator/index.ts`:
-
-```typescript orchestrator/index.ts
-import { createOpenAIOrchestrator } from "spinai";
-
-export default createOpenAIOrchestrator({
-  apiKey: process.env.OPENAI_API_KEY,
-  systemPrompt: `You are an AI assistant that helps users by coordinating actions.
-  Analyze user input and decide which actions to run.
-  Respond with clear reasoning about your decisions.`,
-});
-```
-
-### 3. Create an Action
-
-Create your first action in `actions/example.ts`:
-
-```typescript actions/example.ts
-import type { ActionModule } from "spinai";
-
-export const config = {
-  id: "example",
-  metadata: {
-    description: "A simple example action",
-  },
-};
-
-export async function run(context) {
-  const { input } = context.request;
-  return `Processed: ${input}`;
-}
-```
-
-### 4. Configure Spinai
-
-Set up your `spinai.config.ts`:
-
-```typescript spinai.config.ts
-import { SpinaiConfig } from "spinai";
-
-export default {
-  actionDirectoryPath: "./actions",
-  orchestratorDirectoryPath: "./orchestrator",
-} satisfies SpinaiConfig;
-```
-
-### 5. Start the Server
-
-Create an entry point file (`index.ts`):
-
-```typescript index.ts
-import { runAgentServer } from "spinai";
-
-runAgentServer(8080);
-```
-
-Run your agent:
+1. Install dependencies:
 
 ```bash
-ts-node index.ts
+cd my-agent
+npm install
+```
+
+2. Configure your environment:
+
+```bash
+cp .env.example .env
+# Add your OpenAI API key to .env
+```
+
+3. Start the development server:
+
+```bash
+npm run dev
 ```
 
 Your AI agent is now running at `http://localhost:8080`!
@@ -107,7 +69,7 @@ Send a POST request to test your agent:
 ```bash
 curl -X POST http://localhost:8080/api/run \
   -H "Content-Type: application/json" \
-  -d '{"input": "Hello, Spinai!"}'
+  -d '{"input": "Create a new ticket for customer support"}'
 ```
 
 ## Next Steps

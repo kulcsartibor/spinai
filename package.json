@@ -7,7 +7,9 @@
     "lint": "turbo lint",
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
     "update-packages": "changeset",
-    "publish-packages": "turbo run build lint && changeset version && changeset publish"
+    "publish-packages": "turbo run build lint && changeset version && changeset publish",
+    "pkg-update": "changeset",
+    "pkg-pub": "turbo run build lint && changeset version && changeset publish"
   },
   "devDependencies": {
     "prettier": "^3.2.5",

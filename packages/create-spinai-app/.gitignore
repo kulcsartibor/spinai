@@ -12,3 +12,6 @@ test/
 
 # Misc
 .DS_Store 
+
+# ignore any test project we create and accidently forget to delete
+test/

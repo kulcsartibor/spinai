@@ -1,0 +1,14 @@
+# Build output
+dist/
+
+# Dependencies
+node_modules/
+
+# Test directories
+test/
+
+# Environment variables
+.env
+
+# Misc
+.DS_Store 

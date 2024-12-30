@@ -55,6 +55,11 @@ Project created successfully!
 function copyDir(src: string, dest: string) {
   fs.mkdirSync(dest, { recursive: true });
   for (const entry of fs.readdirSync(src, { withFileTypes: true })) {
+    // Skip dist and node_modules directories
+    if (entry.name === "dist" || entry.name === "node_modules") {
+      continue;
+    }
+
     const srcPath = path.join(src, entry.name);
     const destPath = path.join(dest, entry.name);
 

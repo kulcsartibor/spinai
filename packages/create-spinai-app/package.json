@@ -26,7 +26,7 @@
   },
   "scripts": {
     "build": "tsc && cp -r templates dist/",
-    "dev": "npm run build && npm link",
+    "test-dev": "npm run build && npm link && create-spinai-app test",
     "clean": "rm -rf dist"
   },
   "devDependencies": {

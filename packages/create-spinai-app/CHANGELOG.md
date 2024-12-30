@@ -1,5 +1,11 @@
 # create-spinai-app
 
+## 0.1.4
+
+### Patch Changes
+
+- c7addc8: Try another fix??
+
 ## 0.1.3
 
 ### Patch Changes

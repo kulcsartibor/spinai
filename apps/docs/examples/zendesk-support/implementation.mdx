@@ -9,7 +9,7 @@ Let's implement each action needed for our Zendesk Support agent.
 
 ### 1. Fetch Ticket Action
 
-```typescript
+```typescript actions/fetchTicket.ts
 export const config = {
   id: "fetchTicket",
   metadata: {
@@ -36,7 +36,7 @@ export async function run(context: ActionContext) {
 
 ### 2. Analyze Ticket Action
 
-```typescript
+```typescript actions/analyzeTicket.ts
 export const config = {
   id: "analyzeTicket",
   dependsOn: ["fetchTicket"],
@@ -59,7 +59,7 @@ export async function run(context: ActionContext) {
 
 ### 3. Generate Response Action
 
-```typescript
+```typescript actions/generateResponse.ts
 export const config = {
   id: "generateResponse",
   dependsOn: ["analyzeTicket"],
@@ -81,7 +81,7 @@ export async function run(context: ActionContext) {
 
 ### 4. Update Ticket Action
 
-```typescript
+```typescript actions/updateTicket.ts
 export const config = {
   id: "updateTicket",
   dependsOn: ["generateResponse"],

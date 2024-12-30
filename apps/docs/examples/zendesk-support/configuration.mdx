@@ -7,8 +7,7 @@ description: "Configuring the Zendesk Support agent"
 
 Create a configuration file for your Zendesk Support agent:
 
-```typescript
-// orchestrator/index.ts
+```typescript orchestrator/openai.ts
 import { createOpenAIOrchestrator } from "spinai";
 
 export default createOpenAIOrchestrator({
@@ -25,7 +24,7 @@ export default createOpenAIOrchestrator({
 
 Create a `.env` file with your credentials:
 
-```bash
+```bash .env
 OPENAI_API_KEY=your-openai-key
 ZENDESK_TOKEN=your-zendesk-token
 ZENDESK_DOMAIN=your-zendesk-domain
@@ -52,7 +51,7 @@ zendesk-agent/
 
 Set up your `spinai.config.ts`:
 
-```typescript
+```typescript spinai.config.ts
 import { SpinaiConfig } from "spinai";
 
 export default {

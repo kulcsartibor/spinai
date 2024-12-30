@@ -1,6 +1,6 @@
 {
   "name": "create-spinai-app",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "keywords": [
     "ai",
     "orchestration",
@@ -29,11 +29,13 @@
     "test-dev": "npm run build && npm link && create-spinai-app test",
     "clean": "rm -rf dist"
   },
+  "dependencies": {
+    "commander": "^11.1.0",
+    "cross-spawn": "^7.0.3"
+  },
   "devDependencies": {
     "@types/node": "^20.11.0",
     "@types/cross-spawn": "^6.0.6",
-    "commander": "^11.1.0",
-    "cross-spawn": "^7.0.3",
     "typescript": "^5.3.3"
   },
   "engines": {

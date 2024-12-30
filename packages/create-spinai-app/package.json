@@ -1,0 +1,42 @@
+{
+  "name": "create-spinai-app",
+  "version": "0.1.0",
+  "keywords": [
+    "ai",
+    "orchestration",
+    "spinai"
+  ],
+  "description": "Create Spinai AI agent projects with one command",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Fallomai/spinai.git",
+    "directory": "packages/create-spinai-app"
+  },
+  "author": "FallomAI",
+  "license": "MIT",
+  "bin": {
+    "create-spinai-app": "./dist/index.js"
+  },
+  "files": [
+    "dist",
+    "templates"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "tsc && cp -r templates dist/",
+    "dev": "npm run build && npm link",
+    "clean": "rm -rf dist"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.0",
+    "@types/cross-spawn": "^6.0.6",
+    "commander": "^11.1.0",
+    "cross-spawn": "^7.0.3",
+    "typescript": "^5.3.3"
+  },
+  "engines": {
+    "node": ">=18.18.0"
+  }
+}

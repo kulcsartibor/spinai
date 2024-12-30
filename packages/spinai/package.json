@@ -6,7 +6,8 @@
   "description": "AI Orchestration",
   "repository": {
     "type": "git",
-    "url": "https://github.com/Fallomai/spinai.git"
+    "url": "https://github.com/Fallomai/spinai",
+    "directory": "packages/spinai"
   },
   "bugs": {
     "url": "https://github.com/Fallomai/spinai/issues"

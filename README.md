@@ -75,7 +75,6 @@ Visit [docs.spinai.dev](https://docs.spinai.dev) for:
 
 - Join our [Discord](https://discord.gg/BFy7hMpT) for help and discussions
 - Star us on [GitHub](https://github.com/Fallomai/spinai)
-- Follow us on [Twitter](https://twitter.com/spinai_dev)
 
 ## License
 

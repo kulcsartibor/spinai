@@ -1,110 +1,111 @@
 ---
 title: "Deployment"
-description: "Deploying and using the Zendesk Support agent"
+description: "Deploy your Zendesk support agent"
 ---
 
-## Starting the Server
+## Deployment Options
 
-Create an entry point file (`index.ts`):
+You can deploy your SpinAI Zendesk agent in several ways:
 
-```typescript index.ts
-import { runAgentServer } from "spinai";
+1. **Serverless Function**
+2. **Docker Container**
+3. **Traditional Server**
 
-runAgentServer(3000);
-```
+## Serverless Deployment
 
-Run your agent:
-
-```bash
-ts-node index.ts
-```
-
-## Making Requests
-
-Send requests to your agent:
+### Vercel
 
 ```bash
-curl -X POST http://localhost:3000/api/run \
-  -H "Content-Type: application/json" \
-  -d '{
-    "input": "Handle this support ticket",
-    "metadata": {
-      "ticketId": "12345"
-    }
-  }'
+npm install -g vercel
+vercel deploy
 ```
 
-## Example Response
+Create `api/support.ts`:
 
-```json
-{
-  "summary": "Ticket processed successfully",
-  "results": {
-    "fetchTicket": {
-      "id": "12345",
-      "status": "pending"
-      // ...
-    },
-    "analyzeTicket": {
-      "sentiment": "neutral",
-      "category": "technical_issue"
-      // ...
-    },
-    "generateResponse": {
-      "response": "Thank you for reaching out...",
-      "suggestedActions": ["escalate", "add_tag"]
-    },
-    "updateTicket": {
-      "id": "12345",
-      "status": "pending"
-      // ...
-    }
-  }
+```typescript
+import { supportAgent } from "../src";
+
+export default async function handler(req, res) {
+  const { input } = req.body;
+
+  const { response } = await supportAgent({
+    input,
+    state: {},
+  });
+
+  res.json({ response });
 }
 ```
 
-## Monitoring
-
-Monitor your agent's performance using Spinai's built-in logging:
+### AWS Lambda
 
 ```typescript
-import { log } from "spinai";
+import { supportAgent } from "./src";
 
-log("Processing ticket", {
-  level: "info",
-  data: { ticketId: "12345" },
-});
+export async function handler(event) {
+  const { input } = JSON.parse(event.body);
+
+  const { response } = await supportAgent({
+    input,
+    state: {},
+  });
+
+  return {
+    statusCode: 200,
+    body: JSON.stringify({ response }),
+  };
+}
 ```
 
-## Production Deployment
+## Docker Deployment
 
-For production deployment:
+Create a `Dockerfile`:
 
-1. Set up error monitoring
-2. Configure rate limiting
-3. Add authentication
-4. Set up logging
-5. Configure environment variables
+```dockerfile
+FROM node:18-slim
 
-Example production configuration:
+WORKDIR /app
 
-```typescript
-import { runAgentServer } from "spinai";
-import rateLimit from "express-rate-limit";
-import auth from "./middleware/auth";
+COPY package*.json ./
+RUN npm install
 
-const app = await createServer(config);
+COPY . .
+RUN npm run build
 
-// Add rate limiting
-app.use(
-  rateLimit({
-    windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 100, // limit each IP to 100 requests per windowMs
-  })
-);
-
-// Add authentication
-app.use(auth);
-
-app.listen(process.env.PORT || 3000);
+CMD ["npm", "start"]
 ```
+
+Deploy:
+
+```bash
+docker build -t zendesk-agent .
+docker run -p 3000:3000 \
+  -e OPENAI_API_KEY=your_key \
+  -e ZENDESK_API_TOKEN=your_token \
+  zendesk-agent
+```
+
+## Environment Variables
+
+Ensure these are set in your deployment environment:
+
+```bash
+OPENAI_API_KEY=your_openai_key
+ZENDESK_SUBDOMAIN=your_subdomain
+ZENDESK_API_TOKEN=your_api_token
+```
+
+## Next Steps
+
+<CardGroup>
+  <Card
+    title="Configuration"
+    icon="gear"
+    href="/examples/zendesk-support/configuration"
+  >
+    Configure your deployment
+  </Card>
+  <Card title="Examples" icon="lightbulb" href="/examples">
+    Explore more examples
+  </Card>
+</CardGroup>

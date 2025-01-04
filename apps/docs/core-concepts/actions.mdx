@@ -1,0 +1,145 @@
+---
+title: "Actions"
+description: "Building blocks of SpinAI agents"
+---
+
+## What are Actions?
+
+Actions are discrete tasks that your AI agent can perform. They are:
+
+- Type-safe and predictable
+- State-aware through context
+- Dependency-aware
+- Reusable across agents
+
+## Creating Actions
+
+Use the `createAction` helper to define actions:
+
+```typescript
+import { createAction } from "spinai";
+
+export const getCustomerInfo = createAction({
+  id: "getCustomerInfo",
+  description: "Retrieves customer profile information",
+  dependsOn: [], // Optional dependencies
+  retries: 2, // Optional retry count
+  async run(context) {
+    // Your action logic here
+    context.state.customer = await fetchCustomer();
+    return context;
+  },
+});
+```
+
+## Action Configuration
+
+```typescript
+interface ActionConfig {
+  id: string; // Unique identifier
+  description: string; // Used by LLM to decide when to use this action
+  dependsOn?: string[]; // IDs of actions that must run first
+  retries?: number; // Number of retry attempts (default: 2)
+  run: (context: SpinAiContext) => Promise<SpinAiContext>;
+}
+```
+
+## Context and State
+
+Actions receive and modify state through context:
+
+```typescript
+interface SpinAiContext {
+  input: string; // Original user input
+  state: Record<string, any>; // Shared state between actions
+}
+```
+
+Example using context:
+
+```typescript
+const createTicket = createAction({
+  id: "createTicket",
+  description: "Creates a support ticket",
+  dependsOn: ["getCustomerInfo"], // Runs after getCustomerInfo
+  async run(context) {
+    // Access previous action's results
+    const { customer } = context.state;
+
+    // Add new data to state
+    context.state.ticket = {
+      customerId: customer.id,
+      description: context.input,
+      priority: "high",
+    };
+
+    return context;
+  },
+});
+```
+
+## Dependencies
+
+Actions can depend on other actions:
+
+```typescript
+// Actions will run in the correct order
+dependsOn: ["validatePayment", "checkInventory"];
+```
+
+SpinAI automatically:
+
+- Resolves dependency order
+- Ensures prerequisites run first
+- Prevents circular dependencies
+- Handles parallel execution when possible
+
+## Best Practices
+
+1. **Single Responsibility**
+   Each action should do one thing well:
+
+   ```typescript
+   // Do one thing well
+   id: "validateEmail",
+   description: "Validates an email address"
+   ```
+
+2. **Clear Descriptions**
+   Help the LLM understand when to use your action:
+
+   ```typescript
+   // Good
+   description: "Fetches current weather conditions for a given location";
+   // Bad
+   description: "Gets weather";
+   ```
+
+3. **State Management**
+   Use clear state keys and types:
+
+   ```typescript
+   interface CustomerState {
+     id: string;
+     name: string;
+     tier: "basic" | "premium";
+   }
+   ```
+
+4. **Error Handling**
+   Use the retry system for unreliable operations:
+   ```typescript
+   // Retry unreliable operations
+   retries: 3;
+   ```
+
+## Next Steps
+
+<CardGroup>
+  <Card title="Task Loop" icon="arrows-spin" href="/core-concepts/task-loop">
+    Learn how actions are orchestrated
+  </Card>
+  <Card title="Agents" icon="robot" href="/core-concepts/agents">
+    See how to use actions in agents
+  </Card>
+</CardGroup>

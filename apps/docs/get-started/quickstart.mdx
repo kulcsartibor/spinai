@@ -1,115 +1,89 @@
 ---
 title: "Quickstart"
-description: "Get started with Spinai in under 5 minutes"
+description: "Create your first AI agent in minutes"
 ---
 
 ## Create a New Project
 
-Create a new Spinai project using our CLI:
-
-<CodeGroup>
-
-```bash npm
-npx create-spinai-app my-agent
-```
-
-```bash yarn
-yarn create spinai-app my-agent
-```
-
-</CodeGroup>
-
-This will create a new directory with a fully configured Spinai project including:
-
-- Example actions for ticket management
-- OpenAI orchestrator configuration
-- TypeScript configuration
-- Environment setup
+Use our CLI to create a new SpinAI project:
 
 ```bash
-my-agent/
-├── actions/
-│   ├── createTicket.ts
-│   └── getCustomerInfo.ts
-├── orchestrator/
-│   └── openai.ts
-├── .env.example
-├── spinai.config.ts
-└── tsconfig.json
+npm create spinai-app@latest my-first-agent
+cd my-first-agent
+```
+
+## Configure Environment
+
+Create a `.env` file with your OpenAI API key:
+
+```bash
+OPENAI_API_KEY=your_api_key_here
+```
+
+## Create an Action
+
+Create a new file `src/actions/getWeather.ts`:
+
+```typescript
+import { createAction } from "spinai";
+
+export const getWeather = createAction({
+  id: "getWeather",
+  description: "Get the current weather for a location",
+  async run(context) {
+    context.state.weather = {
+      temp: 72,
+      condition: "sunny",
+    };
+    return context;
+  },
+});
 ```
 
 ## Create Your Agent
 
-```typescript src/index.ts
-import { createAgent } from "spinai";
-import { OpenAI } from "openai";
-import { createTicket } from "./actions/createTicket";
-import { getCustomerInfo } from "./actions/getCustomerInfo";
+Update `src/index.ts`:
 
-const openai = new OpenAI();
+```typescript
+import { createAgent, createOpenAILLM } from "spinai";
+import { getWeather } from "./actions/getWeather";
 
-const supportAgent = createAgent({
-  instructions: "A support agent that helps manage customer tickets.",
-  actions: [createTicket, getCustomerInfo],
-  responseFormat: "json",
-  model: openai.chat.completions.create,
+const weatherAgent = createAgent({
+  instructions: "Help users get weather information",
+  actions: [getWeather],
+  llm: createOpenAILLM({
+    apiKey: process.env.OPENAI_API_KEY,
+  }),
 });
 
-export default supportAgent;
+const { response } = await weatherAgent({
+  input: "What's the weather like?",
+  state: {},
+});
 ```
 
-## Start Development
+## Run Your Agent
 
-1. Install dependencies:
-
-```bash
-cd my-agent
-npm install
-```
-
-2. Configure your environment:
-
-```bash
-cp .env.example .env
-# Add your OpenAI API key to .env
-```
-
-3. Start the development server:
+Start your agent:
 
 ```bash
 npm run dev
 ```
 
-Your AI agent is now running at `http://localhost:8080`!
+That's it! Your agent will now:
 
-## Test Your Agent
-
-Send a POST request to test your agent:
-
-```bash
-curl -X POST http://localhost:8080/api/run \
-  -H "Content-Type: application/json" \
-  -d '{"input": "Create a new ticket for customer support"}'
-```
+1. Receive the user's question
+2. Decide to use the getWeather action
+3. Execute the action
+4. Provide a response
 
 ## Next Steps
 
 <CardGroup>
-  <Card
-    title="Actions Guide"
-    icon="puzzle-piece"
-    href="/core-concepts/actions/basics"
-  >
-    Learn how to create powerful, reusable actions
+  <Card title="Development Guide" icon="code" href="/get-started/development">
+    Learn how to build more complex agents
   </Card>
-  <Card
-    title="Task Loop"
-    icon="diagram-project"
-    href="/core-concepts/task-loop"
-  >
-    Learn how the Agent Task Loop works
-  </Card>
-  <Card title="Examples" icon="code" href="/examples/zendesk-support/overview">
-    Explore real-world examples and use cases
+  <Card title="Examples" icon="lightbulb" href="/examples">
+    See real-world examples
   </Card>
 </CardGroup>

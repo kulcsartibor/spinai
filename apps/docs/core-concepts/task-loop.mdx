@@ -1,143 +1,113 @@
 ---
 title: "Task Loop"
-description: "Understanding how Spinai orchestrates AI workflows"
+description: "How SpinAI agents make and execute decisions"
 ---
 
-## The Task Loop
+## What is the Task Loop?
 
-The task loop is the core mechanism that powers Spinai's orchestration system. It's a continuous cycle of:
+The task loop is SpinAI's core decision-making process that:
 
-1. Receiving user input
-2. Consulting the orchestrator
-3. Executing actions
-4. Processing results
+- Analyzes user input
+- Decides which actions to take
+- Executes actions in order
+- Determines when tasks are complete
+
+## How it Works
+
+1. **Decision Making**
+   The LLM analyzes the input and available actions:
+
+   ```typescript
+   // LLM receives:
+   - User's input
+   - Available actions and their descriptions
+   - Results from previous actions
+   ```
+
+2. **Action Selection**
+   The LLM returns a decision:
+
+   ```typescript
+   interface LLMDecision {
+     actions: string[]; // Actions to execute
+     isDone: boolean; // Task completion status
+     response: string; // Response to user
+     reasoning?: string; // Optional explanation
+     summary?: string; // Optional summary
+   }
+   ```
+
+3. **Dependency Resolution**
+   SpinAI orders the actions based on dependencies:
+
+   ```typescript
+   // Example dependency chain
+   getCustomerInfo → validateSubscription → createTicket
+   ```
+
+4. **Action Execution**
+   Actions run in order, sharing state through context:
+   ```typescript
+   // Each action:
+   1. Receives the context
+   2. Performs its task
+   3. Updates the state
+   4. Returns the modified context
+   ```
+
+## Decision Flow
 
 ```mermaid
 graph TD
-    A[User Input] --> B[Orchestrator Decision]
+    A[User Input] --> B[LLM Decision]
     B --> C{Actions Needed?}
-    C -->|Yes| D[Execute Actions]
-    D --> E[Process Results]
-    E --> B
-    C -->|No| F[Return Final Response]
+    C -->|Yes| D[Resolve Dependencies]
+    D --> E[Execute Actions]
+    E --> F[Update State]
+    F --> B
+    C -->|No| G[Return Response]
 ```
 
-## How It Works
+## State Management
 
-### 1. Input Processing
-
-When a request comes in, Spinai:
-
-- Receives the user's input
-- Prepares the context for the orchestrator
-- Includes any previous action results
-
-### 2. Orchestrator Consultation
-
-The orchestrator (typically GPT-4):
-
-- Analyzes the user's request
-- Reviews available actions
-- Decides which actions to run
-- Determines if the task is complete
+The task loop maintains state throughout the process:
 
 ```typescript
-interface OrchestratorDecision {
-  actions: string[]; // Actions to execute
-  isDone: boolean; // Whether the task is complete
-  summary?: string; // Optional explanation
-  reasoning?: string; // Optional decision reasoning
-}
-```
-
-### 3. Action Execution
-
-For each selected action:
-
-- Dependencies are resolved
-- Actions are executed in order
-- Results are stored
-- Context is updated
-
-### 4. Result Processing
-
-After actions complete:
-
-- Results are collected
-- The orchestrator reviews results
-- Decides on next steps or completion
-
-## Example Flow
-
-Here's a typical task loop in action:
-
-```typescript
-// 1. User sends request
-const input = "Analyze this text and summarize it";
-
-// 2. Orchestrator decides
-const decision = await orchestrator.decide([{ role: "user", content: input }]);
-// Decides to use: ["textAnalysis", "summarization"]
-
-// 3. Execute actions in sequence
-const results = {
-  textAnalysis: await actions.textAnalysis.run(context),
-  summarization: await actions.summarization.run({
-    ...context,
-    store: { analysis: results.textAnalysis },
-  }),
+// Initial state
+const context = {
+  input: "user question",
+  state: {},
 };
 
-// 4. Process and continue or complete
-if (decision.isDone) {
-  return { summary: decision.summary, results };
-} else {
-  // Continue the loop with new context
-}
+// After actions run
+const context = {
+  input: "user question",
+  state: {
+    customerInfo: { ... },
+    ticketId: "123",
+    response: "I've created ticket #123",
+  },
+};
 ```
 
-## Advanced Features
+## Logging and Debugging
 
-### State Management
+The task loop provides detailed logging:
 
-- The task loop maintains state between iterations
-- Previous results are available to subsequent actions
-- Context is preserved throughout the workflow
+```typescript
+ℹ️ Processing request { input: "I need help" }
+ℹ️ Planning next actions ["getCustomerInfo"]
+ℹ️ Executing action: getCustomerInfo
+ℹ️ Task complete { response: "I've found your info..." }
+```
 
-### Error Handling
+## Next Steps
 
-- Failed actions can be retried
-- The orchestrator can adapt to failures
-- Alternative action paths can be chosen
-
-### Loop Control
-
-- The loop continues until:
-  - The orchestrator marks the task as complete
-  - An error occurs
-  - Maximum iterations are reached
-
-## Best Practices
-
-1. **Design Clear Actions**
-
-   - Actions should have single responsibilities
-   - Clear inputs and outputs
-   - Well-defined error states
-
-2. **Optimize Orchestrator Prompts**
-
-   - Be specific about decision criteria
-   - Include relevant context
-   - Define clear completion conditions
-
-3. **Handle State Carefully**
-
-   - Use the store for sharing data
-   - Clean up temporary state
-   - Validate data between actions
-
-4. **Monitor and Log**
-   - Track loop iterations
-   - Log decision reasoning
-   - Monitor action performance
+<CardGroup>
+  <Card title="Agents" icon="robot" href="/core-concepts/agents">
+    Learn about agent configuration
+  </Card>
+  <Card title="Examples" icon="lightbulb" href="/examples">
+    See real-world implementations
+  </Card>
+</CardGroup>

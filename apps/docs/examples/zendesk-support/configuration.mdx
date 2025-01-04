@@ -1,61 +1,82 @@
 ---
 title: "Configuration"
-description: "Configuring the Zendesk Support agent"
+description: "Setting up Zendesk integration"
 ---
-
-## Orchestrator Configuration
-
-Create a configuration file for your Zendesk Support agent:
-
-```typescript orchestrator/openai.ts
-import { createOpenAIOrchestrator } from "spinai";
-
-export default createOpenAIOrchestrator({
-  apiKey: process.env.OPENAI_API_KEY,
-  systemPrompt: `You are a customer support assistant that:
-    1. Analyzes support tickets
-    2. Determines if more information is needed
-    3. Generates helpful and empathetic responses
-    4. Suggests appropriate actions`,
-});
-```
 
 ## Environment Setup
 
-Create a `.env` file with your credentials:
-
-```bash .env
-OPENAI_API_KEY=your-openai-key
-ZENDESK_TOKEN=your-zendesk-token
-ZENDESK_DOMAIN=your-zendesk-domain
-```
-
-## Project Structure
-
-Organize your project files:
+Create a `.env` file:
 
 ```bash
-zendesk-agent/
-├── actions/
-│   ├── fetchTicket.ts
-│   ├── analyzeTicket.ts
-│   ├── generateResponse.ts
-│   └── updateTicket.ts
-├── orchestrator/
-│   └── index.ts
-├── .env
-└── spinai.config.ts
+OPENAI_API_KEY=your_openai_key
+ZENDESK_SUBDOMAIN=your_subdomain
+ZENDESK_API_TOKEN=your_api_token
 ```
 
-## Spinai Configuration
+## Zendesk API Setup
 
-Set up your `spinai.config.ts`:
+1. Go to Admin > Channels > API
+2. Create a new API token
+3. Note your subdomain (e.g., company.zendesk.com)
 
-```typescript spinai.config.ts
-import { SpinaiConfig } from "spinai";
+## Agent Configuration
 
-export default {
-  actionDirectoryPath: "./actions",
-  orchestratorDirectoryPath: "./orchestrator",
-} satisfies SpinaiConfig;
+You can customize the agent's behavior:
+
+```typescript
+const supportAgent = createAgent({
+  instructions: `You are a support agent that:
+    - Verifies customer identity first
+    - Creates tickets for valid requests
+    - Maintains a professional tone
+    - Escalates complex issues`,
+  actions: [getCustomerInfo, createTicket],
+  llm: createOpenAILLM({
+    apiKey: process.env.OPENAI_API_KEY,
+    model: "gpt-4-turbo-preview",
+  }),
+  training: {
+    // Custom training instructions
+    systemInstructions: `
+      Always verify customer identity before taking actions.
+      Create tickets only for actionable requests.
+      Respond professionally and clearly.
+    `,
+  },
+});
 ```
+
+## Action Configuration
+
+Configure action behavior:
+
+```typescript
+const getCustomerInfo = createAction({
+  id: "getCustomerInfo",
+  description: "Get customer information from email or ID",
+  retries: 2,
+  async run(context) {
+    const zendesk = new ZendeskAPI({
+      subdomain: process.env.ZENDESK_SUBDOMAIN,
+      token: process.env.ZENDESK_API_TOKEN,
+      timeout: 5000, // 5s timeout
+    });
+    // ... implementation
+  },
+});
+```
+
+## Next Steps
+
+<CardGroup>
+  <Card
+    title="Implementation"
+    icon="code"
+    href="/examples/zendesk-support/implementation"
+  >
+    See the implementation
+  </Card>
+  <Card title="Core Concepts" icon="book" href="/core-concepts/actions">
+    Learn more about actions
+  </Card>
+</CardGroup>

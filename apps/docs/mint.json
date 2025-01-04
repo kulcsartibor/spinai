@@ -45,8 +45,8 @@
     {
       "group": "Get Started",
       "pages": [
-        "get-started/introduction",
         "get-started/quickstart",
+        "get-started/introduction",
         "get-started/development"
       ]
     },
@@ -54,17 +54,8 @@
       "group": "Core Concepts",
       "pages": [
         "core-concepts/task-loop",
-        "core-concepts/orchestrators",
-        {
-          "group": "Actions",
-          "icon": "bolt",
-          "pages": [
-            "core-concepts/actions/basics",
-            "core-concepts/actions/creation",
-            "core-concepts/actions/examples",
-            "core-concepts/actions/best-practices"
-          ]
-        }
+        "core-concepts/agents",
+        "core-concepts/actions"
       ]
     },
     {

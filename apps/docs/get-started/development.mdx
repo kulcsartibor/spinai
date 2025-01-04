@@ -1,135 +1,98 @@
 ---
 title: "Development"
-description: "Build and customize your AI agents with Spinai"
+description: "Build AI agents with SpinAI"
 ---
 
 ## Project Structure
 
-A typical Spinai project has the following structure:
+A typical SpinAI project is simple and focused:
 
 ```bash
-my-spinai-project/
-├── actions/              # Your AI actions
-│   ├── search.ts
-│   └── process.ts
-├── orchestrator/         # Orchestrator configuration
-│   └── index.ts
-├── spinai.config.ts     # Spinai configuration
+my-spinai-app/
+├── src/
+│   ├── actions/         # Your AI actions
+│   │   └── getWeather.ts
+│   └── index.ts        # Agent configuration
+├── .env                # Environment variables
 └── package.json
 ```
 
 ## Creating Actions
 
-Actions are the building blocks of your AI agent. Each action should be in its own file:
+Actions are the building blocks of your AI agent. Each action is created using the `createAction` helper:
 
 ```typescript
-import type { ActionModule } from "spinai";
+import { createAction } from "spinai";
 
-export const config = {
-  id: "myAction",
-  dependsOn: ["otherAction"], // Optional dependencies
-  metadata: {
-    description: "Performs a specific task",
+export const getWeather = createAction({
+  id: "getWeather",
+  description: "Get the current weather for a location",
+  dependsOn: [], // Optional dependencies
+  async run(context) {
+    // Implement your action logic
+    context.state.weather = { temp: 72, condition: "sunny" };
+    return context;
   },
-};
-
-export async function run(context) {
-  // Action implementation
-  return result;
-}
+});
 ```
 
-### Action Context
+### Context and State
 
-The context object provides access to:
+Each action receives a context object that includes:
 
-- `request.input`: User input string
-- `request.metadata`: Additional request metadata
-- `store`: Shared state between actions
-- `actions`: Access to other registered actions
+- `input`: The user's original request
+- `state`: Shared state between actions
+- Access to results from previous actions
 
-## Configuring Orchestrators
+## Creating an Agent
 
-Orchestrators manage the flow of your AI agent. The OpenAI orchestrator is included by default:
+Agents coordinate actions to achieve user goals:
 
 ```typescript
-import { createOpenAIOrchestrator } from "spinai";
+import { createAgent, createOpenAILLM } from "spinai";
+import { getWeather } from "./actions/getWeather";
 
-export default createOpenAIOrchestrator({
-  apiKey: process.env.OPENAI_API_KEY,
-  model: "gpt-4-turbo-preview", // Optional, defaults to gpt-4-turbo-preview
-  temperature: 0.7, // Optional
-  systemPrompt: `Your system prompt here...`,
+const weatherAgent = createAgent({
+  instructions: "Help users with weather information",
+  actions: [getWeather],
+  llm: createOpenAILLM({
+    apiKey: process.env.OPENAI_API_KEY,
+  }),
 });
 ```
 
 ## Dependency Management
 
-Spinai automatically handles action dependencies:
+SpinAI automatically handles action dependencies using a DAG (Directed Acyclic Graph):
 
 ```typescript
-export const config = {
-  id: "processData",
-  dependsOn: ["fetchData", "validateData"],
-  allowRerun: false, // Optional, prevents multiple runs
-};
-```
-
-## Debugging
-
-Use the built-in logger for debugging:
-
-```typescript
-import { log } from "spinai";
-
-export async function run(context) {
-  log("Processing request", { level: "debug", data: context.request });
-  // Action implementation
-}
-```
-
-Log levels:
-
-- `debug`: Detailed debugging information
-- `info`: General information (default)
-- `error`: Error conditions
-
-## Testing
-
-We recommend testing your actions in isolation:
-
-```typescript
-import { ActionContext } from "spinai";
-
-describe("myAction", () => {
-  it("should process input correctly", async () => {
-    const context: ActionContext = {
-      request: { input: "test" },
-      store: {},
-      actions: {},
-    };
-
-    const result = await myAction.run(context);
-    expect(result).toBeDefined();
-  });
+const createTicket = createAction({
+  id: "createTicket",
+  description: "Creates a support ticket",
+  dependsOn: ["getCustomerInfo"], // This action runs after getCustomerInfo
+  async run(context) {
+    const { customerInfo } = context.state;
+    // Create ticket using customer info...
+    return context;
+  },
 });
 ```
 
 ## Best Practices
 
-1. Keep actions focused and single-purpose
-2. Use descriptive action IDs and metadata
-3. Handle errors gracefully
-4. Use dependency management for complex workflows
-5. Log important information for debugging
+1. **Clear Action Names**: Use descriptive IDs and descriptions
+2. **Single Responsibility**: Each action should do one thing well
+3. **State Management**: Use context.state to share data between actions
+4. **Error Handling**: Add retries for unreliable operations
+5. **Dependencies**: Explicitly declare action dependencies
 
 ## Next Steps
 
 <CardGroup>
+  <Card title="Examples" icon="lightbulb" href="/examples">
+    See real-world examples
+  </Card>
   <Card title="API Reference" icon="code" href="/api-reference">
     Complete API documentation
-  </Card>
-  <Card title="Examples" icon="lightbulb" href="/examples">
-    Real-world usage examples
   </Card>
 </CardGroup>

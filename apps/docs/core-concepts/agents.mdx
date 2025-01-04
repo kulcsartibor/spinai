@@ -1,0 +1,124 @@
+---
+title: "Agents"
+description: "AI agents that coordinate actions to achieve goals"
+---
+
+## What are Agents?
+
+Agents are the core orchestrators in SpinAI that:
+
+- Make decisions using LLMs
+- Execute actions in the right order
+- Maintain state between actions
+- Provide responses to users
+
+## Creating an Agent
+
+```typescript
+import { createAgent, createOpenAILLM } from "spinai";
+
+const agent = createAgent({
+  // Instructions that guide the agent's behavior
+  instructions: "Help users with support tickets",
+
+  // Actions the agent can use
+  actions: [getCustomerInfo, createTicket],
+
+  // LLM for decision making
+  llm: createOpenAILLM({
+    apiKey: process.env.OPENAI_API_KEY,
+  }),
+});
+```
+
+## Using Agents
+
+Agents are async functions that take input and return responses:
+
+```typescript
+const { response, context } = await agent({
+  input: "I need help with my order",
+  state: {}, // Optional initial state
+});
+```
+
+## Agent Configuration
+
+```typescript
+interface AgentConfig {
+  instructions: string; // Guide agent behavior
+  actions: Action[]; // Available actions
+  llm: BaseLLM; // LLM for decisions
+  training?: {
+    // Optional training overrides
+    systemInstructions?: string;
+    completionInstructions?: string;
+  };
+}
+```
+
+## LLM Support
+
+SpinAI works with any LLM that supports chat completions:
+
+```typescript
+// Built-in OpenAI support
+const openAiLLM = createOpenAILLM({
+  apiKey: process.env.OPENAI_API_KEY,
+  model: "gpt-4-turbo-preview", // Optional
+});
+
+// Custom LLM implementation
+const customLLM: BaseLLM = {
+  async createChatCompletion({ messages }) {
+    // Your LLM implementation
+    return {
+      actions: [],
+      isDone: true,
+      response: "Custom response",
+    };
+  },
+};
+```
+
+## Best Practices
+
+1. **Clear Instructions**
+
+   ```typescript
+   // Good
+   instructions: "You are a support agent that helps users with order issues";
+   // Bad
+   instructions: "Help users";
+   ```
+
+2. **Focused Action Sets**
+   Only provide actions relevant to the agent's purpose:
+
+   ```typescript
+   // Support agent
+   actions: [getCustomerInfo, getOrderStatus, createTicket];
+   ```
+
+3. **State Management**
+   Initialize state when needed:
+   ```typescript
+   await agent({
+     input: "Check my order",
+     state: {
+       customerId: "123",
+       region: "US",
+     },
+   });
+   ```
+
+## Next Steps
+
+<CardGroup>
+  <Card title="Actions" icon="puzzle-piece" href="/core-concepts/actions">
+    Learn about creating actions
+  </Card>
+  <Card title="Task Loop" icon="arrows-spin" href="/core-concepts/task-loop">
+    Understand how agents make decisions
+  </Card>
+</CardGroup>

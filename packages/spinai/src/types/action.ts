@@ -1,24 +1,13 @@
-export interface ActionContext {
-  request: {
-    input: string;
-    metadata?: Record<string, any>;
-  };
-  store: Record<string, any>;
-  actions: Record<string, ActionModule>;
-}
-
-export interface ActionConfig {
+export interface Action {
   id: string;
+  description: string;
   retries?: number;
   dependsOn?: string[];
-  allowRerun?: boolean;
-  metadata?: {
-    description?: string;
-    [key: string]: any;
-  };
+  run: (context: ActionContext) => Promise<ActionContext>;
 }
 
-export interface ActionModule {
-  run: (context: ActionContext) => Promise<any>;
-  config: ActionConfig;
+export interface ActionContext {
+  input: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  state: Record<string, any>;
 }

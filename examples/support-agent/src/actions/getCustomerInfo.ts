@@ -1,18 +1,16 @@
-export async function run() {
-  const result = {
-    customerId: "abc123",
-    name: "Jane Smith",
-    tier: "premium",
-    lastContact: "2024-02-20",
-    openTickets: 2,
-  };
+import { createAction } from "spinai";
 
-  return result;
-}
-
-export const config = {
+export const getCustomerInfo = createAction({
   id: "getCustomerInfo",
-  metadata: { description: "Retrieves customer profile and status" },
-  retries: 3,
-  dependsOn: [],
-};
+  description: "Retrieves customer profile and status",
+  async run(context) {
+    context.state.customerInfo = {
+      customerId: "abc123",
+      name: "Jane Smith",
+      tier: "premium",
+      lastContact: "2024-02-20",
+      openTickets: 2,
+    };
+    return context;
+  },
+});

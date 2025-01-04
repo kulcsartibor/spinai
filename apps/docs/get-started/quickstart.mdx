@@ -38,6 +38,26 @@ my-agent/
 └── tsconfig.json
 ```
 
+## Create Your Agent
+
+```typescript src/index.ts
+import { createAgent } from "spinai";
+import { OpenAI } from "openai";
+import { createTicket } from "./actions/createTicket";
+import { getCustomerInfo } from "./actions/getCustomerInfo";
+
+const openai = new OpenAI();
+
+const supportAgent = createAgent({
+  instructions: "A support agent that helps manage customer tickets.",
+  actions: [createTicket, getCustomerInfo],
+  responseFormat: "json",
+  model: openai.chat.completions.create,
+});
+
+export default supportAgent;
+```
+
 ## Start Development
 
 1. Install dependencies:

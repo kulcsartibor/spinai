@@ -1,5 +1,5 @@
 {
-  "name": "support-agent",
+  "name": "spinai-basic-template",
   "version": "0.1.0",
   "type": "module",
   "private": true,
@@ -12,7 +12,6 @@
   },
   "dependencies": {
     "dotenv": "^16.4.7",
-    "openai": "^4.77.0",
     "spinai": "*",
     "tsx": "^4.7.1"
   },

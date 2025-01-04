@@ -1,105 +1,82 @@
 <div align="center">
+<h1>SpinAI 🤖</h1>
 
-![Logo of SpinUp](./docs/SpinUp_logo.png)
-
-# **SpinUp**
-
-🤖 **SpinUp**: A framework that allows you to setup and manage AI agents seamlessly.
+A lightweight framework for building AI agents with TypeScript
 
 <h3>
 
-[Homepage](https://www.spinup.com/) | [Examples](https://github.com/Fallomai/spinup/SpinUp-examples)
+[Documentation](https://docs.spinai.dev) | [Discord](https://discord.gg/BFy7hMpT)
 
 </h3>
 
-[![GitHub Repo stars](https://img.shields.io/github/stars/Fallomai/spinup)](https://github.com/Fallomai/spinup)
+[![GitHub Repo stars](https://img.shields.io/github/stars/Fallomai/spinai)](https://github.com/Fallomai/spinai)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)
+[![npm version](https://badge.fury.io/js/spinai.svg)](https://www.npmjs.com/package/spinai)
 
 </div>
 
-## Table of contents
-
-- [Why SpinUp?](#why-SpinUp)
-- [Getting Started](#getting-started)
-- [Key Features](#key-features)
-- [Examples](#examples)
-- [Contribution](#contribution)
-- [License](#license)
-
-## Why SpinUp?
-
-SpinUp is a framework that helps you set up and manage teams of AI agents.
-Each agent is given a specific role, tools, and tasks to work on, and they all work together to complete complex jobs.
-
-## Getting Started
-
-### 1. Installation
-
-#### Prerequisites
-
-Ensure you have the following installed:
-
-- Node.js >=14
-- npm or yarn package manager
-- TypeScript >=5.3.3
-
-Install `turbo` globally if you haven't already:
+## Quick Start
 
 ```bash
-npm install turbo --global
+npm create spinai-app@latest
 ```
 
-#### Clone and Install
+## Basic Example
 
-Clone the repository and navigate to the project directory:
+```typescript
+import { createAgent, createOpenAILLM, createAction } from "spinai";
 
-```bash
-git clone https://github.com/Fallomai/spinup.git
-cd spinup
+// Define your actions
+const getWeather = createAction({
+  id: "getWeather",
+  description: "Get the current weather for a location",
+  async run(context) {
+    // Implement weather API call
+    context.state.weather = { temp: 72, condition: "sunny" };
+    return context;
+  }
+});
+
+// Create your agent
+const weatherAgent = createAgent({
+  instructions: "Help users with weather information",
+  actions: [getWeather],
+  llm: createOpenAILLM({
+    apiKey: process.env.OPENAI_API_KEY,
+  }),
+});
+
+// Use your agent
+const { response } = await weatherAgent({
+  input: "What's the weather like?",
+  state: {},
+});
+
+console.log(response);
 ```
 
-Install the dependencies:
+## Features
 
-```bash
-npm install
-```
+- 🎯 **Task-focused**: Agents execute specific actions to achieve goals
+- 🔄 **DAG-based**: Handles complex action dependencies automatically
+- 🔌 **Pluggable**: Works with any LLM that supports chat completions
+- 🛠️ **Type-safe**: Built with TypeScript for robust development
+- 🪶 **Lightweight**: Zero dependencies beyond your chosen LLM
 
-### 2. Running the Server
+## Documentation
 
-Start the development server:
+Visit [docs.spinai.dev](https://docs.spinai.dev) for:
+- Detailed guides
+- API reference
+- Advanced examples
+- Best practices
 
-```bash
-npm run dev
-```
+## Community
 
-By default, the server will run on `http://localhost:8080`.
-
-### 3. Using the API
-
-Send a POST request to the endpoint `/api/run/` with the following payload:
-
-**Endpoint:**
-
-```plaintext
-http://localhost:8080/api/run/
-```
-
-**Request Body:**
-
-```json
-{
-  "input": "create a new high priority ticket for about the API not working for endpoint /orders"
-}
-```
-
-## Contribution
-
-SpinUp is an open-source project, and we welcome contributions! If you want to contribute:
-
-1. Fork the repository.
-2. Create a new branch for your feature.
-3. Make your changes and submit a pull request.
+- Join our [Discord](https://discord.gg/BFy7hMpT) for help and discussions
+- Star us on [GitHub](https://github.com/Fallomai/spinai)
+- Follow us on [Twitter](https://twitter.com/spinai_dev)
 
 ## License
 
-SpinUp is released under the [MIT License](https://opensource.org/licenses/MIT).
+MIT © [FallomAI](https://github.com/Fallomai)

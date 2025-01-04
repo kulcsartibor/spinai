@@ -20,48 +20,6 @@ Create a `.env` file with your OpenAI API key:
 OPENAI_API_KEY=your_api_key_here
 ```
 
-## Create an Action
-
-Create a new file `src/actions/getWeather.ts`:
-
-```typescript
-import { createAction } from "spinai";
-
-export const getWeather = createAction({
-  id: "getWeather",
-  description: "Get the current weather for a location",
-  async run(context) {
-    context.state.weather = {
-      temp: 72,
-      condition: "sunny",
-    };
-    return context;
-  },
-});
-```
-
-## Create Your Agent
-
-Update `src/index.ts`:
-
-```typescript
-import { createAgent, createOpenAILLM } from "spinai";
-import { getWeather } from "./actions/getWeather";
-
-const weatherAgent = createAgent({
-  instructions: "Help users get weather information",
-  actions: [getWeather],
-  llm: createOpenAILLM({
-    apiKey: process.env.OPENAI_API_KEY,
-  }),
-});
-
-const { response } = await weatherAgent({
-  input: "What's the weather like?",
-  state: {},
-});
-```
-
 ## Run Your Agent
 
 Start your agent:

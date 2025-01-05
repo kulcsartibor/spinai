@@ -1,5 +1,11 @@
 # create-spinai-app
 
+## 1.1.1
+
+### Patch Changes
+
+- afbf4bf: Add the ability to add responseFormats to agents for custom json formatting
+
 ## 1.1.0
 
 ### Minor Changes

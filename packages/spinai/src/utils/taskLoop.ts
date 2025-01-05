@@ -1,15 +1,15 @@
 import type { Action } from "../types/action";
 import type { SpinAiContext } from "../types/context";
-import type {
-  LLMMessage,
-  LLMDecision,
-  BaseLLM,
-  AgentResponse,
+import {
+  type LLMMessage,
+  type LLMDecision,
+  type BaseLLM,
+  type AgentResponse,
 } from "../types/llm";
 import { resolveDependencies } from "./deps";
 import { buildSystemPrompt } from "./promptBuilder";
 import { log } from "./logger";
-import type { AgentConfig } from "../types/agent";
+import type { AgentConfig, ResponseFormat } from "../types/agent";
 
 async function getNextDecision(
   model: BaseLLM,
@@ -18,7 +18,8 @@ async function getNextDecision(
   actions: Action[],
   previousResults?: unknown,
   isComplete?: boolean,
-  training?: AgentConfig["training"]
+  training?: AgentConfig["training"],
+  responseFormat?: ResponseFormat
 ): Promise<LLMDecision> {
   const messages: LLMMessage[] = [
     {
@@ -38,6 +39,10 @@ async function getNextDecision(
   const decision = await model.createChatCompletion({
     messages,
     temperature: 0.7,
+    responseFormat:
+      isComplete && responseFormat?.type === "json"
+        ? responseFormat
+        : undefined,
   });
   if (decision.actions.length > 0) {
     log("Planning next actions", { data: decision.actions });
@@ -49,13 +54,14 @@ async function getNextDecision(
   return decision;
 }
 
-export async function runTaskLoop(params: {
+export async function runTaskLoop<T = string>(params: {
   actions: Action[];
   context: SpinAiContext;
   model: BaseLLM;
   instructions: string;
   training?: AgentConfig["training"];
-}): Promise<AgentResponse> {
+  responseFormat?: ResponseFormat;
+}): Promise<AgentResponse<T>> {
   const { actions, model, instructions } = params;
   let context = { ...params.context };
   let isDone = false;
@@ -64,7 +70,7 @@ export async function runTaskLoop(params: {
   let lastDecision: LLMDecision = {
     actions: [],
     isDone: false,
-    response: "Task not started",
+    response: "Task not started" as unknown as T,
   };
 
   log("Processing request", { data: { input: context.input } });
@@ -77,14 +83,23 @@ export async function runTaskLoop(params: {
       actions,
       previousResults,
       false,
-      params.training
+      params.training,
+      undefined
     );
 
-    if (lastDecision.actions.length === 0) {
-      return {
-        response: lastDecision.response,
-        context,
-      };
+    if (lastDecision.actions.length === 0 || lastDecision.isDone) {
+      const finalDecision = await getNextDecision(
+        model,
+        instructions,
+        context.input,
+        actions,
+        previousResults,
+        true,
+        params.training,
+        params.responseFormat
+      );
+      const response = finalDecision.response as T;
+      return { response, context };
     }
 
     const orderedActions = resolveDependencies(
@@ -108,7 +123,7 @@ export async function runTaskLoop(params: {
   }
 
   return {
-    response: lastDecision.response,
+    response: lastDecision.response as T,
     context,
   };
 }

@@ -1,7 +1,10 @@
 import Anthropic from "@anthropic-ai/sdk";
-
-import type { BaseLLM, LLMDecision } from "../types/llm";
-import { SYSTEM_INSTRUCTIONS, DEFAULT_SCHEMA, formatMessages } from "./shared";
+import { type BaseLLM, type LLMDecision } from "../types/llm";
+import {
+  SYSTEM_INSTRUCTIONS,
+  formatMessages,
+  createResponseSchema,
+} from "./shared";
 
 export function createAnthropicLLM(config: {
   apiKey: string;
@@ -14,12 +17,17 @@ export function createAnthropicLLM(config: {
   });
 
   return {
-    async createChatCompletion({ messages, temperature = 0.7 }) {
+    async createChatCompletion({
+      messages,
+      temperature = 0.7,
+      responseFormat,
+    }) {
+      const schema = createResponseSchema(responseFormat);
       const response = await anthropic.messages.create({
         model: config.model || "claude-3-opus-20240229",
         messages: formatMessages(messages),
         temperature,
-        system: `${SYSTEM_INSTRUCTIONS}\n\nRespond only with a JSON object matching this schema:\n${JSON.stringify(DEFAULT_SCHEMA, null, 2)}`,
+        system: `${SYSTEM_INSTRUCTIONS}\n\nRespond only with a JSON object matching this schema:\n${JSON.stringify(schema, null, 2)}`,
         max_tokens: config.maxTokens || 1024,
       });
 

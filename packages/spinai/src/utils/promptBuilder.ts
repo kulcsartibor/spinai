@@ -9,16 +9,11 @@ export function buildSystemPrompt(
 ): string {
   if (isComplete) {
     return `${userInstructions}
-
 ${
   training?.completionInstructions ||
   `
-Review all the actions taken and their results, then provide:
-1. A summary of what was accomplished
-2. Your reasoning about the process
-3. A clear, direct response to the user. If you can't help with their request, be honest and explain why.
-
-Return this in JSON format with "summary", "reasoning", and "response" fields.`
+Review all the actions taken and their results, then provide a clear, direct response to the user.
+If you can't help with their request, be honest and explain why.`
 }`;
   }
 

@@ -1,6 +1,6 @@
 import OpenAI from "openai";
+import { createResponseSchema } from "./shared";
 import type { BaseLLM, LLMDecision } from "../types/llm";
-import { DEFAULT_SCHEMA } from "./shared";
 
 export interface OpenAIConfig {
   apiKey: string;
@@ -8,22 +8,27 @@ export interface OpenAIConfig {
   temperature?: number;
 }
 
-const DECISION_FUNCTION = {
-  name: "make_decision",
-  description: "Decide which actions to take next",
-  parameters: DEFAULT_SCHEMA,
-} as const;
-
 export function createOpenAILLM(config: OpenAIConfig): BaseLLM {
   const client = new OpenAI({ apiKey: config.apiKey });
 
   return {
-    async createChatCompletion({ messages, temperature = 0.7 }) {
+    async createChatCompletion({
+      messages,
+      temperature = 0.7,
+      responseFormat,
+    }) {
+      const schema = createResponseSchema(responseFormat);
       const response = await client.chat.completions.create({
         model: config.model || "gpt-4-turbo-preview",
         messages,
         temperature,
-        functions: [DECISION_FUNCTION],
+        functions: [
+          {
+            name: "make_decision",
+            description: "Decide which actions to take next",
+            parameters: schema,
+          },
+        ],
         function_call: { name: "make_decision" },
       });
 

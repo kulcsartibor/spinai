@@ -3,32 +3,64 @@ title: "Agents"
 description: "AI agents that coordinate actions to achieve goals"
 ---
 
-## What are Agents?
+# Agents
 
-Agents are the core orchestrators in SpinAI that:
-
-- Make decisions using LLMs
-- Execute actions in the right order
-- Maintain state between actions
-- Provide responses to users
+Agents are the core building blocks of SpinAI. They combine LLMs with actions to solve tasks.
 
 ## Creating an Agent
 
 ```typescript
 import { createAgent, createOpenAILLM } from "spinai";
+import { getCustomerInfo, updateProfile } from "./actions";
+
+const llm = createOpenAILLM({
+  apiKey: process.env.OPENAI_API_KEY,
+});
 
 const agent = createAgent({
-  // Instructions that guide the agent's behavior
-  instructions: "Help users with support tickets",
-
-  // Actions the agent can use
-  actions: [getCustomerInfo, createTicket],
-
-  // LLM for decision making
-  llm: createOpenAILLM({
-    apiKey: process.env.OPENAI_API_KEY,
-  }),
+  instructions: "You are a helpful assistant",
+  actions: [getCustomerInfo, updateProfile],
+  llm,
 });
+```
+
+## Custom Response Formats
+
+You can specify a response format to get structured data back from the agent:
+
+```typescript
+interface CustomerInfo {
+  name: string;
+  plan: string;
+  nextBilling: string;
+}
+
+const supportAgent = createAgent<CustomerInfo>({
+  instructions: "You are a customer support agent",
+  actions: [getCustomerInfo, getSubscriptionStatus],
+  llm,
+  responseFormat: {
+    type: "json",
+    schema: {
+      type: "object",
+      properties: {
+        name: { type: "string" },
+        plan: { type: "string" },
+        nextBilling: { type: "string" },
+      },
+      required: ["name", "plan", "nextBilling"],
+    },
+  },
+});
+
+// Response will be typed as CustomerInfo
+const { response } = await supportAgent({
+  input: "What's my subscription status?",
+  state: {},
+});
+
+console.log(response.plan); // "Pro Plan"
+console.log(response.nextBilling); // "2024-04-01"
 ```
 
 ## Using Agents

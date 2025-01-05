@@ -1,4 +1,6 @@
 import { LLMMessage } from "../types/llm";
+import { DECISION_SCHEMA } from "../types/llm";
+import type { ResponseFormat } from "../types/agent";
 
 export const SYSTEM_INSTRUCTIONS = `You are an AI orchestrator that executes actions to achieve goals.
 
@@ -13,26 +15,19 @@ export function formatMessages(messages: LLMMessage[]) {
   }));
 }
 
-export const DEFAULT_SCHEMA = {
-  type: "object",
-  properties: {
-    actions: {
-      type: "array",
-      items: { type: "string" },
-      description: "Array of action IDs to execute",
+export function createResponseSchema(responseFormat?: ResponseFormat) {
+  return {
+    ...DECISION_SCHEMA,
+    properties: {
+      ...DECISION_SCHEMA.properties,
+      response:
+        responseFormat?.type === "json"
+          ? {
+              type: "object",
+              required: responseFormat.schema.required,
+              properties: responseFormat.schema.properties,
+            }
+          : DECISION_SCHEMA.properties.response,
     },
-    isDone: {
-      type: "boolean",
-      description: "Whether the task is complete",
-    },
-    response: {
-      type: "string",
-      description: "Response to the user",
-    },
-    reasoning: {
-      type: "string",
-      description: "Optional explanation of decision",
-    },
-  },
-  required: ["actions", "isDone", "response"],
-};
+  };
+}

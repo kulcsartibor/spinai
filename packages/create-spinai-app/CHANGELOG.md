@@ -1,5 +1,11 @@
 # create-spinai-app
 
+## 1.1.0
+
+### Minor Changes
+
+- 479335e: Add anthropic support
+
 ## 1.0.0
 
 ### Major Changes

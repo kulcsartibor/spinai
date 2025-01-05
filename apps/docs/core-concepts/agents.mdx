@@ -59,27 +59,9 @@ interface AgentConfig {
 
 ## LLM Support
 
-SpinAI works with any LLM that supports chat completions:
+SpinAI supports multiple LLMs out of the box.
 
-```typescript
-// Built-in OpenAI support
-const openAiLLM = createOpenAILLM({
-  apiKey: process.env.OPENAI_API_KEY,
-  model: "gpt-4-turbo-preview", // Optional
-});
-
-// Custom LLM implementation
-const customLLM: BaseLLM = {
-  async createChatCompletion({ messages }) {
-    // Your LLM implementation
-    return {
-      actions: [],
-      isDone: true,
-      response: "Custom response",
-    };
-  },
-};
-```
+See [LLM Support](/llms/overview) for more details on configuring different models.
 
 ## Best Practices
 

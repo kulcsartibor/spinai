@@ -1,5 +1,6 @@
 import OpenAI from "openai";
 import type { BaseLLM, LLMDecision } from "../types/llm";
+import { DEFAULT_SCHEMA } from "./shared";
 
 export interface OpenAIConfig {
   apiKey: string;
@@ -10,33 +11,7 @@ export interface OpenAIConfig {
 const DECISION_FUNCTION = {
   name: "make_decision",
   description: "Decide which actions to take next",
-  parameters: {
-    type: "object",
-    required: ["actions", "isDone", "response"],
-    properties: {
-      actions: {
-        type: "array",
-        items: { type: "string" },
-        description: "Array of action IDs to execute next",
-      },
-      isDone: {
-        type: "boolean",
-        description: "Whether all required actions are complete",
-      },
-      reasoning: {
-        type: "string",
-        description: "Explanation of the decision",
-      },
-      summary: {
-        type: "string",
-        description: "Summary of progress",
-      },
-      response: {
-        type: "string",
-        description: "Direct response to the user's request",
-      },
-    },
-  },
+  parameters: DEFAULT_SCHEMA,
 } as const;
 
 export function createOpenAILLM(config: OpenAIConfig): BaseLLM {

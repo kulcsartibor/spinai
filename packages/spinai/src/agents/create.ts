@@ -11,6 +11,8 @@ export function createAgent<T = string>(config: AgentConfig) {
       instructions: config.instructions,
       training: config.training,
       responseFormat: config.responseFormat,
+      agentId: config.agentId,
+      spinApiKey: config.spinApiKey,
     });
   };
 }

@@ -16,9 +16,17 @@ export interface AgentConfig {
   instructions: string;
   actions: Action[];
   llm: BaseLLM;
+  agentId?: string;
+  spinApiKey?: string;
   training?: {
     systemInstructions?: string;
     completionInstructions?: string;
   };
   responseFormat?: ResponseFormat;
+}
+
+export interface AgentResponse<T = unknown> {
+  response: T;
+  sessionId: string;
+  isDone: boolean;
 }

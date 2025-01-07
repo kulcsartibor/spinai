@@ -37,11 +37,6 @@ export const DECISION_SCHEMA = {
   required: ["actions", "isDone", "response"],
 } as const;
 
-export interface AgentResponse<T> {
-  response: T;
-  context: SpinAiContext;
-}
-
 export interface BaseLLM {
   createChatCompletion(params: {
     messages: LLMMessage[];

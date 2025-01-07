@@ -1,15 +1,16 @@
+import { v4 as uuidv4 } from "uuid";
 import type { Action } from "../types/action";
 import type { SpinAiContext } from "../types/context";
-import {
-  type LLMMessage,
-  type LLMDecision,
-  type BaseLLM,
-  type AgentResponse,
-} from "../types/llm";
+import { type LLMMessage, type LLMDecision, type BaseLLM } from "../types/llm";
 import { resolveDependencies } from "./deps";
 import { buildSystemPrompt } from "./promptBuilder";
 import { log } from "./logger";
-import type { AgentConfig, ResponseFormat } from "../types/agent";
+import { LoggingService } from "./logging";
+import type {
+  AgentConfig,
+  AgentResponse,
+  ResponseFormat,
+} from "../types/agent";
 
 async function getNextDecision(
   model: BaseLLM,
@@ -61,9 +62,23 @@ export async function runTaskLoop<T = string>(params: {
   instructions: string;
   training?: AgentConfig["training"];
   responseFormat?: ResponseFormat;
+  agentId?: string;
+  spinApiKey?: string;
 }): Promise<AgentResponse<T>> {
   const { actions, model, instructions } = params;
   let context = { ...params.context };
+
+  // Generate or use existing sessionId
+  const sessionId = context.sessionId || uuidv4();
+  context.sessionId = sessionId;
+
+  // Initialize logging service
+  const logger = new LoggingService({
+    agentId: params.agentId,
+    spinApiKey: params.spinApiKey,
+    sessionId,
+  });
+
   let isDone = false;
   const previousResults: Record<string, unknown> = {};
   const executedActions = new Set<string>();
@@ -73,7 +88,7 @@ export async function runTaskLoop<T = string>(params: {
     response: "Task not started" as unknown as T,
   };
 
-  log("Processing request", { data: { input: context.input } });
+  log("Processing request", { data: { input: context.input, sessionId } });
 
   while (!isDone) {
     lastDecision = await getNextDecision(
@@ -87,6 +102,8 @@ export async function runTaskLoop<T = string>(params: {
       undefined
     );
 
+    await logger.logDecision(lastDecision);
+
     if (lastDecision.actions.length === 0 || lastDecision.isDone) {
       const finalDecision = await getNextDecision(
         model,
@@ -98,8 +115,15 @@ export async function runTaskLoop<T = string>(params: {
         params.training,
         params.responseFormat
       );
+
+      await logger.logDecision(finalDecision);
+
       const response = finalDecision.response as T;
-      return { response, context };
+      return {
+        response,
+        sessionId,
+        isDone: true,
+      };
     }
 
     const orderedActions = resolveDependencies(
@@ -111,12 +135,39 @@ export async function runTaskLoop<T = string>(params: {
     for (const actionId of orderedActions) {
       const action = actions.find((a) => a.id === actionId);
       if (!action) {
-        throw new Error(`Action ${actionId} not found`);
+        const error = `Action ${actionId} not found`;
+        await logger.logError(error);
+        throw new Error(error);
       }
+
       log(`Executing action: ${actionId}`);
-      context = await action.run(context);
-      previousResults[actionId] = context.state;
-      executedActions.add(actionId);
+      await logger.logAction({
+        actionId,
+        status: "started",
+      });
+
+      try {
+        const startTime = Date.now();
+        context = await action.run(context);
+        const duration = Date.now() - startTime;
+
+        await logger.logAction({
+          actionId,
+          status: "completed",
+          duration,
+          result: context.state,
+        });
+
+        previousResults[actionId] = context.state;
+        executedActions.add(actionId);
+      } catch (error) {
+        await logger.logAction({
+          actionId,
+          status: "failed",
+          error,
+        });
+        throw error;
+      }
     }
 
     isDone = lastDecision.isDone;
@@ -124,6 +175,7 @@ export async function runTaskLoop<T = string>(params: {
 
   return {
     response: lastDecision.response as T,
-    context,
+    sessionId,
+    isDone: true,
   };
 }

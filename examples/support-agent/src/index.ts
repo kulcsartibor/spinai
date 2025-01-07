@@ -49,9 +49,11 @@ const supportAgent = createAgent<SupportResponse>({
   },
 });
 
-const { response } = await supportAgent({
+const { response, sessionId } = await supportAgent({
   input: "What plan am I on?",
   state: {},
+  sessionId: "52433d97-e333-4cb1-8d2c-97d8dbd40dfa",
 });
 
 console.log(response);
+console.log(sessionId);

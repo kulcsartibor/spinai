@@ -45,6 +45,7 @@ async function getNextDecision(
         ? responseFormat
         : undefined,
   });
+
   if (decision.actions.length > 0) {
     log("Planning next actions", { data: decision.actions });
   } else if (isComplete) {
@@ -88,94 +89,103 @@ export async function runTaskLoop<T = string>(params: {
     response: "Task not started" as unknown as T,
   };
 
-  log("Processing request", { data: { input: context.input, sessionId } });
+  try {
+    // Fire and forget logging
+    logger.logTaskStart(context.input);
 
-  while (!isDone) {
-    lastDecision = await getNextDecision(
-      model,
-      instructions,
-      context.input,
-      actions,
-      previousResults,
-      false,
-      params.training,
-      undefined
-    );
+    log("Processing request", { data: { input: context.input, sessionId } });
 
-    await logger.logDecision(lastDecision);
-
-    if (lastDecision.actions.length === 0 || lastDecision.isDone) {
-      const finalDecision = await getNextDecision(
+    while (!isDone) {
+      const decision = await getNextDecision(
         model,
         instructions,
         context.input,
         actions,
         previousResults,
-        true,
+        false,
         params.training,
-        params.responseFormat
+        undefined
       );
 
-      await logger.logDecision(finalDecision);
-
-      const response = finalDecision.response as T;
-      return {
-        response,
-        sessionId,
-        isDone: true,
-      };
-    }
-
-    const orderedActions = resolveDependencies(
-      lastDecision.actions,
-      actions,
-      executedActions
-    );
-
-    for (const actionId of orderedActions) {
-      const action = actions.find((a) => a.id === actionId);
-      if (!action) {
-        const error = `Action ${actionId} not found`;
-        await logger.logError(error);
-        throw new Error(error);
-      }
-
-      log(`Executing action: ${actionId}`);
-      await logger.logAction({
-        actionId,
-        status: "started",
+      // Fire and forget logging
+      logger.logDecision(context.input, decision, {
+        messages:
+          decision.actions.length > 0
+            ? "Planning actions"
+            : "No actions needed",
+        responseFormat: undefined,
       });
 
-      try {
-        const startTime = Date.now();
-        context = await action.run(context);
-        const duration = Date.now() - startTime;
+      lastDecision = decision;
 
-        await logger.logAction({
-          actionId,
-          status: "completed",
-          duration,
-          result: context.state,
+      if (lastDecision.actions.length === 0 || lastDecision.isDone) {
+        const finalDecision = await getNextDecision(
+          model,
+          instructions,
+          context.input,
+          actions,
+          previousResults,
+          true,
+          params.training,
+          params.responseFormat
+        );
+
+        // Fire and forget logging
+        logger.logDecision(context.input, finalDecision, {
+          messages: "Final response",
+          responseFormat: params.responseFormat,
         });
 
-        previousResults[actionId] = context.state;
-        executedActions.add(actionId);
-      } catch (error) {
-        await logger.logAction({
-          actionId,
-          status: "failed",
-          error,
-        });
-        throw error;
+        const response = finalDecision.response as T;
+        return {
+          response,
+          sessionId,
+          isDone: true,
+        };
       }
+
+      const orderedActions = resolveDependencies(
+        lastDecision.actions,
+        actions,
+        executedActions
+      );
+
+      for (const actionId of orderedActions) {
+        const action = actions.find((a) => a.id === actionId);
+        if (!action) {
+          const error = `Action ${actionId} not found`;
+          logger.logError(error, { actionId });
+          throw new Error(error);
+        }
+
+        log(`Executing action: ${actionId}`);
+        logger.logActionStart(actionId);
+
+        try {
+          context = await action.run(context);
+          logger.logActionComplete(actionId, context.state);
+          previousResults[actionId] = context.state;
+          executedActions.add(actionId);
+        } catch (error) {
+          logger.logActionError(actionId, error);
+          throw error;
+        }
+      }
+
+      isDone = lastDecision.isDone;
     }
 
-    isDone = lastDecision.isDone;
+    return {
+      response: lastDecision.response as T,
+      sessionId,
+      isDone: true,
+    };
+  } catch (error) {
+    logger.logError(error, {
+      input: context.input,
+      lastDecision,
+      executedActions: Array.from(executedActions),
+    });
+    throw error;
   }
-
-  return {
-    response: lastDecision.response as T,
-    sessionId,
-    isDone: true,
-  };
 }

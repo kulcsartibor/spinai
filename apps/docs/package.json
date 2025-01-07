@@ -2,6 +2,6 @@
   "name": "docs",
   "private": true,
   "scripts": {
-    "dev": "mintlify dev --port 3333"
+    "docs": "mintlify dev --port 3333"
   }
 }

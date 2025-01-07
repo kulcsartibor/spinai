@@ -36,6 +36,8 @@ const supportAgent = createAgent<SupportResponse>({
   instructions: `You are a customer support agent.`,
   actions: [getCustomerInfo, getSubscriptionStatus, createTicket],
   llm,
+  agentId: "abc123",
+  spinApiKey: "def456",
   responseFormat: {
     type: "json",
     schema: {

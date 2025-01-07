@@ -1,39 +1,38 @@
+import { LLMDecision } from "./llm";
+
+export interface BaseLog {
+  timestamp: string;
+  duration?: number;
+}
+
+export interface DecisionLog extends BaseLog {
+  type: "decision";
+  input: string;
+  decision: LLMDecision;
+  prompt?: Record<string, unknown>;
+}
+
+export interface ActionLog extends BaseLog {
+  type: "action";
+  actionId: string;
+  status: "started" | "completed" | "failed";
+  result?: unknown;
+  error?: unknown;
+}
+
+export interface ErrorLog extends BaseLog {
+  type: "error";
+  error: unknown;
+  context?: unknown;
+}
+
+export type LogEntry = DecisionLog | ActionLog | ErrorLog;
+
 export interface LogPayload {
   timestamp: string;
   agentId: string;
   sessionId: string;
   type: "decision" | "action" | "error";
-  data: unknown;
+  data: LogEntry;
   spinApiKey: string;
-}
-
-export interface AgentRunMetadata {
-  sessionId: string;
-  decisions: DecisionLog[];
-  actions: ActionLog[];
-  errors?: ErrorLog[];
-}
-
-export interface DecisionLog {
-  timestamp: string;
-  decision: {
-    actions: string[];
-    isDone: boolean;
-    response: string;
-    reasoning?: string;
-  };
-}
-
-export interface ActionLog {
-  timestamp: string;
-  actionId: string;
-  status: "started" | "completed" | "failed";
-  duration?: number;
-  error?: string;
-}
-
-export interface ErrorLog {
-  timestamp: string;
-  error: string;
-  context?: unknown;
 }

@@ -10,6 +10,7 @@ export interface OpenAIConfig {
 
 export function createOpenAILLM(config: OpenAIConfig): BaseLLM {
   const client = new OpenAI({ apiKey: config.apiKey });
+  const defaultModel = "gpt-4-turbo-preview";
 
   return {
     async createChatCompletion({
@@ -19,7 +20,7 @@ export function createOpenAILLM(config: OpenAIConfig): BaseLLM {
     }) {
       const schema = createResponseSchema(responseFormat);
       const response = await client.chat.completions.create({
-        model: config.model || "gpt-4-turbo-preview",
+        model: config.model || defaultModel,
         messages,
         temperature,
         functions: [
@@ -39,5 +40,6 @@ export function createOpenAILLM(config: OpenAIConfig): BaseLLM {
 
       return JSON.parse(functionCall.arguments) as LLMDecision;
     },
+    modelId: config.model || defaultModel,
   };
 }

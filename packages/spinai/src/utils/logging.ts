@@ -1,14 +1,13 @@
-import { log } from "./logger";
-import type { LogPayload, LogEntry } from "../types/logging";
-import { LLMDecision } from "../types/llm";
+import type { LogPayload, StepLogEntry } from "../types/logging";
+import { v4 as uuidv4 } from "uuid";
 
-const LOGGING_ENDPOINT = "https://logs.spinai.dev/log";
+// const LOGGING_ENDPOINT = "https://logs.spinai.dev/log";
+const LOGGING_ENDPOINT = "http://0.0.0.0:8000/log";
 
 export class LoggingService {
   private agentId?: string;
   private spinApiKey?: string;
   private sessionId: string;
-  private startTime: number;
 
   constructor(config: {
     agentId?: string;
@@ -18,37 +17,28 @@ export class LoggingService {
     this.agentId = config.agentId;
     this.spinApiKey = config.spinApiKey;
     this.sessionId = config.sessionId;
-    this.startTime = Date.now();
   }
 
   private getTimestamp(): string {
     return new Date().toISOString();
   }
 
-  private getDuration(): number {
-    return Date.now() - this.startTime;
-  }
-
-  private async sendLog(
-    type: LogPayload["type"],
-    data: LogEntry
-  ): Promise<void> {
+  private async sendLog(step: StepLogEntry): Promise<void> {
     if (!this.agentId || !this.spinApiKey) {
       return;
     }
 
-    console.log("sendLog", type, data);
+    const payload: LogPayload = {
+      timestamp: this.getTimestamp(),
+      agentId: this.agentId,
+      sessionId: this.sessionId,
+      type: "step",
+      data: step,
+      spinApiKey: this.spinApiKey,
+    };
 
+    console.log(payload.data);
     try {
-      const payload: LogPayload = {
-        timestamp: this.getTimestamp(),
-        agentId: this.agentId,
-        sessionId: this.sessionId,
-        type,
-        data,
-        spinApiKey: this.spinApiKey,
-      };
-
       const response = await fetch(LOGGING_ENDPOINT, {
         method: "POST",
         headers: {
@@ -62,78 +52,104 @@ export class LoggingService {
         throw new Error(`Failed to send logs: ${response.statusText}`);
       }
     } catch (error) {
-      log("Failed to send logs to SpinAI");
-      // log("Failed to send logs to SpinAI", { level: "error", data: error });
+      console.error("Failed to send logs to SpinAI", error);
     }
   }
 
-  async logDecision(
+  /** Log user input */
+  async logUserInput(input: string, durationMs: number): Promise<void> {
+    await this.sendLog({
+      id: uuidv4(),
+      stepType: "user_input",
+      timestamp: this.getTimestamp(),
+      sessionId: this.sessionId,
+      content: { text: input },
+      durationMs,
+    });
+  }
+
+  /** Log the LLM's evaluation decision */
+  async logEvaluation(
     input: string,
-    decision: LLMDecision,
-    prompt?: Record<string, unknown>
+    reasoning: unknown,
+    actions: string[],
+    modelUsed: string,
+    tokenUsage: Record<string, number>,
+    costCents: number,
+    durationMs: number
   ): Promise<void> {
-    await this.sendLog("decision", {
-      type: "decision",
+    await this.sendLog({
+      id: uuidv4(),
+      stepType: "evaluation",
       timestamp: this.getTimestamp(),
-      duration: this.getDuration(),
-      input,
-      decision,
-      prompt,
+      sessionId: this.sessionId,
+      content: { text: input },
+      reasoning: { details: reasoning },
+      actions,
+      modelUsed,
+      tokenUsage,
+      costCents,
+      durationMs,
     });
   }
 
-  async logActionStart(actionId: string): Promise<void> {
-    await this.sendLog("action", {
-      type: "action",
+  /** Log the completion of an action */
+  async logActionComplete(
+    actionId: string,
+    result: unknown,
+    durationMs: number
+  ): Promise<void> {
+    await this.sendLog({
+      id: uuidv4(),
+      stepType: "action_execution",
       timestamp: this.getTimestamp(),
-      actionId,
-      status: "started",
-    });
-  }
-
-  async logActionComplete(actionId: string, result?: unknown): Promise<void> {
-    await this.sendLog("action", {
-      type: "action",
-      timestamp: this.getTimestamp(),
-      duration: this.getDuration(),
-      actionId,
+      sessionId: this.sessionId,
+      content: { actionId, result },
       status: "completed",
-      result,
+      durationMs,
     });
   }
 
-  async logActionError(actionId: string, error: unknown): Promise<void> {
-    await this.sendLog("action", {
-      type: "action",
+  /** Log a failed action with an error */
+  async logActionError(
+    actionId: string,
+    error: unknown,
+    durationMs: number
+  ): Promise<void> {
+    await this.sendLog({
+      id: uuidv4(),
+      stepType: "action_execution",
       timestamp: this.getTimestamp(),
-      duration: this.getDuration(),
-      actionId,
+      sessionId: this.sessionId,
+      content: { actionId },
       status: "failed",
-      error,
-    });
-  }
-
-  async logError(error: unknown, context?: unknown): Promise<void> {
-    await this.sendLog("error", {
-      type: "error",
-      timestamp: this.getTimestamp(),
-      duration: this.getDuration(),
-      error,
-      context,
-    });
-  }
-
-  async logTaskStart(input: string): Promise<void> {
-    await this.sendLog("decision", {
-      type: "decision",
-      timestamp: this.getTimestamp(),
-      duration: 0,
-      input,
-      decision: {
-        actions: [],
-        isDone: false,
-        response: "Task started",
+      errorMessage: typeof error === "string" ? error : JSON.stringify(error),
+      errorSeverity: "critical",
+      errorContext: {
+        stack: (error as Error)?.stack || "No stack trace available",
       },
+      durationMs,
+    });
+  }
+
+  /** Log the final response sent to the user */
+  async logFinalResponse(
+    response: string,
+    modelUsed: string,
+    tokenUsage: Record<string, number>,
+    costCents: number,
+    durationMs: number
+  ): Promise<void> {
+    await this.sendLog({
+      id: uuidv4(),
+      stepType: "final_response",
+      timestamp: this.getTimestamp(),
+      sessionId: this.sessionId,
+      content: { response },
+      modelUsed,
+      tokenUsage,
+      costCents,
+      durationMs,
     });
   }
 }

@@ -36,8 +36,8 @@ const supportAgent = createAgent<SupportResponse>({
   instructions: `You are a customer support agent.`,
   actions: [getCustomerInfo, getSubscriptionStatus, createTicket],
   llm,
-  agentId: "abc123",
-  spinApiKey: "def456",
+  agentId: "customer-support-test",
+  spinApiKey: "QV77-I86L-EMTP-HD9M-Z5VZ-CJTR",
   responseFormat: {
     type: "json",
     schema: {
@@ -52,9 +52,9 @@ const supportAgent = createAgent<SupportResponse>({
 });
 
 const { response, sessionId } = await supportAgent({
-  input: "What plan am I on?",
+  input: "Why am i on that plan?",
   state: {},
-  sessionId: "52433d97-e333-4cb1-8d2c-97d8dbd40dfa",
+  sessionId: "01ced245-9cae-4ed8-ac94-ff989d92d38c",
 });
 
 console.log(response);

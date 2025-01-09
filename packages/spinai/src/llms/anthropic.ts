@@ -16,6 +16,7 @@ export function createAnthropicLLM(config: {
     apiKey: config.apiKey,
   });
 
+  const defaultModel = "claude-3-opus-20240229";
   return {
     async createChatCompletion({
       messages,
@@ -36,5 +37,6 @@ export function createAnthropicLLM(config: {
       }
       return JSON.parse(response.content[0].text) as LLMDecision;
     },
+    modelId: config.model || defaultModel,
   };
 }

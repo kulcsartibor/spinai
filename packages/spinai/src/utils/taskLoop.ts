@@ -4,7 +4,7 @@ import type { SpinAiContext } from "../types/context";
 import { type LLMMessage, type LLMDecision, type BaseLLM } from "../types/llm";
 import { resolveDependencies } from "./deps";
 import { buildSystemPrompt } from "./promptBuilder";
-import { log } from "./logger";
+import { log } from "./debugLogger";
 import { LoggingService } from "./logging";
 import type {
   AgentConfig,
@@ -53,7 +53,8 @@ async function getNextDecision(
   } else {
     log("No actions needed", { data: { response: decision.response } });
   }
-  return decision;
+
+  return { ...decision };
 }
 
 export async function runTaskLoop<T = string>(params: {
@@ -69,11 +70,9 @@ export async function runTaskLoop<T = string>(params: {
   const { actions, model, instructions } = params;
   let context = { ...params.context };
 
-  // Generate or use existing sessionId
   const sessionId = context.sessionId || uuidv4();
   context.sessionId = sessionId;
 
-  // Initialize logging service
   const logger = new LoggingService({
     agentId: params.agentId,
     spinApiKey: params.spinApiKey,
@@ -88,14 +87,12 @@ export async function runTaskLoop<T = string>(params: {
     isDone: false,
     response: "Task not started" as unknown as T,
   };
-
+  const taskStartTime = Date.now();
   try {
-    // Fire and forget logging
-    logger.logTaskStart(context.input);
-
-    log("Processing request", { data: { input: context.input, sessionId } });
+    logger.logUserInput(context.input, 0);
 
     while (!isDone) {
+      const decisionStartTime = Date.now();
       const decision = await getNextDecision(
         model,
         instructions,
@@ -106,19 +103,22 @@ export async function runTaskLoop<T = string>(params: {
         params.training,
         undefined
       );
+      const decisionDuration = Date.now() - decisionStartTime;
 
-      // Fire and forget logging
-      logger.logDecision(context.input, decision, {
-        messages:
-          decision.actions.length > 0
-            ? "Planning actions"
-            : "No actions needed",
-        responseFormat: undefined,
-      });
+      logger.logEvaluation(
+        context.input,
+        decision.reasoning,
+        decision.actions,
+        model.modelId,
+        { input_tokens: 0, output_tokens: 0, total_tokens: 0 }, // Placeholder
+        0, // Placeholder cost
+        decisionDuration
+      );
 
       lastDecision = decision;
 
       if (lastDecision.actions.length === 0 || lastDecision.isDone) {
+        const finalDecisionStartTime = Date.now();
         const finalDecision = await getNextDecision(
           model,
           instructions,
@@ -129,16 +129,18 @@ export async function runTaskLoop<T = string>(params: {
           params.training,
           params.responseFormat
         );
+        const finalDecisionDuration = Date.now() - finalDecisionStartTime;
 
-        // Fire and forget logging
-        logger.logDecision(context.input, finalDecision, {
-          messages: "Final response",
-          responseFormat: params.responseFormat,
-        });
+        logger.logFinalResponse(
+          finalDecision.response as string,
+          model.modelId,
+          { input_tokens: 0, output_tokens: 0, total_tokens: 0 },
+          0,
+          finalDecisionDuration
+        );
 
-        const response = finalDecision.response as T;
         return {
-          response,
+          response: finalDecision.response as T,
           sessionId,
           isDone: true,
         };
@@ -154,20 +156,21 @@ export async function runTaskLoop<T = string>(params: {
         const action = actions.find((a) => a.id === actionId);
         if (!action) {
           const error = `Action ${actionId} not found`;
-          logger.logError(error, { actionId });
+          logger.logActionError(actionId, error, 0);
           throw new Error(error);
         }
 
-        log(`Executing action: ${actionId}`);
-        logger.logActionStart(actionId);
+        const actionStartTime = Date.now();
 
         try {
           context = await action.run(context);
-          logger.logActionComplete(actionId, context.state);
+          const actionDuration = Date.now() - actionStartTime;
+          logger.logActionComplete(actionId, context.state, actionDuration);
           previousResults[actionId] = context.state;
           executedActions.add(actionId);
         } catch (error) {
-          logger.logActionError(actionId, error);
+          const actionErrorDuration = Date.now() - actionStartTime;
+          logger.logActionError(actionId, error, actionErrorDuration);
           throw error;
         }
       }
@@ -181,11 +184,8 @@ export async function runTaskLoop<T = string>(params: {
       isDone: true,
     };
   } catch (error) {
-    logger.logError(error, {
-      input: context.input,
-      lastDecision,
-      executedActions: Array.from(executedActions),
-    });
+    const taskErrorDuration = Date.now() - taskStartTime;
+    logger.logActionError("task_loop_error", error, taskErrorDuration);
     throw error;
   }
 }

@@ -1,4 +1,3 @@
-import type { SpinAiContext } from "./context";
 import type { JSONResponseFormat } from "./agent";
 
 export interface LLMMessage {
@@ -43,6 +42,7 @@ export interface BaseLLM {
     temperature?: number;
     responseFormat?: JSONResponseFormat;
   }): Promise<LLMDecision>;
+  modelId: string;
 }
 
 export interface LLMConfig {

@@ -1,6 +1,7 @@
 import OpenAI from "openai";
 import { createResponseSchema } from "./shared";
 import type { BaseLLM, LLMDecision } from "../types/llm";
+import { calculateCost } from "../utils/tokenCounter";
 
 export interface OpenAIConfig {
   apiKey: string;
@@ -18,9 +19,10 @@ export function createOpenAILLM(config: OpenAIConfig): BaseLLM {
       temperature = 0.7,
       responseFormat,
     }) {
+      const model = config.model || defaultModel;
       const schema = createResponseSchema(responseFormat);
       const response = await client.chat.completions.create({
-        model: config.model || defaultModel,
+        model,
         messages,
         temperature,
         functions: [
@@ -38,7 +40,22 @@ export function createOpenAILLM(config: OpenAIConfig): BaseLLM {
         throw new Error("No function call in response");
       }
 
-      return JSON.parse(functionCall.arguments) as LLMDecision;
+      if (!response.usage) {
+        throw new Error("No usage data in OpenAI response");
+      }
+
+      const inputTokens = response.usage.prompt_tokens;
+      const outputTokens = response.usage.completion_tokens;
+      const costCents = calculateCost(inputTokens, outputTokens, model);
+
+      const decision = JSON.parse(functionCall.arguments) as LLMDecision;
+      return {
+        ...decision,
+        inputTokens,
+        outputTokens,
+        costCents,
+        rawResponse: response,
+      };
     },
     modelId: config.model || defaultModel,
   };

@@ -10,6 +10,10 @@ export interface LLMDecision {
   isDone: boolean;
   reasoning?: string;
   response: unknown;
+  costCents?: number;
+  inputTokens?: number;
+  outputTokens?: number;
+  rawResponse?: unknown;
 }
 
 export const DECISION_SCHEMA = {

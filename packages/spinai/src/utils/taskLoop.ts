@@ -46,14 +46,6 @@ async function getNextDecision(
         : undefined,
   });
 
-  if (decision.actions.length > 0) {
-    log("Planning next actions", { data: decision.actions });
-  } else if (isComplete) {
-    log("Task complete", { data: { response: decision.response } });
-  } else {
-    log("No actions needed", { data: { response: decision.response } });
-  }
-
   return { ...decision };
 }
 
@@ -69,14 +61,20 @@ export async function runTaskLoop<T = string>(params: {
 }): Promise<AgentResponse<T>> {
   const { actions, model, instructions } = params;
   let context = { ...params.context };
+  log("Starting interaction...", { data: context.input });
 
   const sessionId = context.sessionId || uuidv4();
+  const interactionId = uuidv4();
   context.sessionId = sessionId;
+  context.interactionId = interactionId;
 
+  const taskStartTime = Date.now();
   const logger = new LoggingService({
     agentId: params.agentId,
     spinApiKey: params.spinApiKey,
     sessionId,
+    interactionId,
+    llmModel: model.modelId,
   });
 
   let isDone = false;
@@ -87,12 +85,31 @@ export async function runTaskLoop<T = string>(params: {
     isDone: false,
     response: "Task not started" as unknown as T,
   };
-  const taskStartTime = Date.now();
+
   try {
-    logger.logUserInput(context.input, 0);
+    // Log interaction start
+    await logger.logInteractionStart(context.input);
 
     while (!isDone) {
       const decisionStartTime = Date.now();
+      const decisionMessages = [
+        {
+          role: "system",
+          content: buildSystemPrompt(
+            instructions,
+            actions,
+            false,
+            params.training
+          ),
+        },
+        { role: "user", content: context.input },
+      ];
+      if (previousResults) {
+        decisionMessages.push({
+          role: "user",
+          content: `Previous action results: ${JSON.stringify(previousResults, null, 2)}`,
+        });
+      }
       const decision = await getNextDecision(
         model,
         instructions,
@@ -105,20 +122,54 @@ export async function runTaskLoop<T = string>(params: {
       );
       const decisionDuration = Date.now() - decisionStartTime;
 
+      if (decision.actions.length > 0) {
+        log("Planning next actions", {
+          data: { actions: decision.actions, durationMs: decisionDuration },
+        });
+      } else if (decision.isDone) {
+        log("Task determined completed, generating final response", {
+          data: { durationMs: decisionDuration },
+        });
+      }
+
+      console.log({ decision });
+
       logger.logEvaluation(
-        context.input,
-        decision.reasoning,
+        context.state,
+        decision?.reasoning || "",
         decision.actions,
         model.modelId,
-        { input_tokens: 0, output_tokens: 0, total_tokens: 0 }, // Placeholder
-        0, // Placeholder cost
-        decisionDuration
+        decision.inputTokens || 0,
+        decision.outputTokens || 0,
+        decision.costCents || 0,
+        decisionDuration,
+        decision.response,
+        { messages: decisionMessages },
+        { rawResponse: decision.rawResponse }
       );
 
       lastDecision = decision;
 
       if (lastDecision.actions.length === 0 || lastDecision.isDone) {
         const finalDecisionStartTime = Date.now();
+        const finalMessages = [
+          {
+            role: "system",
+            content: buildSystemPrompt(
+              instructions,
+              actions,
+              true,
+              params.training
+            ),
+          },
+          { role: "user", content: context.input },
+        ];
+        if (previousResults) {
+          finalMessages.push({
+            role: "user",
+            content: `Previous action results: ${JSON.stringify(previousResults, null, 2)}`,
+          });
+        }
         const finalDecision = await getNextDecision(
           model,
           instructions,
@@ -130,13 +181,35 @@ export async function runTaskLoop<T = string>(params: {
           params.responseFormat
         );
         const finalDecisionDuration = Date.now() - finalDecisionStartTime;
+        const totalDuration = Date.now() - taskStartTime;
 
-        logger.logFinalResponse(
-          finalDecision.response as string,
+        log("Returning to user with response", {
+          data: {
+            response: finalDecision.response,
+            durationMs: finalDecisionDuration,
+            totalDuration: totalDuration,
+          },
+        });
+
+        // Log final evaluation
+        logger.logEvaluation(
+          context.state,
+          finalDecision?.reasoning || "",
+          finalDecision.actions,
           model.modelId,
-          { input_tokens: 0, output_tokens: 0, total_tokens: 0 },
-          0,
-          finalDecisionDuration
+          finalDecision.inputTokens || 0,
+          finalDecision.outputTokens || 0,
+          finalDecision.costCents || 0,
+          finalDecisionDuration,
+          finalDecision.response,
+          { messages: finalMessages },
+          { rawResponse: finalDecision.rawResponse }
+        );
+
+        // Log successful interaction completion with total duration
+        await logger.logInteractionComplete(
+          finalDecision.response,
+          totalDuration
         );
 
         return {
@@ -156,7 +229,7 @@ export async function runTaskLoop<T = string>(params: {
         const action = actions.find((a) => a.id === actionId);
         if (!action) {
           const error = `Action ${actionId} not found`;
-          logger.logActionError(actionId, error, 0);
+          logger.logActionError(actionId, error, context.state, 0);
           throw new Error(error);
         }
 
@@ -165,12 +238,25 @@ export async function runTaskLoop<T = string>(params: {
         try {
           context = await action.run(context);
           const actionDuration = Date.now() - actionStartTime;
-          logger.logActionComplete(actionId, context.state, actionDuration);
+          log(`Finished executing action`, {
+            data: { action: actionId, durationMs: actionDuration },
+          });
+          logger.logActionComplete(
+            actionId,
+            context.state,
+            actionDuration,
+            context.state[actionId]
+          );
           previousResults[actionId] = context.state;
           executedActions.add(actionId);
         } catch (error) {
           const actionErrorDuration = Date.now() - actionStartTime;
-          logger.logActionError(actionId, error, actionErrorDuration);
+          logger.logActionError(
+            actionId,
+            error,
+            context.state,
+            actionErrorDuration
+          );
           throw error;
         }
       }
@@ -184,8 +270,15 @@ export async function runTaskLoop<T = string>(params: {
       isDone: true,
     };
   } catch (error) {
-    const taskErrorDuration = Date.now() - taskStartTime;
-    logger.logActionError("task_loop_error", error, taskErrorDuration);
+    const errorDuration = Date.now() - taskStartTime;
+    logger.logActionError(
+      "task_loop_error",
+      error,
+      context.state,
+      errorDuration
+    );
+    // Log failed interaction with total duration
+    await logger.logInteractionComplete(null, errorDuration, error as Error);
     throw error;
   }
 }

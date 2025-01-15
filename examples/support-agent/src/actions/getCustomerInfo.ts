@@ -11,6 +11,7 @@ export const getCustomerInfo = createAction({
       lastContact: "2024-02-20",
       openTickets: 2,
     };
+    await new Promise((resolve) => setTimeout(resolve, 250));
     return context;
   },
 });

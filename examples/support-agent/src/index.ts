@@ -8,15 +8,9 @@ import { createTicket } from "./actions/createTicket";
 dotenv.config();
 
 // OpenAI Example:
-// const llm = createOpenAILLM({
-//   apiKey: process.env.OPENAI_API_KEY || "",
-//   model: "gpt-4o-mini",
-// });
-
-// Anthropic Example:
-const llm = createAnthropicLLM({
-  apiKey: process.env.ANTHROPIC_API_KEY || "",
-  model: "claude-3-5-sonnet-20241022",
+const llm = createOpenAILLM({
+  apiKey: process.env.OPENAI_API_KEY || "",
+  model: "gpt-4o-mini",
 });
 
 // const supportAgent = createAgent({
@@ -25,11 +19,16 @@ const llm = createAnthropicLLM({
 //   llm,
 // });
 
-//  Example with a formatted response:
+// Anthropic Example:
+// const llm = createAnthropicLLM({
+//   apiKey: process.env.ANTHROPIC_API_KEY || "",
+//   model: "claude-3-5-sonnet-20241022",
+// });
 
 interface SupportResponse {
   nextBilling: string;
   subscriptionType: string;
+  name: string;
 }
 
 const supportAgent = createAgent<SupportResponse>({
@@ -45,17 +44,17 @@ const supportAgent = createAgent<SupportResponse>({
       properties: {
         nextBilling: { type: "string" },
         subscriptionType: { type: "string" },
+        name: { type: "string" },
       },
-      required: ["nextBilling", "subscriptionType"],
+      required: ["nextBilling", "subscriptionType", "name"],
     },
   },
 });
 
 const { response, sessionId } = await supportAgent({
-  input: "Why am i on that plan?",
+  input: "What is my name?",
   state: {},
   sessionId: "01ced245-9cae-4ed8-ac94-ff989d92d38c",
 });
 
-console.log(response);
-console.log(sessionId);
+console.log("agent done running", response, sessionId);

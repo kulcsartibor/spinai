@@ -5,6 +5,7 @@ import {
   formatMessages,
   createResponseSchema,
 } from "./shared";
+import { calculateCost } from "../utils/tokenCounter";
 
 export function createAnthropicLLM(config: {
   apiKey: string;
@@ -23,9 +24,10 @@ export function createAnthropicLLM(config: {
       temperature = 0.7,
       responseFormat,
     }) {
+      const model = config.model || defaultModel;
       const schema = createResponseSchema(responseFormat);
       const response = await anthropic.messages.create({
-        model: config.model || "claude-3-opus-20240229",
+        model,
         messages: formatMessages(messages),
         temperature,
         system: `${SYSTEM_INSTRUCTIONS}\n\nRespond only with a JSON object matching this schema:\n${JSON.stringify(schema, null, 2)}`,
@@ -35,7 +37,18 @@ export function createAnthropicLLM(config: {
       if (response.content[0].type !== "text") {
         throw new Error("Expected text response from Claude");
       }
-      return JSON.parse(response.content[0].text) as LLMDecision;
+
+      const inputTokens = response.usage.input_tokens;
+      const outputTokens = response.usage.output_tokens;
+      const costCents = calculateCost(inputTokens, outputTokens, model);
+      const decision = JSON.parse(response.content[0].text) as LLMDecision;
+      return {
+        ...decision,
+        outputTokens,
+        inputTokens,
+        costCents,
+        rawResponse: response,
+      };
     },
     modelId: config.model || defaultModel,
   };

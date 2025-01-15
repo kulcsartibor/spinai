@@ -23,10 +23,12 @@ export interface AgentConfig {
     completionInstructions?: string;
   };
   responseFormat?: ResponseFormat;
+  debug?: boolean;
 }
 
 export interface AgentResponse<T = unknown> {
   response: T;
   sessionId: string;
-  isDone: boolean;
+  totalDurationMs: number;
+  totalCostCents: number;
 }

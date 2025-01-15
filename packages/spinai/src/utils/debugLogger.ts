@@ -5,7 +5,15 @@ interface LogOptions {
   data?: unknown;
 }
 
+let isDebugEnabled = true;
+
+export function setDebugEnabled(enabled: boolean) {
+  isDebugEnabled = enabled;
+}
+
 export function log(message: string, options: LogOptions = {}) {
+  if (!isDebugEnabled) return;
+
   const { level = "info", data } = options;
 
   switch (level) {

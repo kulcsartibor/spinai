@@ -4,7 +4,7 @@ import type { SpinAiContext } from "../types/context";
 import { type LLMMessage, type LLMDecision, type BaseLLM } from "../types/llm";
 import { resolveDependencies } from "./deps";
 import { buildSystemPrompt } from "./promptBuilder";
-import { log } from "./debugLogger";
+import { log, setDebugEnabled } from "./debugLogger";
 import { LoggingService } from "./logging";
 import type {
   AgentConfig,
@@ -58,9 +58,14 @@ export async function runTaskLoop<T = string>(params: {
   responseFormat?: ResponseFormat;
   agentId?: string;
   spinApiKey?: string;
+  debug?: boolean;
 }): Promise<AgentResponse<T>> {
   const { actions, model, instructions } = params;
   let context = { ...params.context };
+
+  // Set debug logging based on parameter
+  setDebugEnabled(params.debug ?? true);
+
   log("Starting interaction...", { data: context.input });
 
   const sessionId = context.sessionId || uuidv4();
@@ -131,8 +136,6 @@ export async function runTaskLoop<T = string>(params: {
           data: { durationMs: decisionDuration },
         });
       }
-
-      console.log({ decision });
 
       logger.logEvaluation(
         context.state,
@@ -215,7 +218,7 @@ export async function runTaskLoop<T = string>(params: {
         return {
           response: finalDecision.response as T,
           sessionId,
-          isDone: true,
+          ...logger.getMetrics(),
         };
       }
 
@@ -267,7 +270,7 @@ export async function runTaskLoop<T = string>(params: {
     return {
       response: lastDecision.response as T,
       sessionId,
-      isDone: true,
+      ...logger.getMetrics(),
     };
   } catch (error) {
     const errorDuration = Date.now() - taskStartTime;

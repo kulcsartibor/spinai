@@ -37,6 +37,7 @@ const supportAgent = createAgent<SupportResponse>({
   llm,
   agentId: "customer-support-test",
   spinApiKey: "QV77-I86L-EMTP-HD9M-Z5VZ-CJTR",
+  // debug: false,
   responseFormat: {
     type: "json",
     schema: {
@@ -54,7 +55,7 @@ const supportAgent = createAgent<SupportResponse>({
 const { response, sessionId } = await supportAgent({
   input: "What is my name?",
   state: {},
-  sessionId: "01ced245-9cae-4ed8-ac94-ff989d92d38c",
+  // sessionId: "01ced245-9cae-4ed8-ac94-ff989d92d38c",
 });
 
 console.log("agent done running", response, sessionId);

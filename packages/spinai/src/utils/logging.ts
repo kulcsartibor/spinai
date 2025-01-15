@@ -27,6 +27,7 @@ export class LoggingService {
   private readonly MAX_RETRIES = 3;
   private lastErrorTime: number = 0;
   private readonly ERROR_COOLDOWN_MS = 5000; // Only show error every 5 seconds
+  private originalInput: string = "";
 
   constructor(config: {
     agentId?: string;
@@ -127,6 +128,7 @@ export class LoggingService {
   }
   /** Start a new interaction */
   logInteractionStart(input: string): void {
+    this.originalInput = input;
     const interactionStart: InteractionLogEntry = {
       id: this.interactionId,
       sessionId: this.sessionId,
@@ -143,10 +145,10 @@ export class LoggingService {
     durationMs?: number,
     error?: Error
   ): void {
-    console.log({ cost: this.totalCostCents });
     this.queueLog("interaction", {
       id: this.interactionId,
       sessionId: this.sessionId,
+      inputText: this.originalInput,
       inputTokens: this.totalInputTokens,
       outputTokens: this.totalOutputTokens,
       costCents: this.totalCostCents,
@@ -155,7 +157,6 @@ export class LoggingService {
       status: error ? "failed" : "success",
       errorMessage: error?.message,
       response,
-      inputText: "", // Required by type but not needed for completion
     } as InteractionLogEntry);
   }
 
@@ -244,5 +245,13 @@ export class LoggingService {
       costCents: 0,
       response: error,
     } as StepLogEntry);
+  }
+
+  /** Get total metrics for the interaction */
+  getMetrics(): { totalCostCents: number; totalDurationMs: number } {
+    return {
+      totalCostCents: this.totalCostCents,
+      totalDurationMs: Date.now() - this.startTime,
+    };
   }
 }

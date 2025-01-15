@@ -2,7 +2,8 @@ import { createAction } from "spinai";
 
 export const getCustomerInfo = createAction({
   id: "getCustomerInfo",
-  description: "Retrieves customer profile and status",
+  description:
+    "Retrieves customer profile and status, including name, id, tier, and open tickets.",
   async run(context) {
     context.state.customerInfo = {
       customerId: "abc123",

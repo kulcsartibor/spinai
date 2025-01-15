@@ -13,6 +13,7 @@ export function createAgent<T = string>(config: AgentConfig) {
       responseFormat: config.responseFormat,
       agentId: config.agentId,
       spinApiKey: config.spinApiKey,
+      debug: config.debug,
     });
   };
 }

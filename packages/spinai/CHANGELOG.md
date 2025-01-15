@@ -1,5 +1,11 @@
 # spinai
 
+## 1.1.3
+
+### Patch Changes
+
+- c2a3219: Point logging at our logging service instead of localhost lol
+
 ## 1.1.2
 
 ### Patch Changes

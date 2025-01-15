@@ -5,8 +5,8 @@ import type {
 } from "../types/logging";
 import { v4 as uuidv4 } from "uuid";
 
-// const LOGGING_ENDPOINT = "https://logs.spinai.dev/log";
-const LOGGING_ENDPOINT = "http://0.0.0.0:8000/log";
+const LOGGING_ENDPOINT = "https://logs.spinai.dev/log";
+// const LOGGING_ENDPOINT = "http://0.0.0.0:8000/log";
 
 export class LoggingService {
   private agentId?: string;

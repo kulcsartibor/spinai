@@ -1,5 +1,12 @@
 # create-spinai-app
 
+## 1.1.2
+
+### Patch Changes
+
+- e0082fa: Update logging, and add new logging structure
+- 3422332: Return totalDurationMs, totalCostCents to agent call, and also enable hiding debug logs
+
 ## 1.1.1
 
 ### Patch Changes

@@ -1,0 +1,50 @@
+---
+title: "Observability & Logging"
+description: "Monitor and debug your AI agents with built-in observability features"
+---
+
+SpinAI provides built-in observability features to help you monitor and debug your AI agents. By enabling logging, you can track agent interactions, performance metrics, and costs in real-time through the SpinAI dashboard.
+
+## Getting Started
+
+To enable observability for your agents:
+
+1. Sign in to [app.spinai.dev](https://app.spinai.dev)
+2. Create an organization
+3. Generate a SpinAI API key
+
+Then, configure your agent with the API key and a unique agent ID:
+
+```typescript
+const agent = createAgent({
+  instructions: "You are a customer support agent.",
+  actions: [getCustomerInfo, getSubscriptionStatus, createTicket],
+  llm,
+  // Enable observability with these two fields:
+  agentId: "customer-support-agent", // Choose any unique identifier
+  spinApiKey: process.env.SPINAI_API_KEY,
+});
+```
+
+## What's Being Tracked
+
+When observability is enabled, SpinAI automatically tracks:
+
+- Agent interactions and their outcomes
+- Model usage and token consumption
+- Cost metrics per interaction
+- Response times and latency
+- Evaluation steps and reasoning
+- Action executions and their results
+- Errors and failure cases
+
+## Viewing Logs
+
+Visit [app.spinai.dev](https://app.spinai.dev) to view your agent logs and metrics. The dashboard provides:
+
+- Real-time monitoring of agent activities
+- Detailed interaction histories
+- Cost and performance analytics
+- Error tracking and debugging tools
+
+All interactions are grouped by agent ID, making it easy to monitor specific agents or use cases within your application.

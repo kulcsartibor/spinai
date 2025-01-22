@@ -55,7 +55,8 @@
       "pages": [
         "core-concepts/task-loop",
         "core-concepts/agents",
-        "core-concepts/actions"
+        "core-concepts/actions",
+        "core-concepts/observability"
       ]
     },
     {

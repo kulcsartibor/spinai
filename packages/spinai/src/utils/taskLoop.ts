@@ -66,7 +66,7 @@ export async function runTaskLoop<T = string>(params: {
   // Set debug logging based on parameter
   setDebugEnabled(params.debug ?? true);
 
-  log("Starting interaction...", { data: context.input });
+  log("Starting interaction...");
 
   const sessionId = context.sessionId || uuidv4();
   const interactionId = uuidv4();
@@ -129,7 +129,11 @@ export async function runTaskLoop<T = string>(params: {
 
       if (decision.actions.length > 0) {
         log("Planning next actions", {
-          data: { actions: decision.actions, durationMs: decisionDuration },
+          data: {
+            actions: decision.actions,
+            durationMs: decisionDuration,
+            reasoning: decision.reasoning,
+          },
         });
       } else if (decision.isDone) {
         log("Task determined completed, generating final response", {
@@ -239,6 +243,9 @@ export async function runTaskLoop<T = string>(params: {
         const actionStartTime = Date.now();
 
         try {
+          log(`Starting action`, {
+            data: { action: actionId },
+          });
           context = await action.run(context);
           const actionDuration = Date.now() - actionStartTime;
           log(`Finished executing action`, {

@@ -1,5 +1,5 @@
 import OpenAI from "openai";
-import { createResponseSchema } from "./shared";
+import { createResponseSchema, normalizeActions } from "./shared";
 import type { BaseLLM, LLMDecision } from "../types/llm";
 import { calculateCost } from "../utils/tokenCounter";
 
@@ -21,6 +21,7 @@ export function createOpenAILLM(config: OpenAIConfig): BaseLLM {
     }) {
       const model = config.model || defaultModel;
       const schema = createResponseSchema(responseFormat);
+
       const response = await client.chat.completions.create({
         model,
         messages,
@@ -49,8 +50,10 @@ export function createOpenAILLM(config: OpenAIConfig): BaseLLM {
       const costCents = calculateCost(inputTokens, outputTokens, model);
 
       const decision = JSON.parse(functionCall.arguments) as LLMDecision;
+
       return {
         ...decision,
+        actions: normalizeActions(decision.actions),
         inputTokens,
         outputTokens,
         costCents,

@@ -37,7 +37,7 @@ export const DECISION_SCHEMA = {
       description: "Optional explanation of decision",
     },
   },
-  required: ["actions", "isDone", "response"],
+  required: ["actions", "isDone", "response", "reasoning"],
 } as const;
 
 export interface BaseLLM {

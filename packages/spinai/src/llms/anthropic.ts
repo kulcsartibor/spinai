@@ -4,6 +4,7 @@ import {
   SYSTEM_INSTRUCTIONS,
   formatMessages,
   createResponseSchema,
+  normalizeActions,
 } from "./shared";
 import { calculateCost } from "../utils/tokenCounter";
 
@@ -44,6 +45,7 @@ export function createAnthropicLLM(config: {
       const decision = JSON.parse(response.content[0].text) as LLMDecision;
       return {
         ...decision,
+        actions: normalizeActions(decision.actions),
         outputTokens,
         inputTokens,
         costCents,

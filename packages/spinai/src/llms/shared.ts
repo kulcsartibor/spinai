@@ -15,6 +15,26 @@ export function formatMessages(messages: LLMMessage[]) {
   }));
 }
 
+export function normalizeActions(actions: unknown[]): string[] {
+  return actions.map((action) => {
+    if (typeof action === "string") return action;
+    if (typeof action === "object" && action !== null) {
+      const obj = action as Record<string, unknown>;
+      if ("action" in obj) return String(obj.action);
+      if ("actionID" in obj) return String(obj.actionID);
+      if ("action_id" in obj) return String(obj.action_id);
+      if ("actionId" in obj) return String(obj.actionId);
+      if ("ActionId" in obj) return String(obj.ActionId);
+      if ("ActionID" in obj) return String(obj.ActionID);
+      if ("Action_ID" in obj) return String(obj.Action_ID);
+      if ("Action_Id" in obj) return String(obj.Action_Id);
+      if ("id" in obj) return String(obj.id);
+      console.warn("Unexpected action format:", action);
+    }
+    throw new Error(`Invalid action format: ${JSON.stringify(action)}`);
+  });
+}
+
 export function createResponseSchema(responseFormat?: ResponseFormat) {
   return {
     ...DECISION_SCHEMA,

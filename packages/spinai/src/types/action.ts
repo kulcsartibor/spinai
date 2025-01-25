@@ -1,9 +1,19 @@
+import { SpinAiContext } from "./context";
+
 export interface Action {
   id: string;
   description: string;
-  retries?: number;
+  parameters?: {
+    type: "object";
+    properties: Record<string, unknown>;
+    required?: string[];
+  };
+  run: (
+    context: SpinAiContext,
+    parameters?: Record<string, unknown>
+  ) => Promise<SpinAiContext>;
   dependsOn?: string[];
-  run: (context: ActionContext) => Promise<ActionContext>;
+  retries?: number;
 }
 
 export interface ActionContext {

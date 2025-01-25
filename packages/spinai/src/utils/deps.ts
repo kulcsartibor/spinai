@@ -1,28 +1,22 @@
-import type { Action } from "../types/action";
+import { Action } from "../types/action";
 
 export function resolveDependencies(
   actionIds: string[],
-  availableActions: Action[]
-  // executedActions: Set<string>
+  actions: Action[]
 ): string[] {
+  const actionMap = new Map(actions.map((a) => [a.id, a]));
   const result: string[] = [];
   const visited = new Set<string>();
 
   function visit(id: string) {
     if (visited.has(id)) return;
 
-    const action = availableActions.find((a) => a.id === id);
-    if (!action) {
-      console.error("Failed to find action:", {
-        searchedId: id,
-        availableActionIds: availableActions.map((a) => a.id),
-        rawActionIds: actionIds,
-      });
-      throw new Error(`Action ${id} not found`);
-    }
+    const action = actionMap.get(id);
+    if (!action) return;
 
     visited.add(id);
 
+    // Visit dependencies first
     for (const depId of action.dependsOn || []) {
       visit(depId);
     }
@@ -31,10 +25,7 @@ export function resolveDependencies(
   }
 
   for (const id of actionIds) {
-    if (typeof id === "object") {
-      console.error("Unexpected object in actionIds:", id);
-    }
-    visit(typeof id === "object" ? JSON.stringify(id) : id);
+    visit(id);
   }
 
   return result;

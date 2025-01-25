@@ -1,65 +1,70 @@
 import OpenAI from "openai";
-import { createResponseSchema, normalizeActions } from "./shared";
-import type { BaseLLM, LLMDecision } from "../types/llm";
 import { calculateCost } from "../utils/tokenCounter";
+import { LLM, CompletionOptions, CompletionResult } from "./base";
 
 export interface OpenAIConfig {
   apiKey: string;
   model?: string;
-  temperature?: number;
 }
 
-export function createOpenAILLM(config: OpenAIConfig): BaseLLM {
+export function createOpenAILLM(config: OpenAIConfig): LLM {
   const client = new OpenAI({ apiKey: config.apiKey });
   const defaultModel = "gpt-4-turbo-preview";
+  const model = config.model || defaultModel;
 
   return {
-    async createChatCompletion({
-      messages,
-      temperature = 0.7,
-      responseFormat,
-    }) {
-      const model = config.model || defaultModel;
-      const schema = createResponseSchema(responseFormat);
-
+    modelName: model,
+    async complete<T>({
+      prompt,
+      schema,
+      temperature,
+      maxTokens,
+    }: CompletionOptions): Promise<CompletionResult<T>> {
       const response = await client.chat.completions.create({
         model,
-        messages,
-        temperature,
-        functions: [
-          {
-            name: "make_decision",
-            description: "Decide which actions to take next",
-            parameters: schema,
-          },
-        ],
-        function_call: { name: "make_decision" },
+        messages: [{ role: "user", content: prompt }],
+        temperature: temperature ?? 0.7,
+        max_tokens: maxTokens,
+        ...(schema && {
+          response_format: { type: "json_object" },
+          functions: [
+            {
+              name: "format_response",
+              description: "Format the response according to schema",
+              parameters: schema,
+            },
+          ],
+          function_call: { name: "format_response" },
+        }),
       });
 
-      const functionCall = response.choices[0].message.function_call;
-      if (!functionCall?.arguments) {
-        throw new Error("No function call in response");
+      const choice = response.choices[0];
+      let content: T;
+
+      if (schema) {
+        const functionCall = choice.message.function_call;
+        if (!functionCall?.arguments) {
+          throw new Error("Expected function call response");
+        }
+        content = JSON.parse(functionCall.arguments);
+      } else {
+        content = choice.message.content as T;
       }
 
       if (!response.usage) {
         throw new Error("No usage data in OpenAI response");
       }
 
-      const inputTokens = response.usage.prompt_tokens;
-      const outputTokens = response.usage.completion_tokens;
-      const costCents = calculateCost(inputTokens, outputTokens, model);
-
-      const decision = JSON.parse(functionCall.arguments) as LLMDecision;
-
       return {
-        ...decision,
-        actions: normalizeActions(decision.actions),
-        inputTokens,
-        outputTokens,
-        costCents,
-        rawResponse: response,
+        content,
+        inputTokens: response.usage.prompt_tokens,
+        outputTokens: response.usage.completion_tokens,
+        costCents: calculateCost(
+          response.usage.prompt_tokens,
+          response.usage.completion_tokens,
+          model
+        ),
       };
     },
-    modelId: config.model || defaultModel,
   };
 }

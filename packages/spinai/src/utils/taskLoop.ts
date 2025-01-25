@@ -1,236 +1,127 @@
 import { v4 as uuidv4 } from "uuid";
 import type { Action } from "../types/action";
 import type { SpinAiContext } from "../types/context";
-import { type LLMMessage, type LLMDecision, type BaseLLM } from "../types/llm";
-import { resolveDependencies } from "./deps";
-import { buildSystemPrompt } from "./promptBuilder";
-import { log, setDebugEnabled } from "./debugLogger";
-import { LoggingService } from "./logging";
 import type {
   AgentConfig,
   AgentResponse,
   ResponseFormat,
 } from "../types/agent";
-
-async function getNextDecision(
-  model: BaseLLM,
-  instructions: string,
-  input: string,
-  actions: Action[],
-  previousResults?: unknown,
-  isComplete?: boolean,
-  training?: AgentConfig["training"],
-  responseFormat?: ResponseFormat
-): Promise<LLMDecision> {
-  const messages: LLMMessage[] = [
-    {
-      role: "system",
-      content: buildSystemPrompt(instructions, actions, isComplete, training),
-    },
-    { role: "user", content: input },
-  ];
-
-  if (previousResults) {
-    messages.push({
-      role: "user",
-      content: `Previous action results: ${JSON.stringify(previousResults, null, 2)}`,
-    });
-  }
-
-  const decision = await model.createChatCompletion({
-    messages,
-    temperature: 0.7,
-    responseFormat:
-      isComplete && responseFormat?.type === "json"
-        ? responseFormat
-        : undefined,
-  });
-
-  return { ...decision };
-}
+import { resolveDependencies } from "./deps";
+import { log, setDebugEnabled } from "./debugLogger";
+import { LoggingService } from "./logging";
+import { BasePlanner } from "../decisions/planner";
+import { LLM } from "../llms/base";
+import { ActionPlannerState } from "../types/planner";
+import { DebugMode } from "../types/debug";
 
 export async function runTaskLoop<T = string>(params: {
   actions: Action[];
   context: SpinAiContext;
-  model: BaseLLM;
+  model: LLM;
   instructions: string;
   training?: AgentConfig["training"];
   responseFormat?: ResponseFormat;
   agentId?: string;
   spinApiKey?: string;
-  debug?: boolean;
+  debug?: DebugMode;
 }): Promise<AgentResponse<T>> {
-  const { actions, model, instructions } = params;
+  const { actions, model } = params;
   let context = { ...params.context };
 
   // Set debug logging based on parameter
-  setDebugEnabled(params.debug ?? true);
+  setDebugEnabled(params.debug ?? "default");
 
-  log("Starting interaction...");
+  // Track total cost
+  let totalCostCents = 0;
 
+  log("Starting interaction", { type: "summary" });
+
+  // Initialize session tracking
   const sessionId = context.sessionId || uuidv4();
   const interactionId = uuidv4();
   context.sessionId = sessionId;
   context.interactionId = interactionId;
 
+  // Initialize logging service
   const taskStartTime = Date.now();
   const logger = new LoggingService({
     agentId: params.agentId,
     spinApiKey: params.spinApiKey,
     sessionId,
     interactionId,
-    llmModel: model.modelId,
+    llmModel: model.modelName,
   });
 
-  let isDone = false;
-  const previousResults: Record<string, unknown> = {};
+  // Initialize planner
+  const planner = new BasePlanner(logger, params.instructions);
+
+  // Initialize state tracking
   const executedActions = new Set<string>();
-  let lastDecision: LLMDecision = {
-    actions: [],
-    isDone: false,
-    response: "Task not started" as unknown as T,
+  const plannerState: ActionPlannerState = {
+    input: context.input,
+    context: context.state,
+    executedActions: [],
   };
 
   try {
     // Log interaction start
     await logger.logInteractionStart(context.input);
 
-    while (!isDone) {
-      const decisionStartTime = Date.now();
-      const decisionMessages = [
-        {
-          role: "system",
-          content: buildSystemPrompt(
-            instructions,
-            actions,
-            false,
-            params.training
-          ),
-        },
-        { role: "user", content: context.input },
-      ];
-      if (previousResults) {
-        decisionMessages.push({
-          role: "user",
-          content: `Previous action results: ${JSON.stringify(previousResults, null, 2)}`,
+    while (true) {
+      // Plan next actions
+      const planResult = await planner.planNextActions({
+        llm: model,
+        input: context.input,
+        state: plannerState,
+        availableActions: actions,
+      });
+      totalCostCents += planner.getTotalCost();
+      planner.resetCost();
+
+      // If no actions planned, format final response and return
+      if (planResult.actions.length === 0) {
+        const responseResult = await planner.formatResponse({
+          llm: model,
+          input: context.input,
+          state: plannerState,
+          responseFormat: params.responseFormat,
         });
-      }
-      const decision = await getNextDecision(
-        model,
-        instructions,
-        context.input,
-        actions,
-        previousResults,
-        false,
-        params.training,
-        undefined
-      );
-      const decisionDuration = Date.now() - decisionStartTime;
+        totalCostCents += planner.getTotalCost();
 
-      if (decision.actions.length > 0) {
-        log("Planning next actions", {
-          data: {
-            actions: decision.actions,
-            durationMs: decisionDuration,
-            reasoning: decision.reasoning,
-          },
-        });
-      } else if (decision.isDone) {
-        log("Task determined completed, generating final response", {
-          data: { durationMs: decisionDuration },
-        });
-      }
+        log(responseResult.response as string, { type: "response" });
 
-      logger.logEvaluation(
-        context.state,
-        decision?.reasoning || "",
-        decision.actions,
-        model.modelId,
-        decision.inputTokens || 0,
-        decision.outputTokens || 0,
-        decision.costCents || 0,
-        decisionDuration,
-        decision.response,
-        { messages: decisionMessages },
-        { rawResponse: decision.rawResponse }
-      );
-
-      lastDecision = decision;
-
-      if (lastDecision.actions.length === 0 || lastDecision.isDone) {
-        const finalDecisionStartTime = Date.now();
-        const finalMessages = [
-          {
-            role: "system",
-            content: buildSystemPrompt(
-              instructions,
-              actions,
-              true,
-              params.training
-            ),
-          },
-          { role: "user", content: context.input },
-        ];
-        if (previousResults) {
-          finalMessages.push({
-            role: "user",
-            content: `Previous action results: ${JSON.stringify(previousResults, null, 2)}`,
-          });
-        }
-        const finalDecision = await getNextDecision(
-          model,
-          instructions,
-          context.input,
-          actions,
-          previousResults,
-          true,
-          params.training,
-          params.responseFormat
-        );
-        const finalDecisionDuration = Date.now() - finalDecisionStartTime;
         const totalDuration = Date.now() - taskStartTime;
 
-        log("Returning to user with response", {
+        // Get executed actions with their parameters
+        const actionSummary = plannerState.executedActions.map((actionId) => {
+          const result = context.state[actionId];
+          return `${actionId}${result !== undefined ? ` -> ${result}` : ""}`;
+        });
+
+        log("Interaction complete", {
+          type: "summary",
           data: {
-            response: finalDecision.response,
-            durationMs: finalDecisionDuration,
-            totalDuration: totalDuration,
+            durationMs: totalDuration,
+            costCents: totalCostCents,
+            executedActions:
+              actionSummary.length > 0 ? actionSummary : undefined,
           },
         });
 
-        // Log final evaluation
-        logger.logEvaluation(
-          context.state,
-          finalDecision?.reasoning || "",
-          finalDecision.actions,
-          model.modelId,
-          finalDecision.inputTokens || 0,
-          finalDecision.outputTokens || 0,
-          finalDecision.costCents || 0,
-          finalDecisionDuration,
-          finalDecision.response,
-          { messages: finalMessages },
-          { rawResponse: finalDecision.rawResponse }
-        );
-
-        // Log successful interaction completion with total duration
         await logger.logInteractionComplete(
-          finalDecision.response,
+          responseResult.response,
           totalDuration
         );
 
         return {
-          response: finalDecision.response as T,
+          response: responseResult.response as T,
           sessionId,
           ...logger.getMetrics(),
         };
       }
 
-      const orderedActions = resolveDependencies(
-        lastDecision.actions,
-        actions,
-        executedActions
-      );
+      // Resolve dependencies and execute actions
+      const orderedActions = resolveDependencies(planResult.actions, actions);
 
       for (const actionId of orderedActions) {
         const action = actions.find((a) => a.id === actionId);
@@ -243,22 +134,50 @@ export async function runTaskLoop<T = string>(params: {
         const actionStartTime = Date.now();
 
         try {
-          log(`Starting action`, {
-            data: { action: actionId },
-          });
-          context = await action.run(context);
+          // Get parameters for the action if needed
+          let parameters: Record<string, unknown> | undefined;
+          if (action.parameters) {
+            const paramResult = await planner.getActionParameters({
+              llm: model,
+              action: actionId,
+              input: context.input,
+              state: plannerState,
+              availableActions: actions,
+            });
+            parameters = paramResult.parameters;
+            totalCostCents += planner.getTotalCost();
+            planner.resetCost();
+          }
+
+          log(
+            `Running ${actionId}(${parameters ? JSON.stringify(parameters) : ""})`,
+            {
+              type: "action",
+            }
+          );
+
+          // Execute the action
+          context = await action.run(context, parameters);
           const actionDuration = Date.now() - actionStartTime;
-          log(`Finished executing action`, {
-            data: { action: actionId, durationMs: actionDuration },
+
+          log(`${actionId} completed`, {
+            type: "action",
+            data: {
+              durationMs: actionDuration,
+            },
           });
+
+          // Log success and update state
           logger.logActionComplete(
             actionId,
             context.state,
             actionDuration,
             context.state[actionId]
           );
-          previousResults[actionId] = context.state;
+
           executedActions.add(actionId);
+          plannerState.executedActions.push(actionId);
+          plannerState.context = context.state;
         } catch (error) {
           const actionErrorDuration = Date.now() - actionStartTime;
           logger.logActionError(
@@ -270,15 +189,7 @@ export async function runTaskLoop<T = string>(params: {
           throw error;
         }
       }
-
-      isDone = lastDecision.isDone;
     }
-
-    return {
-      response: lastDecision.response as T,
-      sessionId,
-      ...logger.getMetrics(),
-    };
   } catch (error) {
     const errorDuration = Date.now() - taskStartTime;
     logger.logActionError(
@@ -287,7 +198,6 @@ export async function runTaskLoop<T = string>(params: {
       context.state,
       errorDuration
     );
-    // Log failed interaction with total duration
     await logger.logInteractionComplete(null, errorDuration, error as Error);
     throw error;
   }

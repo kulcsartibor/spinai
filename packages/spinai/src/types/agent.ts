@@ -1,5 +1,6 @@
 import { Action } from "./action";
-import { BaseLLM } from "./llm";
+import { LLM } from "../llms/base";
+import { DebugMode } from "./debug";
 
 export interface JSONResponseFormat {
   type: "json";
@@ -15,7 +16,7 @@ export type ResponseFormat = { type: "text" } | JSONResponseFormat;
 export interface AgentConfig {
   instructions: string;
   actions: Action[];
-  llm: BaseLLM;
+  llm: LLM;
   agentId?: string;
   spinApiKey?: string;
   training?: {
@@ -23,7 +24,7 @@ export interface AgentConfig {
     completionInstructions?: string;
   };
   responseFormat?: ResponseFormat;
-  debug?: boolean;
+  debug?: DebugMode;
 }
 
 export interface AgentResponse<T = unknown> {

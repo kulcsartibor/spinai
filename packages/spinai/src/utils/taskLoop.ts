@@ -34,7 +34,9 @@ export async function runTaskLoop<T = string>(params: {
   // Track total cost
   let totalCostCents = 0;
 
-  log("Starting interaction", { type: "summary" });
+  log(`Starting interaction with ${params.debug ?? "default"} logging`, {
+    type: "summary",
+  });
 
   // Initialize session tracking
   const sessionId = context.sessionId || uuidv4();
@@ -80,6 +82,8 @@ export async function runTaskLoop<T = string>(params: {
 
       // If no actions planned, format final response and return
       if (planResult.actions.length === 0) {
+        log("Generating final response...", { type: "action" });
+
         const responseResult = await planner.formatResponse({
           llm: model,
           input: context.input,
@@ -93,9 +97,13 @@ export async function runTaskLoop<T = string>(params: {
         const totalDuration = Date.now() - taskStartTime;
 
         // Get executed actions with their parameters
-        const actionSummary = plannerState.executedActions.map((actionId) => {
-          const result = context.state[actionId];
-          return `${actionId}${result !== undefined ? ` -> ${result}` : ""}`;
+        const actionSummary = plannerState.executedActions.map((action) => {
+          const paramStr = action.parameters
+            ? ` (${JSON.stringify(action.parameters)})`
+            : "";
+          const resultStr =
+            action.result !== undefined ? ` -> ${action.result}` : "";
+          return `${action.id}${paramStr}${resultStr}`;
         });
 
         log("Interaction complete", {
@@ -149,18 +157,11 @@ export async function runTaskLoop<T = string>(params: {
             planner.resetCost();
           }
 
-          log(
-            `Running ${actionId}(${parameters ? JSON.stringify(parameters) : ""})`,
-            {
-              type: "action",
-            }
-          );
-
           // Execute the action
           context = await action.run(context, parameters);
           const actionDuration = Date.now() - actionStartTime;
 
-          log(`${actionId} completed`, {
+          log(`Finished action: ${actionId}`, {
             type: "action",
             data: {
               durationMs: actionDuration,
@@ -176,7 +177,11 @@ export async function runTaskLoop<T = string>(params: {
           );
 
           executedActions.add(actionId);
-          plannerState.executedActions.push(actionId);
+          plannerState.executedActions.push({
+            id: actionId,
+            parameters,
+            result: context.state[actionId],
+          });
           plannerState.context = context.state;
         } catch (error) {
           const actionErrorDuration = Date.now() - actionStartTime;

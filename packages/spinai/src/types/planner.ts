@@ -4,23 +4,33 @@ import { ResponseFormat } from "./agent";
 
 export interface PlanNextActionsResult {
   actions: string[];
-  reasoning: string;
+  reasoning?: string;
+  inputTokens?: number;
+  outputTokens?: number;
 }
 
 export interface ActionParametersResult {
   parameters: Record<string, unknown>;
   reasoning: string;
+  inputTokens?: number;
+  outputTokens?: number;
 }
 
 export interface FormatResponseResult {
   response: unknown;
   reasoning: string;
+  inputTokens?: number;
+  outputTokens?: number;
 }
 
 export interface ActionPlannerState {
   input: string;
   context: Record<string, unknown>;
-  executedActions: string[];
+  executedActions: Array<{
+    id: string;
+    parameters?: Record<string, unknown>;
+    result?: unknown;
+  }>;
 }
 
 export interface ActionPlanner {

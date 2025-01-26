@@ -1,5 +1,4 @@
 import { LLM } from "../llms/base";
-import { log } from "../utils/debugLogger";
 import { Action } from "../types/action";
 import { ResponseFormat } from "../types/agent";
 import {
@@ -20,6 +19,7 @@ import {
   GET_ACTION_PARAMETERS_PROMPT,
   FORMAT_RESPONSE_PROMPT,
 } from "../types/prompts";
+import { log } from "../utils/debugLogger";
 
 export class BasePlanner implements ActionPlanner {
   private totalCostCents = 0;
@@ -74,15 +74,6 @@ export class BasePlanner implements ActionPlanner {
         this.formatAvailableActions(availableActions)
       );
 
-    log("Planning next actions", { type: "llm" });
-
-    // Debug logging for all mode
-    log("Planning details", {
-      level: "debug",
-      type: "llm",
-      data: { prompt, state },
-    });
-
     const startTime = Date.now();
     const result = await llm.complete<PlanNextActionsResult>({
       prompt,
@@ -92,16 +83,21 @@ export class BasePlanner implements ActionPlanner {
 
     this.trackCost(result.costCents);
 
-    log(`Next actions: ${result.content.actions.join(", ") || "none"}`, {
-      type: "llm",
-      data: {
-        reasoning: result.content.reasoning,
-        durationMs,
-        costCents: result.costCents,
-        inputTokens: result.inputTokens,
-        outputTokens: result.outputTokens,
-      },
-    });
+    // Log the planning result
+    log(
+      `Next actions: ${result.content.actions.length === 0 ? "none" : result.content.actions.join(", ")}`,
+      {
+        type: "llm",
+        data: {
+          durationMs,
+          costCents: result.costCents,
+          inputTokens: result.inputTokens,
+          outputTokens: result.outputTokens,
+          reasoning: result.content.reasoning,
+          prompt,
+        },
+      }
+    );
 
     if (this.loggingService) {
       this.loggingService.logEvaluation(
@@ -149,15 +145,6 @@ export class BasePlanner implements ActionPlanner {
       )
       .replace("{{state}}", this.formatState(state));
 
-    log(`Getting parameters for ${action}`, { type: "llm" });
-
-    // Debug logging for all mode
-    log("Parameter details", {
-      level: "debug",
-      type: "llm",
-      data: { prompt, state },
-    });
-
     const startTime = Date.now();
     const result = await llm.complete<ActionParametersResult>({
       prompt,
@@ -173,14 +160,17 @@ export class BasePlanner implements ActionPlanner {
 
     this.trackCost(result.costCents);
 
-    log(`Parameters determined`, {
+    // Log the parameter generation result
+    log(`Generated parameters for ${action}`, {
       type: "llm",
       data: {
-        reasoning: result.content.reasoning,
         durationMs,
         costCents: result.costCents,
         inputTokens: result.inputTokens,
         outputTokens: result.outputTokens,
+        reasoning: result.content.reasoning,
+        parameters: result.content.parameters,
+        prompt,
       },
     });
 
@@ -225,15 +215,6 @@ export class BasePlanner implements ActionPlanner {
       .replace("{{state}}", this.formatState(state))
       .replace("{{responseFormat}}", formatInstructions);
 
-    log("Formatting final response", { type: "llm" });
-
-    // Debug logging for all mode
-    log("Response formatting details", {
-      level: "debug",
-      type: "llm",
-      data: { prompt, state },
-    });
-
     const startTime = Date.now();
 
     if (responseFormat?.type === "json") {
@@ -250,11 +231,23 @@ export class BasePlanner implements ActionPlanner {
         reasoning: "Response formatted as JSON according to specified schema",
       };
 
+      // Log the response generation result
+      log("Generated response", {
+        type: "llm",
+        data: {
+          durationMs,
+          costCents: result.costCents,
+          inputTokens: result.inputTokens,
+          outputTokens: result.outputTokens,
+          reasoning: formattedResult.reasoning,
+          prompt,
+        },
+      });
+
       this.logResponse(formattedResult, result, durationMs, state);
       return formattedResult;
     } else {
       // For text responses or undefined format, use the default text schema
-      // but wrap it in our standard format
       const result = await llm.complete<FormatResponseResult>({
         prompt,
         schema: FORMAT_RESPONSE_SCHEMA,
@@ -267,6 +260,19 @@ export class BasePlanner implements ActionPlanner {
         reasoning: result.content.reasoning,
       };
 
+      // Log the response generation result
+      log("Generated response", {
+        type: "llm",
+        data: {
+          durationMs,
+          costCents: result.costCents,
+          inputTokens: result.inputTokens,
+          outputTokens: result.outputTokens,
+          reasoning: formattedResult.reasoning,
+          prompt,
+        },
+      });
+
       this.logResponse(formattedResult, result, durationMs, state);
       return formattedResult;
     }
@@ -278,18 +284,6 @@ export class BasePlanner implements ActionPlanner {
     durationMs: number,
     state: ActionPlannerState
   ) {
-    log(`Response formatted`, {
-      type: "llm",
-      data: {
-        response: formattedResult.response,
-        reasoning: formattedResult.reasoning,
-        durationMs,
-        costCents: result.costCents,
-        inputTokens: result.inputTokens,
-        outputTokens: result.outputTokens,
-      },
-    });
-
     if (this.loggingService) {
       this.loggingService.logEvaluation(
         state,

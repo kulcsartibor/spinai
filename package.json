@@ -2,9 +2,9 @@
   "name": "spinai-project",
   "private": true,
   "scripts": {
-    "build": "turbo build",
-    "dev": "turbo dev",
-    "lint": "turbo lint",
+    "build": "turbo build --filter=!./examples/**",
+    "dev": "turbo dev --filter=!./examples/**",
+    "lint": "turbo lint --filter=!./examples/**",
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
     "update-packages": "changeset",
     "publish-packages": "turbo run build lint --filter=!./examples/** && changeset version && changeset publish"

@@ -1,8 +1,25 @@
 {
-  "extends": "@repo/typescript-config/base.json",
-  "compilerOptions": {
-    "outDir": "dist"
+  "name": "ergo-crm-agent",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "lint": "eslint \"src/**/*.ts*\"",
+    "check-types": "tsc --noEmit"
   },
-  "include": ["src"],
-  "exclude": ["node_modules", "dist"]
+  "dependencies": {
+    "dotenv": "^16.4.7",
+    "spinai": "*",
+    "tsx": "^4.7.1"
+  },
+  "devDependencies": {
+    "@repo/eslint-config": "*",
+    "@repo/typescript-config": "*",
+    "@types/node": "^20",
+    "@types/react": "18.3.1",
+    "@types/react-dom": "18.3.0",
+    "typescript": "5.5.4"
+  }
 }

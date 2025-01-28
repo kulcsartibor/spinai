@@ -1,5 +1,12 @@
 # create-spinai-app
 
+## 1.1.4
+
+### Patch Changes
+
+- 6066238: Bump
+- 2a498ea: Add Params to Spin, refactor the task loop, add varying debug logs
+
 ## 1.1.3
 
 ### Patch Changes

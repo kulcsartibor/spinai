@@ -21,9 +21,6 @@ const calculatorAgent = createAgent<number>({
   instructions: `You are a calculator agent that helps users perform mathematical calculations.`,
   actions: [sum],
   llm,
-  agentId: "calculator-test",
-  spinApiKey: process.env.SPINAI_API_KEY || "",
-  // debug: "verbose",
 });
 
 async function main() {

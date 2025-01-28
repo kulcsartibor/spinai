@@ -36,7 +36,7 @@ const supportAgent = createAgent<SupportResponse>({
   actions: [getCustomerInfo, getSubscriptionStatus, createTicket],
   llm,
   agentId: "customer-support-test",
-  spinApiKey: "QV77-I86L-EMTP-HD9M-Z5VZ-CJTR",
+  spinApiKey: process.env.SPINAI_API_KEY || "",
   // debug: false,
   responseFormat: {
     type: "json",
@@ -53,7 +53,7 @@ const supportAgent = createAgent<SupportResponse>({
 });
 
 const { response, sessionId } = await supportAgent({
-  input: "What is my name?",
+  input: "Please create a support ticket for a dashboard issue",
   state: {},
   // sessionId: "01ced245-9cae-4ed8-ac94-ff989d92d38c",
 });

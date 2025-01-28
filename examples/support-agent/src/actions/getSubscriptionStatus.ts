@@ -12,6 +12,8 @@ export const getSubscriptionStatus = createAction({
       nextBilling: "2024-03-20",
       features: ["priority-support", "api-access", "custom-integrations"],
     };
+    await new Promise((resolve) => setTimeout(resolve, 350));
+
     return context;
   },
 });

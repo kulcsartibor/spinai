@@ -16,6 +16,8 @@ export const createTicket = createAction({
       customerId: customerInfo.customerId,
       description: context.input,
     };
+    await new Promise((resolve) => setTimeout(resolve, 155));
+
     return context;
   },
 });

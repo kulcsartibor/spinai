@@ -18,6 +18,7 @@ import {
   PLAN_NEXT_ACTIONS_PROMPT,
   GET_ACTION_PARAMETERS_PROMPT,
   FORMAT_RESPONSE_PROMPT,
+  PLAN_NEXT_ACTIONS_RERUN_PROMPT,
 } from "../types/prompts";
 import { log } from "../utils/debugLogger";
 
@@ -57,16 +58,20 @@ export class BasePlanner implements ActionPlanner {
     input,
     state,
     availableActions,
+    isRerun,
   }: {
     llm: LLM;
     input: string;
     state: ActionPlannerState;
     availableActions: Action[];
+    isRerun: boolean;
   }): Promise<PlanNextActionsResult> {
-    const prompt = PLAN_NEXT_ACTIONS_PROMPT.replace(
-      "{{instructions}}",
-      this.instructions
-    )
+    const promptTemplate = isRerun
+      ? PLAN_NEXT_ACTIONS_RERUN_PROMPT
+      : PLAN_NEXT_ACTIONS_PROMPT;
+
+    const prompt = promptTemplate
+      .replace("{{instructions}}", this.instructions)
       .replace("{{state}}", this.formatState(state))
       .replace("{{input}}", input)
       .replace(

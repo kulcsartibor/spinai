@@ -30,6 +30,8 @@ export interface AgentConfig {
 export interface AgentResponse<T = unknown> {
   response: T;
   sessionId: string;
+  interactionId: string;
   totalDurationMs: number;
   totalCostCents: number;
+  state: Record<string, unknown>;
 }

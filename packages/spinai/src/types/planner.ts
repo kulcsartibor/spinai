@@ -39,6 +39,7 @@ export interface ActionPlanner {
     input: string;
     state: ActionPlannerState;
     availableActions: Action[];
+    isRerun: boolean;
   }): Promise<PlanNextActionsResult>;
 
   getActionParameters(params: {

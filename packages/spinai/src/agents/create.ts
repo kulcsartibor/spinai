@@ -3,7 +3,7 @@ import { SpinAiContext } from "../types/context";
 import { runTaskLoop } from "../utils/taskLoop";
 
 export function createAgent<T = string>(config: AgentConfig) {
-  return async function agent(context: SpinAiContext) {
+  const agent = async function agent(context: SpinAiContext) {
     return runTaskLoop<T>({
       actions: config.actions,
       context,
@@ -16,4 +16,15 @@ export function createAgent<T = string>(config: AgentConfig) {
       debug: config.debug,
     });
   };
+
+  agent.rerun = async function rerun(
+    context: SpinAiContext & { sessionId: string }
+  ) {
+    return agent({
+      ...context,
+      isRerun: true,
+    });
+  };
+
+  return agent;
 }

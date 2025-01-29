@@ -52,6 +52,8 @@ export async function runTaskLoop<T = string>(params: {
     sessionId,
     interactionId,
     llmModel: model.modelName,
+    externalCustomerId: context.externalCustomerId,
+    isRerun: context.isRerun ?? false,
   });
 
   // Initialize planner
@@ -76,6 +78,7 @@ export async function runTaskLoop<T = string>(params: {
         input: context.input,
         state: plannerState,
         availableActions: actions,
+        isRerun: context.isRerun ?? false,
       });
       totalCostCents += planner.getTotalCost();
       planner.resetCost();
@@ -106,6 +109,45 @@ export async function runTaskLoop<T = string>(params: {
           return `${action.id}${paramStr}${resultStr}`;
         });
 
+        // Create interaction summary
+        const interactionSummary = {
+          interactionId,
+          originalInput: context.input,
+          executedActions: plannerState.executedActions,
+          finalResponse: responseResult.response,
+          finalState: context.state.finalState || context.state,
+          ...(context.isRerun && context.state.previousInteraction
+            ? {
+                previousInteraction: {
+                  interactionId:
+                    context.state.previousInteraction.interactionId,
+                  originalInput:
+                    context.state.previousInteraction.originalInput,
+                  executedActions:
+                    context.state.previousInteraction.executedActions,
+                  finalResponse:
+                    context.state.previousInteraction.finalResponse,
+                },
+              }
+            : {}),
+        };
+
+        // If this is a re-run, store current interaction as previous before updating
+        if (context.isRerun) {
+          context.state.previousInteraction = {
+            interactionId: context.state.interactionId,
+            originalInput: context.state.originalInput,
+            executedActions: context.state.executedActions || [],
+            finalResponse: context.state.finalResponse,
+          };
+        }
+
+        // Store minimal interaction info in state
+        context.state.interactionId = interactionId;
+        context.state.originalInput = context.input;
+        context.state.executedActions = plannerState.executedActions;
+        context.state.finalResponse = responseResult.response;
+
         log("Interaction complete", {
           type: "summary",
           data: {
@@ -113,18 +155,24 @@ export async function runTaskLoop<T = string>(params: {
             costCents: totalCostCents,
             executedActions:
               actionSummary.length > 0 ? actionSummary : undefined,
+            interactionState: interactionSummary,
           },
         });
 
         await logger.logInteractionComplete(
           responseResult.response,
-          totalDuration
+          totalDuration,
+          undefined,
+          interactionSummary
         );
 
         return {
           response: responseResult.response as T,
           sessionId,
-          ...logger.getMetrics(),
+          interactionId,
+          totalDurationMs: totalDuration,
+          totalCostCents: totalCostCents,
+          state: context.state,
         };
       }
 

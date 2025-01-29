@@ -2,11 +2,12 @@ import type {
   LogPayload,
   StepLogEntry,
   InteractionLogEntry,
+  InteractionSummary,
 } from "../types/logging";
 import { v4 as uuidv4 } from "uuid";
 
-const LOGGING_ENDPOINT = "https://logs.spinai.dev/log";
-// const LOGGING_ENDPOINT = "http://0.0.0.0:8000/log";
+// const LOGGING_ENDPOINT = "https://logs.spinai.dev/log";
+const LOGGING_ENDPOINT = "http://0.0.0.0:8000/log";
 
 export class LoggingService {
   private agentId?: string;
@@ -14,6 +15,7 @@ export class LoggingService {
   private sessionId: string;
   private interactionId: string;
   private llmModel: string;
+  private externalCustomerId?: string;
   private startTime: number;
   private totalCostCents: number = 0;
   private totalInputTokens: number = 0;
@@ -28,6 +30,7 @@ export class LoggingService {
   private lastErrorTime: number = 0;
   private readonly ERROR_COOLDOWN_MS = 5000; // Only show error every 5 seconds
   private originalInput: string = "";
+  private isRerun: boolean;
 
   constructor(config: {
     agentId?: string;
@@ -35,12 +38,16 @@ export class LoggingService {
     sessionId: string;
     interactionId: string;
     llmModel: string;
+    externalCustomerId?: string;
+    isRerun?: boolean;
   }) {
     this.agentId = config.agentId;
     this.spinApiKey = config.spinApiKey;
     this.sessionId = config.sessionId;
     this.interactionId = config.interactionId;
     this.llmModel = config.llmModel;
+    this.externalCustomerId = config.externalCustomerId;
+    this.isRerun = config.isRerun ?? false;
     this.startTime = Date.now();
   }
 
@@ -67,18 +74,16 @@ export class LoggingService {
         this.logQueue.shift();
       } catch (error) {
         const errorMsg = error instanceof Error ? error.message : String(error);
-        const errorSnippet =
-          errorMsg.length > 20 ? errorMsg.slice(0, 20) + "..." : errorMsg;
 
         log.retryCount += 1;
         if (log.retryCount >= this.MAX_RETRIES) {
           this.logError(
-            `Failed to send logs after ${this.MAX_RETRIES} attempts (${errorSnippet}). Some logs may be lost.`
+            `Failed to send logs after ${this.MAX_RETRIES} attempts (${errorMsg}). Some logs may be lost.`
           );
           this.logQueue.shift();
         } else {
           this.logError(
-            `Log delivery failed (${errorSnippet}), will retry (attempt ${log.retryCount}/${this.MAX_RETRIES})`
+            `Log delivery failed (${errorMsg}), will retry (attempt ${log.retryCount}/${this.MAX_RETRIES})`
           );
         }
         break;
@@ -112,6 +117,7 @@ export class LoggingService {
       type,
       data,
       spinApiKey: this.spinApiKey,
+      externalCustomerId: this.externalCustomerId,
     };
 
     const response = await fetch(LOGGING_ENDPOINT, {
@@ -135,6 +141,7 @@ export class LoggingService {
       inputText: input,
       modelUsed: this.llmModel,
       timestamp: this.getTimestamp(),
+      isRerun: this.isRerun,
     };
     this.queueLog("interaction", interactionStart);
   }
@@ -143,7 +150,8 @@ export class LoggingService {
   logInteractionComplete(
     response: unknown,
     durationMs?: number,
-    error?: Error
+    error?: Error,
+    interactionState?: InteractionSummary
   ): void {
     this.queueLog("interaction", {
       id: this.interactionId,
@@ -157,6 +165,9 @@ export class LoggingService {
       status: error ? "failed" : "success",
       errorMessage: error?.message,
       response,
+      interactionState,
+      timestamp: this.getTimestamp(),
+      isRerun: this.isRerun,
     } as InteractionLogEntry);
   }
 

@@ -1,5 +1,11 @@
 # create-spinai-app
 
+## 1.1.5
+
+### Patch Changes
+
+- fe839ad: Add safegaurds for failing actions
+
 ## 1.1.4
 
 ### Patch Changes

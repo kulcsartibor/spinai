@@ -1,5 +1,11 @@
 # create-spinai-app
 
+## 1.1.7
+
+### Patch Changes
+
+- 9878998: Point spin to build files not source files
+
 ## 1.1.6
 
 ### Patch Changes

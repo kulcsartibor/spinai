@@ -179,13 +179,29 @@ export async function runTaskLoop<T = string>(params: {
       // Resolve dependencies and execute actions
       const orderedActions = resolveDependencies(planResult.actions, actions);
 
-      for (const actionId of orderedActions) {
-        const action = actions.find((a) => a.id === actionId);
+      // Execute each planned action in dependency order
+      for (const plannedActionId of orderedActions) {
+        const action = actions.find((a) => a.id === plannedActionId);
         if (!action) {
-          const error = `Action ${actionId} not found`;
-          logger.logActionError(actionId, error, context.state, 0);
-          throw new Error(error);
+          const errorMessage = `Action ${plannedActionId} not found`;
+          log(errorMessage, { type: "action" });
+          plannerState.executedActions.push({
+            id: plannedActionId,
+            status: "error",
+            errorMessage,
+          });
+          executedActions.add(plannedActionId);
+          continue;
         }
+
+        if (executedActions.has(plannedActionId)) {
+          continue;
+        }
+
+        log(`Executing action: ${action.id}`, {
+          type: "action",
+          data: action.parameters,
+        });
 
         const actionStartTime = Date.now();
 
@@ -195,7 +211,7 @@ export async function runTaskLoop<T = string>(params: {
           if (action.parameters) {
             const paramResult = await planner.getActionParameters({
               llm: model,
-              action: actionId,
+              action: action.id,
               input: context.input,
               state: plannerState,
               availableActions: actions,
@@ -209,37 +225,51 @@ export async function runTaskLoop<T = string>(params: {
           context = await action.run(context, parameters);
           const actionDuration = Date.now() - actionStartTime;
 
-          log(`Finished action: ${actionId}`, {
-            type: "action",
-            data: {
-              durationMs: actionDuration,
-            },
+          plannerState.executedActions.push({
+            id: action.id,
+            parameters,
+            result: context.state[action.id],
+            status: "success",
           });
+          executedActions.add(plannedActionId);
 
-          // Log success and update state
+          // Log success
           logger.logActionComplete(
-            actionId,
+            action.id,
             context.state,
             actionDuration,
-            context.state[actionId]
+            context.state[action.id]
+          );
+        } catch (error) {
+          const errorMessage =
+            error instanceof Error ? error.message : String(error);
+          const actionErrorDuration = Date.now() - actionStartTime;
+
+          log(`Action error: ${errorMessage}`, {
+            type: "action",
+            data: error,
+          });
+
+          // Add the failed action to executedActions with error status
+          plannerState.executedActions.push({
+            id: action.id,
+            parameters: action.parameters,
+            status: "error",
+            errorMessage,
+          });
+          executedActions.add(plannedActionId);
+
+          // Log error with the updated logActionComplete
+          logger.logActionComplete(
+            action.id,
+            context.state,
+            actionErrorDuration,
+            undefined,
+            { message: errorMessage }
           );
 
-          executedActions.add(actionId);
-          plannerState.executedActions.push({
-            id: actionId,
-            parameters,
-            result: context.state[actionId],
-          });
-          plannerState.context = context.state;
-        } catch (error) {
-          const actionErrorDuration = Date.now() - actionStartTime;
-          logger.logActionError(
-            actionId,
-            error,
-            context.state,
-            actionErrorDuration
-          );
-          throw error;
+          // Continue with next action instead of throwing
+          continue;
         }
       }
     }

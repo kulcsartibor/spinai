@@ -2,6 +2,8 @@ export interface ExecutedActionSummary {
   id: string;
   parameters?: Record<string, unknown>;
   result?: unknown;
+  status: "success" | "error";
+  errorMessage?: string;
 }
 
 export interface InteractionSummary {

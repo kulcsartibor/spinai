@@ -30,6 +30,8 @@ export interface ActionPlannerState {
     id: string;
     parameters?: Record<string, unknown>;
     result?: unknown;
+    status: "success" | "error";
+    errorMessage?: string;
   }>;
 }
 

@@ -1,5 +1,11 @@
 # create-spinai-app
 
+## 1.1.8
+
+### Patch Changes
+
+- 8473b4a: some support for commonjs
+
 ## 1.1.7
 
 ### Patch Changes

@@ -1,5 +1,11 @@
 # create-spinai-app
 
+## 1.1.6
+
+### Patch Changes
+
+- 0e0ab5b: Remove unused deps
+
 ## 1.1.5
 
 ### Patch Changes

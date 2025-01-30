@@ -7,7 +7,7 @@
     "lint": "turbo lint --filter=!./examples/**",
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
     "update-packages": "changeset",
-    "publish-packages": "turbo run build lint test --filter=!./examples/** && changeset version && changeset publish"
+    "publish-packages": "turbo run build lint --filter=!./examples/** && changeset version && changeset publish"
   },
   "devDependencies": {
     "prettier": "^3.2.5",

@@ -7,123 +7,187 @@ description: "AI agents that coordinate actions to achieve goals"
 
 Agents are the core building blocks of SpinAI. They combine LLMs with actions to solve tasks.
 
-## Creating an Agent
+## Quick Start
 
 ```typescript
 import { createAgent, createOpenAILLM } from "spinai";
-import { getCustomerInfo, updateProfile } from "./actions";
+import { searchProducts, createOrder } from "./actions";
 
+// Initialize your LLM
 const llm = createOpenAILLM({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
+// Create an agent
+const agent = createAgent({
+  instructions: "You are a helpful shopping assistant",
+  actions: [searchProducts, createOrder],
+  llm,
+});
+
+// Use the agent
+const { response } = await agent({
+  input: "Find me a red t-shirt under $30",
+});
+```
+
+## Configuration Options
+
+### Agent Creation Parameters
+
+| Parameter        | Type                                      | Required | Description                                         |
+| ---------------- | ----------------------------------------- | -------- | --------------------------------------------------- |
+| `instructions`   | string                                    | Yes      | Instructions that guide the agent's behavior        |
+| `actions`        | Action[]                                  | Yes      | Array of actions the agent can perform              |
+| `llm`            | BaseLLM                                   | Yes      | Language model for decision making                  |
+| `spinApiKey`     | string                                    | No       | API key for SpinAI dashboard integration            |
+| `agentId`        | string                                    | No       | Unique identifier for the agent in SpinAI dashboard |
+| `debug`          | "none" \| "default" \| "verbose" \| "all" | No       | Debug logging level                                 |
+| `responseFormat` | JSONSchema                                | No       | Schema for structured responses, defaults to string |
+
+### Agent Execution Parameters
+
+| Parameter            | Type                | Required | Description                      |
+| -------------------- | ------------------- | -------- | -------------------------------- |
+| `input`              | string              | Yes      | User input or task description   |
+| `state`              | Record<string, any> | No       | Initial state for the execution  |
+| `externalCustomerId` | string              | No       | Customer identifier for tracking |
+
+### Return Values
+
+| Parameter         | Type                | Description                                         |
+| ----------------- | ------------------- | --------------------------------------------------- |
+| `response`        | T \| string         | Agent's response (typed if responseFormat provided) |
+| `totalCostCents`  | number              | Total cost of LLM calls in cents                    |
+| `totalDurationMs` | number              | Total execution time in milliseconds                |
+| `sessionId`       | string              | Unique identifier for the conversation              |
+| `interactionId`   | string              | Unique identifier for this specific interaction     |
+| `state`           | Record<string, any> | Final state after execution                         |
+
+## Use Cases
+
+### 1. Basic Agent
+
+Simple agent that responds to queries:
+
+```typescript
 const agent = createAgent({
   instructions: "You are a helpful assistant",
-  actions: [getCustomerInfo, updateProfile],
+  actions: [searchKnowledge, respondToUser],
   llm,
+});
+
+const { response } = await agent({
+  input: "How do I reset my password?",
 });
 ```
 
-## Custom Response Formats
+### 2. Structured Responses
 
-You can specify a response format to get structured data back from the agent:
+Agent that returns typed data:
 
 ```typescript
-interface CustomerInfo {
-  name: string;
-  plan: string;
-  nextBilling: string;
+interface OrderStatus {
+  orderId: string;
+  status: "pending" | "shipped" | "delivered";
+  estimatedDelivery?: string;
 }
 
-const supportAgent = createAgent<CustomerInfo>({
-  instructions: "You are a customer support agent",
-  actions: [getCustomerInfo, getSubscriptionStatus],
+const orderAgent = createAgent<OrderStatus>({
+  instructions: "Track order status",
+  actions: [getOrderDetails],
   llm,
   responseFormat: {
-    type: "json",
-    schema: {
-      type: "object",
-      properties: {
-        name: { type: "string" },
-        plan: { type: "string" },
-        nextBilling: { type: "string" },
-      },
-      required: ["name", "plan", "nextBilling"],
+    type: "object",
+    properties: {
+      orderId: { type: "string" },
+      status: { type: "string", enum: ["pending", "shipped", "delivered"] },
+      estimatedDelivery: { type: "string" },
     },
+    required: ["orderId", "status"],
   },
 });
-
-// Response will be typed as CustomerInfo
-const { response } = await supportAgent({
-  input: "What's my subscription status?",
-  state: {},
-});
-
-console.log(response.plan); // "Pro Plan"
-console.log(response.nextBilling); // "2024-04-01"
 ```
 
-## Using Agents
+### 3. Dashboard Integration
 
-Agents are async functions that take input and return responses:
+Agent with monitoring enabled:
 
 ```typescript
-const { response, context } = await agent({
+const agent = createAgent({
+  instructions: "Handle customer support",
+  actions: [getCustomer, createTicket],
+  llm,
+  spinApiKey: process.env.SPINAI_API_KEY,
+  agentId: "support-agent",
+  debug: "verbose",
+});
+
+const { response, totalCostCents } = await agent({
   input: "I need help with my order",
-  state: {}, // Optional initial state
+  externalCustomerId: "customer_123",
 });
 ```
 
-## Agent Configuration
+### 4. Session Management with Reruns
+
+Maintaining context across interactions:
 
 ```typescript
-interface AgentConfig {
-  instructions: string; // Guide agent behavior
-  actions: Action[]; // Available actions
-  llm: BaseLLM; // LLM for decisions
-  training?: {
-    // Optional training overrides
-    systemInstructions?: string;
-    completionInstructions?: string;
-  };
-}
+// Initial interaction
+const { response, sessionId, state } = await agent({
+  input: "Create a ticket for my broken laptop",
+  state: { customerId: "123" },
+});
+
+// Follow-up using .rerun()
+const { response: updatedResponse } = await agent.rerun({
+  sessionId: sessionId,
+  input: "Add that it's a MacBook Pro",
+  state: state,
+});
 ```
 
-## LLM Support
+## Debug Logging
 
-SpinAI supports multiple LLMs out of the box.
+Different debug levels provide varying amounts of information:
 
-See [LLM Support](/llms/overview) for more details on configuring different models.
+| Level     | Information Shown             |
+| --------- | ----------------------------- |
+| `none`    | No logging                    |
+| `default` | Basic flow and metrics        |
+| `verbose` | Adds reasoning and parameters |
+| `all`     | Adds full prompts and details |
+
+Example output (default level):
+
+```bash
+🤖 Planning next actions (took 234ms, cost 0.5¢)
+⚡ Executing getCustomerInfo (took 123ms)
+   Parameters: {"customerId": "123"}
+📊 Task complete (took 892ms, cost 1.2¢)
+```
 
 ## Best Practices
 
 1. **Clear Instructions**
 
    ```typescript
-   // Good
    instructions: "You are a support agent that helps users with order issues";
-   // Bad
-   instructions: "Help users";
    ```
 
 2. **Focused Action Sets**
-   Only provide actions relevant to the agent's purpose:
 
    ```typescript
-   // Support agent
    actions: [getCustomerInfo, getOrderStatus, createTicket];
    ```
 
 3. **State Management**
-   Initialize state when needed:
    ```typescript
-   await agent({
-     input: "Check my order",
-     state: {
-       customerId: "123",
-       region: "US",
-     },
-   });
+   state: {
+     customerId: "123",
+     region: "US",
+   }
    ```
 
 ## Next Steps

@@ -8,7 +8,7 @@ description: "Building blocks of SpinAI agents"
 Actions are discrete tasks that your AI agent can perform. They are:
 
 - Type-safe and predictable
-- State-aware through context
+- Parameter-driven with state awareness
 - Dependency-aware
 - Reusable across agents
 
@@ -19,14 +19,21 @@ Use the `createAction` helper to define actions:
 ```typescript
 import { createAction } from "spinai";
 
-export const getCustomerInfo = createAction({
-  id: "getCustomerInfo",
-  description: "Retrieves customer profile information",
-  dependsOn: [], // Optional dependencies
-  retries: 2, // Optional retry count
-  async run(context) {
-    // Your action logic here
-    context.state.customer = await fetchCustomer();
+export const minus = createAction({
+  id: "minus",
+  description: "Subtracts two numbers from each other",
+  parameters: {
+    type: "object",
+    properties: {
+      a: { type: "number", description: "Number to subtract from" },
+      b: { type: "number", description: "Number to subtract" },
+    },
+    required: ["a", "b"],
+  },
+  async run(context, parameters) {
+    const { a, b } = parameters || {};
+    const result = a - b;
+    context.state.result = result;
     return context;
   },
 });
@@ -38,15 +45,29 @@ export const getCustomerInfo = createAction({
 interface ActionConfig {
   id: string; // Unique identifier
   description: string; // Used by LLM to decide when to use this action
+  parameters?: {
+    type: "object";
+    properties: Record<
+      string,
+      {
+        type: string;
+        description: string;
+      }
+    >;
+    required?: string[];
+  }; // JSON Schema for action parameters
   dependsOn?: string[]; // IDs of actions that must run first
   retries?: number; // Number of retry attempts (default: 2)
-  run: (context: SpinAiContext) => Promise<SpinAiContext>;
+  run: (
+    context: SpinAiContext,
+    parameters?: Record<string, unknown>
+  ) => Promise<SpinAiContext>;
 }
 ```
 
-## Context and State
+## Parameters and State
 
-Actions receive and modify state through context:
+Actions can receive input through parameters and access shared state through context:
 
 ```typescript
 interface SpinAiContext {
@@ -55,27 +76,77 @@ interface SpinAiContext {
 }
 ```
 
-Example using context:
+Example using parameters and context:
 
 ```typescript
 const createTicket = createAction({
   id: "createTicket",
   description: "Creates a support ticket",
-  dependsOn: ["getCustomerInfo"], // Runs after getCustomerInfo
-  async run(context) {
-    // Access previous action's results
-    const { customer } = context.state;
+  parameters: {
+    type: "object",
+    properties: {
+      priority: {
+        type: "string",
+        description: "Ticket priority level",
+      },
+      category: {
+        type: "string",
+        description: "Support ticket category",
+      },
+    },
+    required: ["priority"],
+  },
+  async run(context, parameters) {
+    const { priority, category } = parameters || {};
+    const { customer } = context.state; // Access state from previous actions
 
-    // Add new data to state
+    // Create ticket with parameters and state
     context.state.ticket = {
-      customerId: customer.id,
+      customerId: customer?.id,
       description: context.input,
-      priority: "high",
+      priority,
+      category,
     };
 
     return context;
   },
 });
+```
+
+## Parameter Resolution
+
+SpinAI's task loop follows a two-step decision process:
+
+1. **Action Selection**
+
+   - First, the LLM decides which action(s) to run based on the current context and goal
+   - This decision is made using the action's description, the current state, and the user's input
+
+2. **Parameter Determination**
+   - Before executing the chosen action, SpinAI makes a separate decision to determine the exact parameters
+   - Parameters are intelligently derived from:
+     - Results of previously run actions
+     - Current application state
+     - User's original input
+     - Any other available context
+
+For example, in a calculator agent:
+
+```typescript
+// For the input "what is 5 plus 3 minus 1?"
+// First action: sum is selected
+const sumResult = await sum.run(context, {
+  a: 5, // From user input
+  b: 3, // From user input
+});
+// Result: 8 stored in state
+
+// Second action: minus is selected
+const minusResult = await minus.run(context, {
+  a: 8, // From previous sum result
+  b: 1, // From user input
+});
+// Final result: 7
 ```
 
 ## Dependencies
@@ -96,41 +167,43 @@ SpinAI automatically:
 
 ## Best Practices
 
-1. **Single Responsibility**
-   Each action should do one thing well:
+1. **Clear Parameter Schemas**
+   Define clear parameter types and descriptions:
 
    ```typescript
-   // Do one thing well
-   id: "validateEmail",
-   description: "Validates an email address"
-   ```
-
-2. **Clear Descriptions**
-   Help the LLM understand when to use your action:
-
-   ```typescript
-   // Good
-   description: "Fetches current weather conditions for a given location";
-   // Bad
-   description: "Gets weather";
-   ```
-
-3. **State Management**
-   Use clear state keys and types:
-
-   ```typescript
-   interface CustomerState {
-     id: string;
-     name: string;
-     tier: "basic" | "premium";
+   parameters: {
+     type: "object",
+     properties: {
+       query: {
+         type: "string",
+         description: "Search query to find customer records"
+       }
+     }
    }
    ```
 
-4. **Error Handling**
-   Use the retry system for unreliable operations:
+2. **Descriptive Action Descriptions**
+   Help the LLM understand both when to use the action AND what parameters it needs:
+
    ```typescript
-   // Retry unreliable operations
-   retries: 3;
+   description: "Searches for customers. Expects a 'query' parameter containing search terms like name or email.";
+   ```
+
+3. **State Management**
+   While parameters are preferred for inputs, use state for:
+
+   - Storing action results
+   - Sharing data between actions
+   - Maintaining conversation context
+
+4. **Error Handling**
+   Validate parameters and use the retry system for unreliable operations:
+
+   ```typescript
+   // Parameter validation
+   if (!parameters?.query?.trim()) {
+     throw new Error("Search query cannot be empty");
+   }
    ```
 
 ## Next Steps

@@ -2,6 +2,7 @@
 import { createAgent, createOpenAILLM, createAnthropicLLM } from "spinai";
 import * as dotenv from "dotenv";
 import { sum } from "./actions/sum";
+import { minus } from "./actions/minus";
 
 dotenv.config();
 
@@ -19,13 +20,13 @@ const llm = createOpenAILLM({
 
 const calculatorAgent = createAgent<number>({
   instructions: `You are a calculator agent that helps users perform mathematical calculations.`,
-  actions: [sum],
+  actions: [sum, minus],
   llm,
 });
 
 async function main() {
   const { response } = await calculatorAgent({
-    input: "What is 5 plus 3?",
+    input: "What is 5 plus 3 minus 1?",
     state: {},
   });
 

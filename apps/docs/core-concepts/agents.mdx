@@ -35,34 +35,34 @@ const { response } = await agent({
 
 ### Agent Creation Parameters
 
-| Parameter        | Type                                      | Required | Description                                         |
-| ---------------- | ----------------------------------------- | -------- | --------------------------------------------------- |
-| `instructions`   | string                                    | Yes      | Instructions that guide the agent's behavior        |
-| `actions`        | Action[]                                  | Yes      | Array of actions the agent can perform              |
-| `llm`            | BaseLLM                                   | Yes      | Language model for decision making                  |
-| `spinApiKey`     | string                                    | No       | API key for SpinAI dashboard integration            |
-| `agentId`        | string                                    | No       | Unique identifier for the agent in SpinAI dashboard |
-| `debug`          | "none" \| "default" \| "verbose" \| "all" | No       | Debug logging level                                 |
-| `responseFormat` | JSONSchema                                | No       | Schema for structured responses, defaults to string |
+| Parameter        | Type                                        | Required | Description                                         |
+| ---------------- | ------------------------------------------- | -------- | --------------------------------------------------- |
+| `instructions`   | `string`                                    | Yes      | Instructions that guide the agent's behavior        |
+| `actions`        | `Action[]`                                  | Yes      | Array of actions the agent can perform              |
+| `llm`            | `BaseLLM`                                   | Yes      | Language model for decision making                  |
+| `spinApiKey`     | `string`                                    | No       | API key for SpinAI dashboard integration            |
+| `agentId`        | `string`                                    | No       | Unique identifier for the agent in SpinAI dashboard |
+| `debug`          | `"none" \| "default" \| "verbose" \| "all"` | No       | Debug logging level                                 |
+| `responseFormat` | `JSONSchema`                                | No       | Schema for structured responses, defaults to string |
 
 ### Agent Execution Parameters
 
-| Parameter            | Type                | Required | Description                      |
-| -------------------- | ------------------- | -------- | -------------------------------- |
-| `input`              | string              | Yes      | User input or task description   |
-| `state`              | Record<string, any> | No       | Initial state for the execution  |
-| `externalCustomerId` | string              | No       | Customer identifier for tracking |
+| Parameter            | Type                  | Required | Description                      |
+| -------------------- | --------------------- | -------- | -------------------------------- |
+| `input`              | `string`              | Yes      | User input or task description   |
+| `state`              | `Record<string  any>` | No       | Initial state for the execution  |
+| `externalCustomerId` | `string`              | No       | Customer identifier for tracking |
 
 ### Return Values
 
-| Parameter         | Type                | Description                                         |
-| ----------------- | ------------------- | --------------------------------------------------- |
-| `response`        | T \| string         | Agent's response (typed if responseFormat provided) |
-| `totalCostCents`  | number              | Total cost of LLM calls in cents                    |
-| `totalDurationMs` | number              | Total execution time in milliseconds                |
-| `sessionId`       | string              | Unique identifier for the conversation              |
-| `interactionId`   | string              | Unique identifier for this specific interaction     |
-| `state`           | Record<string, any> | Final state after execution                         |
+| Parameter         | Type                  | Description                                         |
+| ----------------- | --------------------- | --------------------------------------------------- |
+| `response`        | `T \| string`         | Agent's response (typed if responseFormat provided) |
+| `totalCostCents`  | `number`              | Total cost of LLM calls in cents                    |
+| `totalDurationMs` | `number`              | Total execution time in milliseconds                |
+| `sessionId`       | `string`              | Unique identifier for the conversation              |
+| `interactionId`   | `string`              | Unique identifier for this specific interaction     |
+| `state`           | `Record<string, any>` | Final state after execution                         |
 
 ## Use Cases
 

@@ -1,5 +1,11 @@
 # spinai
 
+## 1.1.9
+
+### Patch Changes
+
+- d563701: Add retry logic and better protection against infinite reruns in the case of actions failing
+
 ## 1.1.8
 
 ### Patch Changes

@@ -6,11 +6,31 @@ import degit from "degit";
 import chalk from "chalk";
 import prompts, { PromptObject } from "prompts";
 
-// Templates are stored in the main repo under packages/templates
-const TEMPLATE_REPO = "fallomai/spinai/packages/templates";
-const AVAILABLE_TEMPLATES = ["basic", "advanced", "minimal"] as const;
+interface Template {
+  name: string;
+  description: string;
+  repo: string;
+}
 
-type Template = (typeof AVAILABLE_TEMPLATES)[number];
+// Easy to add new templates here
+const TEMPLATES: Template[] = [
+  {
+    name: "default",
+    description: "A basic SpinAI calculator agent",
+    repo: "fallomai/spinai/templates/default",
+  },
+  {
+    name: "minimal",
+    description: "Minimal setup with no actions or agents created",
+    repo: "fallomai/spinai/templates/minimal",
+  },
+  // Add new templates here like:
+  // {
+  //   name: "discord-bot",
+  //   description: "Template for creating Discord bots",
+  //   repo: "username/repo-name/path/to/template"
+  // }
+];
 
 async function getProjectDetails(suggestedName?: string) {
   const questions: PromptObject[] = [];
@@ -28,7 +48,11 @@ async function getProjectDetails(suggestedName?: string) {
     type: "select",
     name: "template",
     message: "Which template would you like to use?",
-    choices: AVAILABLE_TEMPLATES.map((t) => ({ title: t, value: t })),
+    choices: TEMPLATES.map((t) => ({
+      title: t.name,
+      description: t.description,
+      value: t.name,
+    })),
     initial: 0,
   } as PromptObject);
 
@@ -39,9 +63,15 @@ async function getProjectDetails(suggestedName?: string) {
     },
   });
 
+  const selectedTemplate = TEMPLATES.find((t) => t.name === response.template);
+  if (!selectedTemplate) {
+    console.error(chalk.red("\n✖ Invalid template selected"));
+    process.exit(1);
+  }
+
   return {
     projectName: suggestedName || response.projectName,
-    template: response.template as Template,
+    template: selectedTemplate,
   };
 }
 
@@ -91,9 +121,20 @@ new Command("create-spinai-app")
 
     // If template is not provided via CLI, or name is missing, prompt for details
     const details = await getProjectDetails(name);
-    const template = options.template || details.template;
-    const projectName = details.projectName;
+    const template = options.template
+      ? TEMPLATES.find((t) => t.name === options.template)
+      : details.template;
 
+    if (!template) {
+      console.error(chalk.red(`\n✖ Template "${options.template}" not found`));
+      console.log("\nAvailable templates:");
+      TEMPLATES.forEach((t) => {
+        console.log(chalk.cyan(`  ${t.name}: `) + t.description);
+      });
+      process.exit(1);
+    }
+
+    const projectName = details.projectName;
     const root = path.resolve(projectName);
 
     // Ensure the directory is empty or doesn't exist
@@ -111,7 +152,9 @@ new Command("create-spinai-app")
     }
 
     console.log(chalk.cyan(`\n📁 Creating project in ${chalk.bold(root)}`));
-    console.log(chalk.cyan(`🎨 Using template: ${chalk.bold(template)}\n`));
+    console.log(
+      chalk.cyan(`🎨 Using template: ${chalk.bold(template.name)}\n`)
+    );
 
     try {
       // Create project directory
@@ -119,8 +162,8 @@ new Command("create-spinai-app")
 
       console.log(chalk.yellow("⚡ Downloading template..."));
 
-      // Clone the template from GitHub
-      const emitter = degit(`${TEMPLATE_REPO}/${template}`, {
+      // Clone the template from GitHub using the repo from config
+      const emitter = degit(template.repo, {
         cache: false,
         force: true,
         verbose: true,

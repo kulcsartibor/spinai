@@ -37,9 +37,6 @@ GITHUB_TOKEN=your_github_token_here
 # SpinAI API Key for agent tracking and monitoring
 SPINAI_API_KEY=your_spinai_api_key_here
 
-# Bot name for PR comments (optional)
-BOT_NAME="SpinAI Bot 🤖"
-
 # Port for the webhook server (optional)
 PORT=3000
 ```
@@ -96,9 +93,8 @@ npm run dev
 
 ## Customization
 
-1. **Bot Name**: Change the `BOT_NAME` in your `.env` file
-2. **Review Focus**: Edit the prompt in `src/actions/reviewCode.ts`
-3. **Comment Style**: Modify the comment formatting in `src/actions/postReviewComments.ts`
+1. **Review Focus**: Edit the prompt in `src/actions/reviewCode.ts`
+2. **Comment Style**: Modify the comment formatting in `src/actions/postReviewComments.ts`
 
 ## Development
 

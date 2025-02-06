@@ -5,7 +5,7 @@ A lightweight framework for building AI agents with TypeScript
 
 <h3>
 
-[Documentation](https://docs.spinai.dev) | [Discord](https://discord.gg/BFy7hMpT)
+[Documentation](https://docs.spinai.dev) | [Discord](https://discord.gg/BYsRx36qR3)
 
 </h3>
 
@@ -34,7 +34,7 @@ Visit our [documentation](https://docs.spinai.dev) for:
 
 ## Community
 
-- Join our [Discord](https://discord.gg/BFy7hMpT) for help and discussions
+- Join our [Discord](https://discord.gg/BYsRx36qR3) for help and discussions
 - Star us on [GitHub](https://github.com/Fallomai/spinai)
 
 ## License

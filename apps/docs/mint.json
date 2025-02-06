@@ -22,7 +22,7 @@
   "topbarLinks": [
     {
       "name": "Join our Discord",
-      "url": "https://discord.gg/BFy7hMpT"
+      "url": "https://discord.gg/BYsRx36qR3"
     }
   ],
   "topbarCtaButton": {
@@ -33,7 +33,7 @@
     {
       "name": "Community & Support",
       "icon": "discord",
-      "url": "https://discord.gg/BFy7hMpT"
+      "url": "https://discord.gg/BYsRx36qR3"
     },
     {
       "name": "Github",
@@ -80,6 +80,6 @@
   ],
   "footerSocials": {
     "github": "https://github.com/fallomai/spinai",
-    "discord": "https://discord.gg/BFy7hMpT"
+    "discord": "https://discord.gg/BYsRx36qR3"
   }
 }

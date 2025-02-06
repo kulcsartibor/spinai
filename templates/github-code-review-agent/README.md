@@ -1,6 +1,11 @@
 # GitHub Code Review Agent
-
 An AI-powered code review bot that automatically reviews pull requests using GPT-4 and provides detailed, line-by-line feedback.
+
+```bash
+npx create-spinai
+```
+and choose the Github-code-reviewer template.
+
 
 ## Features
 

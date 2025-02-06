@@ -1,6 +1,7 @@
 {
   "name": "create-spinai-app",
   "version": "1.1.9",
+  "type": "module",
   "keywords": [
     "ai",
     "orchestration",
@@ -15,28 +16,30 @@
   "author": "FallomAI",
   "license": "MIT",
   "bin": {
-    "create-spinai-app": "./dist/index.js"
+    "create-spinai-app": "./dist/index.js",
+    "create-spinai": "./dist/index.js"
   },
   "files": [
-    "dist",
-    "templates",
-    "templates/*/.*"
+    "dist"
   ],
   "publishConfig": {
     "access": "public"
   },
   "scripts": {
-    "build": "tsc && cp -r templates dist/ && chmod +x dist/index.js",
+    "build": "tsc && chmod +x dist/index.js",
     "test-dev": "npm run build && npm link && create-spinai-app test",
     "clean": "rm -rf dist"
   },
   "dependencies": {
+    "chalk": "^5.3.0",
     "commander": "^11.1.0",
-    "cross-spawn": "^7.0.3"
+    "degit": "^2.8.4",
+    "prompts": "^2.4.2"
   },
   "devDependencies": {
     "@types/node": "^20.11.0",
-    "@types/cross-spawn": "^6.0.6",
+    "@types/degit": "^2.8.6",
+    "@types/prompts": "^2.4.9",
     "typescript": "^5.3.3"
   },
   "engines": {

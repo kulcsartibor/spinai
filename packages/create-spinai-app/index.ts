@@ -1,72 +1,180 @@
 #!/usr/bin/env node
 import { Command } from "commander";
-import fs from "fs";
-import path from "path";
-import spawn from "cross-spawn";
+import { promises as fs } from "fs";
+import * as path from "path";
+import degit from "degit";
+import chalk from "chalk";
+import prompts, { PromptObject } from "prompts";
 
-// When packaged, templates are in the same directory as the compiled index.js
-const templatesDir = path.join(__dirname, "templates");
-const templates = fs.readdirSync(templatesDir);
+// Templates are stored in the main repo under packages/templates
+const TEMPLATE_REPO = "fallomai/spinai/packages/templates";
+const AVAILABLE_TEMPLATES = ["basic", "advanced", "minimal"] as const;
+
+type Template = (typeof AVAILABLE_TEMPLATES)[number];
+
+async function getProjectDetails(suggestedName?: string) {
+  const questions: PromptObject[] = [];
+
+  if (!suggestedName) {
+    questions.push({
+      type: "text",
+      name: "projectName",
+      message: "What is your project named?",
+      initial: "my-spinai-app",
+    } as PromptObject);
+  }
+
+  questions.push({
+    type: "select",
+    name: "template",
+    message: "Which template would you like to use?",
+    choices: AVAILABLE_TEMPLATES.map((t) => ({ title: t, value: t })),
+    initial: 0,
+  } as PromptObject);
+
+  const response = await prompts(questions, {
+    onCancel: () => {
+      console.log(chalk.red("✖") + " Operation cancelled");
+      process.exit(1);
+    },
+  });
+
+  return {
+    projectName: suggestedName || response.projectName,
+    template: response.template as Template,
+  };
+}
+
+async function setupEnvFile(projectRoot: string) {
+  try {
+    const envExamplePath = path.join(projectRoot, ".env.example");
+    const envPath = path.join(projectRoot, ".env");
+
+    // Check if .env.example exists
+    try {
+      await fs.access(envExamplePath);
+    } catch {
+      return; // No .env.example file, skip this step
+    }
+
+    // Copy .env.example to .env
+    await fs.copyFile(envExamplePath, envPath);
+    console.log(chalk.green("✓") + " Created .env file from template");
+  } catch (error) {
+    console.log(chalk.yellow("⚠") + " Could not set up .env file");
+  }
+}
+
+async function installDependencies(projectRoot: string) {
+  console.log(chalk.yellow("\n⚡ Installing dependencies...\n"));
+
+  const command = "npm install";
+  try {
+    const { execSync } = await import("child_process");
+    execSync(command, {
+      cwd: projectRoot,
+      stdio: "inherit",
+    });
+    return true;
+  } catch (error) {
+    console.error(chalk.red("\n✖ Failed to install dependencies"));
+    return false;
+  }
+}
 
 new Command("create-spinai-app")
   .version("0.1.0")
-  .arguments("<project-name>")
-  .option(
-    "-t, --template <template>",
-    "Template to use",
-    templates.includes("basic") ? "basic" : templates[0]
-  )
-  .action((name, options) => {
-    const template = options.template;
-    if (!templates.includes(template)) {
-      console.error(
-        `Template "${template}" not found. Available templates: ${templates.join(", ")}`
+  .arguments("[project-name]")
+  .option("-t, --template <template>", "Template to use")
+  .action(async (name, options) => {
+    console.log(chalk.bold("\n🤖 Creating a new SpinAI app...\n"));
+
+    // If template is not provided via CLI, or name is missing, prompt for details
+    const details = await getProjectDetails(name);
+    const template = options.template || details.template;
+    const projectName = details.projectName;
+
+    const root = path.resolve(projectName);
+
+    // Ensure the directory is empty or doesn't exist
+    try {
+      const stats = await fs.stat(root);
+      if (stats.isDirectory()) {
+        const files = await fs.readdir(root);
+        if (files.length > 0) {
+          console.log(chalk.red("Error: Directory is not empty"));
+          process.exit(1);
+        }
+      }
+    } catch (error) {
+      // Directory doesn't exist, which is fine
+    }
+
+    console.log(chalk.cyan(`\n📁 Creating project in ${chalk.bold(root)}`));
+    console.log(chalk.cyan(`🎨 Using template: ${chalk.bold(template)}\n`));
+
+    try {
+      // Create project directory
+      await fs.mkdir(root, { recursive: true });
+
+      console.log(chalk.yellow("⚡ Downloading template..."));
+
+      // Clone the template from GitHub
+      const emitter = degit(`${TEMPLATE_REPO}/${template}`, {
+        cache: false,
+        force: true,
+        verbose: true,
+      });
+
+      await emitter.clone(root);
+
+      // Update package.json
+      const pkgPath = path.join(root, "package.json");
+      try {
+        const pkgContent = await fs.readFile(pkgPath, "utf8");
+        const pkg = JSON.parse(pkgContent);
+        pkg.name = projectName;
+        await fs.writeFile(pkgPath, JSON.stringify(pkg, null, 2));
+      } catch (error) {
+        // package.json doesn't exist, which is fine for some templates
+      }
+
+      // Set up environment variables
+      await setupEnvFile(root);
+
+      // Install dependencies
+      const installSuccess = await installDependencies(root);
+
+      console.log(chalk.green("\n✨ Project created successfully!\n"));
+
+      console.log(chalk.bold("Next steps:"));
+
+      if (!installSuccess) {
+        console.log(chalk.cyan(`  1. cd ${projectName}`));
+        console.log(chalk.cyan("  2. npm install"));
+      }
+
+      console.log(
+        chalk.cyan("  1. Open .env and configure your environment variables")
       );
+      console.log(chalk.cyan("  2. Run 'npm run dev' when ready to start\n"));
+
+      console.log(chalk.bold("Learn more:"));
+      console.log(
+        chalk.blue("  📚 Documentation: ") +
+          chalk.underline("https://docs.spinai.dev")
+      );
+      console.log(
+        chalk.blue("  💬 Discord: ") +
+          chalk.underline("https://discord.gg/BYsRx36qR3\n")
+      );
+      console.log(
+        chalk.blue("  🪵 Access your bot logs: ") +
+          chalk.underline("https://app.spinai.dev\n")
+      );
+    } catch (error) {
+      console.error(chalk.red("\n✖ Failed to create project:"), error);
       process.exit(1);
     }
-
-    const root = path.resolve(name);
-    const templateDir = path.join(templatesDir, template);
-
-    // Create project directory
-    fs.mkdirSync(root, { recursive: true });
-
-    // Copy template
-    copyDir(templateDir, root);
-
-    // Update package.json
-    const pkgPath = path.join(root, "package.json");
-    const pkg = JSON.parse(fs.readFileSync(pkgPath, "utf8"));
-    pkg.name = name;
-    fs.writeFileSync(pkgPath, JSON.stringify(pkg, null, 2));
-
-    console.log(`
-Project created successfully!
-
-  cd ${name}
-  npm install
-  npm run dev
-`);
   })
   .parse();
-
-function copyDir(src: string, dest: string) {
-  fs.mkdirSync(dest, { recursive: true });
-  for (const entry of fs.readdirSync(src, { withFileTypes: true })) {
-    // Skip dist and node_modules directories
-    if (
-      entry.name === "dist" ||
-      entry.name === "node_modules" ||
-      entry.name === "package-lock.json"
-    ) {
-      continue;
-    }
-
-    const srcPath = path.join(src, entry.name);
-    const destPath = path.join(dest, entry.name);
-
-    entry.isDirectory()
-      ? copyDir(srcPath, destPath)
-      : fs.copyFileSync(srcPath, destPath);
-  }
-}

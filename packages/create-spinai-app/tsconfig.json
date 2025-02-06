@@ -1,8 +1,8 @@
 {
   "compilerOptions": {
-    "module": "commonjs",
-    "target": "es2019",
-    "moduleResolution": "node",
+    "module": "ESNext",
+    "target": "ESNext",
+    "moduleResolution": "bundler",
     "strict": true,
     "resolveJsonModule": true,
     "esModuleInterop": true,
@@ -10,5 +10,5 @@
     "outDir": "dist",
     "rootDir": "."
   },
-  "exclude": ["templates", "dist"]
+  "exclude": ["dist"]
 }

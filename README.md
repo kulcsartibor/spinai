@@ -15,45 +15,14 @@ A lightweight framework for building AI agents with TypeScript
 
 </div>
 
-## Quick Start
+## Getting Started
 
-```bash
-npm create spinai-app@latest
-```
-
-## Basic Example
-
-```typescript
-import { createAgent, createOpenAILLM, createAction } from "spinai";
-
-// Define your actions
-const getWeather = createAction({
-  id: "getWeather",
-  description: "Get the current weather for a location",
-  async run(context) {
-    // Implement weather API call
-    context.state.weather = { temp: 72, condition: "sunny" };
-    return context;
-  }
-});
-
-// Create your agent
-const weatherAgent = createAgent({
-  instructions: "Help users with weather information",
-  actions: [getWeather],
-  llm: createOpenAILLM({
-    apiKey: process.env.OPENAI_API_KEY,
-  }),
-});
-
-// Use your agent
-const { response } = await weatherAgent({
-  input: "What's the weather like?",
-  state: {},
-});
-
-console.log(response);
-```
+Visit our [documentation](https://docs.spinai.dev) for:
+- Installation guide
+- Quick start tutorial
+- API reference
+- Examples and best practices
+- Advanced usage
 
 ## Features
 
@@ -62,14 +31,6 @@ console.log(response);
 - 🔌 **Pluggable**: Works with any LLM that supports chat completions
 - 🛠️ **Type-safe**: Built with TypeScript for robust development
 - 🪶 **Lightweight**: Zero dependencies beyond your chosen LLM
-
-## Documentation
-
-Visit [docs.spinai.dev](https://docs.spinai.dev) for:
-- Detailed guides
-- API reference
-- Advanced examples
-- Best practices
 
 ## Community
 

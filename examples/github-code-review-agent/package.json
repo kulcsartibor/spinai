@@ -1,5 +1,5 @@
 {
-  "name": "calculator-agent",
+  "name": "github-code-review-agent",
   "version": "0.1.0",
   "type": "module",
   "private": true,
@@ -11,16 +11,16 @@
     "check-types": "tsc --noEmit"
   },
   "dependencies": {
-    "axios": "^1.7.9",
+    "@hono/node-server": "^1.8.2",
+    "@octokit/rest": "^20.0.2",
     "dotenv": "^16.4.7",
+    "hono": "^4.0.9",
     "openai": "^4.79.3",
     "spinai": "*",
     "tsx": "^4.7.1"
   },
   "devDependencies": {
     "@types/node": "^20",
-    "@types/react": "18.3.1",
-    "@types/react-dom": "18.3.0",
     "typescript": "5.5.4"
   }
 }

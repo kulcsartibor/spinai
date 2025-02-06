@@ -5,7 +5,8 @@
     "OPENAI_API_KEY",
     "ANTHROPIC_API_KEY",
     "SPINAI_API_KEY",
-    "ATTIO_API_KEY"
+    "ATTIO_API_KEY",
+    "GITHUB_TOKEN"
   ],
   "tasks": {
     "build": {

@@ -67,6 +67,9 @@ export async function runTaskLoop<T = string>(params: {
     executedActions: [],
   };
 
+  // Track retry attempts for each action
+  const actionRetries = new Map<string, number>();
+
   try {
     // Log interaction start
     await logger.logInteractionStart(context.input);
@@ -198,78 +201,116 @@ export async function runTaskLoop<T = string>(params: {
           continue;
         }
 
-        log(`Executing action: ${action.id}`, {
-          type: "action",
-          data: action.parameters,
-        });
+        const maxRetries = action.retries ?? 2; // Default to 2 retries if not specified
+        let currentRetries = actionRetries.get(plannedActionId) ?? 0;
+        let lastError: Error | undefined;
+        let parameters: Record<string, unknown> | undefined;
 
-        const actionStartTime = Date.now();
+        // Keep retrying until success or max retries exceeded
+        while (currentRetries <= maxRetries) {
+          const actionStartTime = Date.now();
 
-        try {
-          // Get parameters for the action if needed
-          let parameters: Record<string, unknown> | undefined;
-          if (action.parameters) {
-            const paramResult = await planner.getActionParameters({
-              llm: model,
-              action: action.id,
-              input: context.input,
-              state: plannerState,
-              availableActions: actions,
+          try {
+            // Only get parameters on first try or if they're undefined
+            if (!parameters && action.parameters) {
+              const paramResult = await planner.getActionParameters({
+                llm: model,
+                action: action.id,
+                input: context.input,
+                state: plannerState,
+                availableActions: actions,
+              });
+              parameters = paramResult.parameters;
+              totalCostCents += planner.getTotalCost();
+              planner.resetCost();
+            }
+
+            // Execute the action
+            context = await action.run(context, parameters);
+            const actionDuration = Date.now() - actionStartTime;
+
+            // Reset retry count on success
+            actionRetries.delete(plannedActionId);
+
+            // Add successful execution to state
+            plannerState.executedActions.push({
+              id: action.id,
+              parameters,
+              result: context.state[action.id],
+              status: "success",
             });
-            parameters = paramResult.parameters;
-            totalCostCents += planner.getTotalCost();
-            planner.resetCost();
+            executedActions.add(plannedActionId);
+
+            // Log success
+            logger.logActionComplete(
+              action.id,
+              context.state,
+              actionDuration,
+              context.state[action.id]
+            );
+
+            // Break out of retry loop on success
+            break;
+          } catch (error) {
+            lastError =
+              error instanceof Error ? error : new Error(String(error));
+            const errorMessage = lastError.message;
+            const actionErrorDuration = Date.now() - actionStartTime;
+
+            // Increment retry count
+            currentRetries++;
+            actionRetries.set(plannedActionId, currentRetries);
+
+            // Log the error with retry information
+            if (currentRetries <= maxRetries) {
+              log(
+                `Action error: ${errorMessage} (Retry ${currentRetries}/${maxRetries})`,
+                {
+                  type: "action",
+                  data: error,
+                }
+              );
+
+              // Log error but don't add to plannerState yet
+              logger.logActionComplete(
+                action.id,
+                context.state,
+                actionErrorDuration,
+                undefined,
+                { message: errorMessage }
+              );
+
+              // Continue to next retry attempt
+              continue;
+            }
+
+            // If we've exhausted all retries, mark as permanently failed
+            log(
+              `Action error: ${errorMessage} (Max retries ${maxRetries} exceeded)`,
+              {
+                type: "action",
+                data: error,
+              }
+            );
+
+            // Only add to plannerState after all retries are exhausted
+            plannerState.executedActions.push({
+              id: action.id,
+              parameters,
+              status: "error",
+              errorMessage: `${errorMessage} (Max retries ${maxRetries} exceeded)`,
+            });
+            executedActions.add(plannedActionId);
+
+            // Log final error
+            logger.logActionComplete(
+              action.id,
+              context.state,
+              actionErrorDuration,
+              undefined,
+              { message: errorMessage }
+            );
           }
-
-          // Execute the action
-          context = await action.run(context, parameters);
-          const actionDuration = Date.now() - actionStartTime;
-
-          plannerState.executedActions.push({
-            id: action.id,
-            parameters,
-            result: context.state[action.id],
-            status: "success",
-          });
-          executedActions.add(plannedActionId);
-
-          // Log success
-          logger.logActionComplete(
-            action.id,
-            context.state,
-            actionDuration,
-            context.state[action.id]
-          );
-        } catch (error) {
-          const errorMessage =
-            error instanceof Error ? error.message : String(error);
-          const actionErrorDuration = Date.now() - actionStartTime;
-
-          log(`Action error: ${errorMessage}`, {
-            type: "action",
-            data: error,
-          });
-
-          // Add the failed action to executedActions with error status
-          plannerState.executedActions.push({
-            id: action.id,
-            parameters: action.parameters,
-            status: "error",
-            errorMessage,
-          });
-          executedActions.add(plannedActionId);
-
-          // Log error with the updated logActionComplete
-          logger.logActionComplete(
-            action.id,
-            context.state,
-            actionErrorDuration,
-            undefined,
-            { message: errorMessage }
-          );
-
-          // Continue with next action instead of throwing
-          continue;
         }
       }
     }

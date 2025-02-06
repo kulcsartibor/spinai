@@ -11,7 +11,6 @@ export function createOpenAILLM(config: OpenAIConfig): LLM {
   const client = new OpenAI({ apiKey: config.apiKey });
   const defaultModel = "gpt-4-turbo-preview";
   const model = config.model || defaultModel;
-
   return {
     modelName: model,
     async complete<T>({

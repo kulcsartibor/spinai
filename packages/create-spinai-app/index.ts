@@ -5,6 +5,7 @@ import * as path from "path";
 import degit from "degit";
 import chalk from "chalk";
 import prompts, { PromptObject } from "prompts";
+import { execSync } from "child_process";
 
 interface Template {
   name: string;
@@ -76,42 +77,22 @@ async function getProjectDetails(suggestedName?: string) {
 }
 
 async function setupEnvFile(projectRoot: string) {
-  const envExamplePath = path.join(projectRoot, ".env.example");
-  const envPath = path.join(projectRoot, ".env");
-
-  console.log(chalk.yellow("\n⚡ Setting up environment variables..."));
-
   try {
+    const envExamplePath = path.join(projectRoot, ".env.example");
+    const envPath = path.join(projectRoot, ".env");
+
     // Check if .env.example exists
     try {
       await fs.access(envExamplePath);
-      console.log(chalk.gray(`  Found template at ${envExamplePath}`));
-    } catch (error) {
-      console.log(
-        chalk.yellow("  ⚠ No .env.example file found, skipping env setup")
-      );
-      return;
-    }
-
-    // Check if .env already exists
-    try {
-      await fs.access(envPath);
-      console.log(chalk.yellow("  ⚠ .env file already exists, skipping"));
-      return;
     } catch {
-      // .env doesn't exist, which is what we want
+      return; // No .env.example file, skip this step
     }
 
     // Copy .env.example to .env
     await fs.copyFile(envExamplePath, envPath);
-    console.log(chalk.green("  ✓ Created .env file from template"));
-
-    // Read and log the contents to verify
-    const envContents = await fs.readFile(envPath, "utf8");
-    console.log(chalk.gray("  Contents:"));
-    console.log(chalk.gray("  " + envContents.trim()));
+    console.log(chalk.green("✓") + " Created .env file from template");
   } catch (error) {
-    console.log(chalk.red("  ✖ Failed to set up .env file:"), error);
+    console.log(chalk.yellow("⚠") + " Could not set up .env file");
   }
 }
 
@@ -120,7 +101,6 @@ async function installDependencies(projectRoot: string) {
 
   const command = "npm install";
   try {
-    const { execSync } = await import("child_process");
     execSync(command, {
       cwd: projectRoot,
       stdio: "inherit",
@@ -128,6 +108,16 @@ async function installDependencies(projectRoot: string) {
     return true;
   } catch (error) {
     console.error(chalk.red("\n✖ Failed to install dependencies"));
+    return false;
+  }
+}
+
+async function changeDirectory(projectPath: string) {
+  try {
+    process.chdir(projectPath);
+    return true;
+  } catch (error) {
+    console.log(chalk.yellow("  ⚠ Could not change to project directory"));
     return false;
   }
 }
@@ -208,31 +198,45 @@ new Command("create-spinai-app")
       // Install dependencies
       const installSuccess = await installDependencies(root);
 
+      // Change to project directory
+      const cdSuccess = await changeDirectory(root);
+
       console.log(chalk.green("\n✨ Project created successfully!\n"));
 
       console.log(chalk.bold("Next steps:"));
 
-      if (!installSuccess) {
-        console.log(chalk.cyan(`  1. cd ${projectName}`));
-        console.log(chalk.cyan("  2. npm install"));
-      }
+      // First, change directory
+      console.log(chalk.cyan("  1. Change to project directory:"));
+      console.log(chalk.cyan(`     cd ${projectName}\n`));
 
+      // Then set up API key
+      console.log(chalk.cyan("  2. Set up your OpenAI API key:"));
       console.log(
-        chalk.cyan("  1. Open .env and configure your environment variables")
+        chalk.cyan(
+          "     • Get your API key from https://platform.openai.com/api-keys"
+        )
       );
-      console.log(chalk.cyan("  2. Run 'npm run dev' when ready to start\n"));
+      console.log(
+        chalk.cyan(
+          "     • Open .env and replace 'your-openai-api-key' with your actual key\n"
+        )
+      );
 
-      console.log(chalk.bold("Learn more:"));
+      // Finally, start the dev server
+      console.log(chalk.cyan("  3. Start the development server:"));
+      console.log(chalk.cyan("     npm run dev\n"));
+
+      console.log(chalk.bold("Resources:"));
       console.log(
         chalk.blue("  📚 Documentation: ") +
           chalk.underline("https://docs.spinai.dev")
       );
       console.log(
         chalk.blue("  💬 Discord: ") +
-          chalk.underline("https://discord.gg/BYsRx36qR3\n")
+          chalk.underline("https://discord.gg/BYsRx36qR3")
       );
       console.log(
-        chalk.blue("  🪵 Access your bot logs: ") +
+        chalk.blue("  📊 Monitor your agents: ") +
           chalk.underline("https://app.spinai.dev\n")
       );
     } catch (error) {

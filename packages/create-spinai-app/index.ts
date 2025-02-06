@@ -25,6 +25,11 @@ const TEMPLATES: Template[] = [
     description: "Minimal setup with no actions or agents created",
     repo: "fallomai/spinai/templates/minimal",
   },
+  {
+    name: "github reviewer",
+    description: "A GitHub pull request code review agent",
+    repo: "fallomai/spinai/templates/github-code-review-agent",
+  },
   // Add new templates here like:
   // {
   //   name: "discord-bot",

@@ -76,22 +76,42 @@ async function getProjectDetails(suggestedName?: string) {
 }
 
 async function setupEnvFile(projectRoot: string) {
-  try {
-    const envExamplePath = path.join(projectRoot, ".env.example");
-    const envPath = path.join(projectRoot, ".env");
+  const envExamplePath = path.join(projectRoot, ".env.example");
+  const envPath = path.join(projectRoot, ".env");
 
+  console.log(chalk.yellow("\n⚡ Setting up environment variables..."));
+
+  try {
     // Check if .env.example exists
     try {
       await fs.access(envExamplePath);
+      console.log(chalk.gray(`  Found template at ${envExamplePath}`));
+    } catch (error) {
+      console.log(
+        chalk.yellow("  ⚠ No .env.example file found, skipping env setup")
+      );
+      return;
+    }
+
+    // Check if .env already exists
+    try {
+      await fs.access(envPath);
+      console.log(chalk.yellow("  ⚠ .env file already exists, skipping"));
+      return;
     } catch {
-      return; // No .env.example file, skip this step
+      // .env doesn't exist, which is what we want
     }
 
     // Copy .env.example to .env
     await fs.copyFile(envExamplePath, envPath);
-    console.log(chalk.green("✓") + " Created .env file from template");
+    console.log(chalk.green("  ✓ Created .env file from template"));
+
+    // Read and log the contents to verify
+    const envContents = await fs.readFile(envPath, "utf8");
+    console.log(chalk.gray("  Contents:"));
+    console.log(chalk.gray("  " + envContents.trim()));
   } catch (error) {
-    console.log(chalk.yellow("⚠") + " Could not set up .env file");
+    console.log(chalk.red("  ✖ Failed to set up .env file:"), error);
   }
 }
 

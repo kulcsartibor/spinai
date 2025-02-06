@@ -1,5 +1,11 @@
 # spinai
 
+## 1.1.11
+
+### Patch Changes
+
+- dfca87a: include new github code review agent example
+
 ## 1.1.10
 
 ### Patch Changes

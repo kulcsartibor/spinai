@@ -1,5 +1,11 @@
 # spinai
 
+## 1.1.10
+
+### Patch Changes
+
+- f42ea14: Update create-spinai command with templates and better utility
+
 ## 1.1.9
 
 ### Patch Changes

@@ -66,7 +66,8 @@ export const reviewCode = createAction({
       workspace: params.workspace,
       repo_slug: params.repo_slug,
       pull_request_id: params.pull_request_id,
-      botName: typeof params.botName === "string" ? params.botName : "SpinAI Bot 🤖",
+      botName:
+        typeof params.botName === "string" ? params.botName : "SpinAI Bot 🤖",
     };
 
     try {
@@ -74,17 +75,17 @@ export const reviewCode = createAction({
       console.log("Fetching PR details...", {
         workspace: pullRequestParams.workspace,
         repo_slug: pullRequestParams.repo_slug,
-        pull_request_id: pullRequestParams.pull_request_id
+        pull_request_id: pullRequestParams.pull_request_id,
       });
 
       const prResponse = await fetch(
         `https://api.bitbucket.org/2.0/repositories/${pullRequestParams.workspace}/${pullRequestParams.repo_slug}/pullrequests/${pullRequestParams.pull_request_id}`,
         {
           headers: {
-            'Authorization': `Bearer ${process.env.BITBUCKET_ACCESS_TOKEN}`,
-            'Accept': 'application/json',
-            'Content-Type': 'application/json'
-          }
+            Authorization: `Bearer ${process.env.BITBUCKET_ACCESS_TOKEN}`,
+            Accept: "application/json",
+            "Content-Type": "application/json",
+          },
         }
       );
 
@@ -92,7 +93,7 @@ export const reviewCode = createAction({
         console.error("PR fetch failed:", {
           status: prResponse.status,
           statusText: prResponse.statusText,
-          body: await prResponse.text()
+          body: await prResponse.text(),
         });
         throw new Error(`Failed to fetch PR: ${prResponse.statusText}`);
       }
@@ -100,7 +101,7 @@ export const reviewCode = createAction({
       const prDetails = await prResponse.json();
       console.log("PR details fetched:", {
         source: prDetails.source?.branch?.name,
-        destination: prDetails.destination?.branch?.name
+        destination: prDetails.destination?.branch?.name,
       });
 
       const sourceBranch = prDetails.source?.branch?.name;
@@ -114,23 +115,20 @@ export const reviewCode = createAction({
       const diffUrl = `https://api.bitbucket.org/2.0/repositories/${pullRequestParams.workspace}/${pullRequestParams.repo_slug}/diffstat/${sourceBranch}..${destinationBranch}`;
       console.log("Fetching diff...", { diffUrl });
 
-      const diffResponse = await fetch(
-        diffUrl,
-        {
-          headers: {
-            'Authorization': `Bearer ${process.env.BITBUCKET_ACCESS_TOKEN}`,
-            'Accept': 'application/json',
-            'Content-Type': 'application/json'
-          }
-        }
-      );
+      const diffResponse = await fetch(diffUrl, {
+        headers: {
+          Authorization: `Bearer ${process.env.BITBUCKET_ACCESS_TOKEN}`,
+          Accept: "application/json",
+          "Content-Type": "application/json",
+        },
+      });
 
       if (!diffResponse.ok) {
         console.error("Diff fetch failed:", {
           status: diffResponse.status,
           statusText: diffResponse.statusText,
           url: diffUrl,
-          body: await diffResponse.text()
+          body: await diffResponse.text(),
         });
         throw new Error(`Failed to fetch diff: ${diffResponse.statusText}`);
       }
@@ -151,10 +149,10 @@ export const reviewCode = createAction({
           `https://api.bitbucket.org/2.0/repositories/${pullRequestParams.workspace}/${pullRequestParams.repo_slug}/src/${destinationBranch}/${fileDiff.new.path}`,
           {
             headers: {
-              'Authorization': `Bearer ${process.env.BITBUCKET_ACCESS_TOKEN}`,
-              'Accept': 'text/plain',
-              'Content-Type': 'application/json'
-            }
+              Authorization: `Bearer ${process.env.BITBUCKET_ACCESS_TOKEN}`,
+              Accept: "text/plain",
+              "Content-Type": "application/json",
+            },
           }
         );
 
@@ -162,10 +160,10 @@ export const reviewCode = createAction({
           `https://api.bitbucket.org/2.0/repositories/${pullRequestParams.workspace}/${pullRequestParams.repo_slug}/src/${sourceBranch}/${fileDiff.new.path}`,
           {
             headers: {
-              'Authorization': `Bearer ${process.env.BITBUCKET_ACCESS_TOKEN}`,
-              'Accept': 'text/plain',
-              'Content-Type': 'application/json'
-            }
+              Authorization: `Bearer ${process.env.BITBUCKET_ACCESS_TOKEN}`,
+              Accept: "text/plain",
+              "Content-Type": "application/json",
+            },
           }
         );
 
@@ -173,7 +171,7 @@ export const reviewCode = createAction({
           console.error("File fetch failed:", {
             file: fileDiff.new.path,
             oldStatus: oldFileResponse.status,
-            newStatus: newFileResponse.status
+            newStatus: newFileResponse.status,
           });
           continue;
         }
@@ -182,9 +180,11 @@ export const reviewCode = createAction({
         const newContent = await newFileResponse.text();
 
         const diffContent = generateDiffContent(oldContent, newContent);
-        
+
         const lineMap = buildLineMap(diffContent);
-        const validLineNumbers = Array.from(lineMap.keys()).sort((a, b) => a - b);
+        const validLineNumbers = Array.from(lineMap.keys()).sort(
+          (a, b) => a - b
+        );
 
         if (validLineNumbers.length === 0) continue;
 
@@ -215,9 +215,9 @@ export const reviewCode = createAction({
       const state = context.state as ReviewState;
       state.reviews = reviews;
       state.botName = pullRequestParams.botName;
-      
+
       console.log("Review process completed. Total reviews:", reviews.length);
-      
+
       return context;
     } catch (error) {
       console.error("Error in reviewCode action:", {
@@ -242,13 +242,18 @@ export const reviewCode = createAction({
 });
 
 function generateDiffContent(oldContent: string, newContent: string): string {
-  const oldLines = oldContent.split('\n');
-  const newLines = newContent.split('\n');
+  const oldLines = oldContent.split("\n");
+  const newLines = newContent.split("\n");
   const diffLines: string[] = [];
-  
-  let i = 0, j = 0;
+
+  let i = 0,
+    j = 0;
   while (i < oldLines.length || j < newLines.length) {
-    if (i < oldLines.length && j < newLines.length && oldLines[i] === newLines[j]) {
+    if (
+      i < oldLines.length &&
+      j < newLines.length &&
+      oldLines[i] === newLines[j]
+    ) {
       // Unchanged line
       diffLines.push(` ${oldLines[i]}`);
       i++;
@@ -265,7 +270,7 @@ function generateDiffContent(oldContent: string, newContent: string): string {
       }
     }
   }
-  return diffLines.join('\n');
+  return diffLines.join("\n");
 }
 
 function buildLineMap(patch: string): Map<number, number> {
@@ -333,7 +338,8 @@ async function getAIFeedback(
       functions: [
         {
           name: "provide_code_review",
-          description: "Provide code review feedback for specific lines of code",
+          description:
+            "Provide code review feedback for specific lines of code",
           parameters: {
             type: "object",
             properties: {
@@ -374,16 +380,16 @@ async function getAIFeedback(
     try {
       // More robust JSON string sanitization
       const sanitizedJson = functionCall.arguments
-        .replace(/[\u0000-\u001F\u007F-\u009F]/g, '') // Remove control characters
-        .replace(/\\(?!["\\/bfnrtu])/g, '\\\\') // Escape backslashes correctly
-        .replace(/\r?\n|\r/g, ' ') // Replace newlines with spaces
-        .replace(/\t/g, ' ') // Replace tabs with spaces
-        .replace(/\s+/g, ' ') // Collapse multiple spaces
+        .replace(/[\u0000-\u001F\u007F-\u009F]/g, "") // Remove control characters
+        .replace(/\\(?!["\\/bfnrtu])/g, "\\\\") // Escape backslashes correctly
+        .replace(/\r?\n|\r/g, " ") // Replace newlines with spaces
+        .replace(/\t/g, " ") // Replace tabs with spaces
+        .replace(/\s+/g, " ") // Collapse multiple spaces
         .trim();
 
       // Try to parse the JSON
       const response = JSON.parse(sanitizedJson) as ReviewResponse;
-      
+
       // Validate the feedback structure
       if (!Array.isArray(response.feedback)) {
         console.warn("Invalid feedback structure - not an array");
@@ -391,33 +397,32 @@ async function getAIFeedback(
       }
 
       // Filter and return valid feedback
-      return response.feedback
-        .filter(f => {
-          const isValid = 
-            typeof f === 'object' &&
-            f !== null &&
-            typeof f.line === 'number' && 
-            typeof f.comment === 'string' &&
-            validLineNumbers.includes(f.line);
-          
-          if (!isValid) {
-            console.warn("Filtered out invalid feedback item:", f);
-          }
-          
-          return isValid;
-        });
+      return response.feedback.filter((f) => {
+        const isValid =
+          typeof f === "object" &&
+          f !== null &&
+          typeof f.line === "number" &&
+          typeof f.comment === "string" &&
+          validLineNumbers.includes(f.line);
+
+        if (!isValid) {
+          console.warn("Filtered out invalid feedback item:", f);
+        }
+
+        return isValid;
+      });
     } catch (error) {
       console.error("Error parsing AI feedback:", {
         error: error instanceof Error ? error.message : String(error),
         rawArguments: functionCall.arguments,
-        sanitizedArguments: sanitizedJson
+        sanitizedArguments: sanitizedJson,
       });
       return [];
     }
   } catch (error) {
     console.error("Error getting AI feedback:", {
-      error: error instanceof Error ? error.message : String(error)
+      error: error instanceof Error ? error.message : String(error),
     });
     return [];
   }
-} 
+}

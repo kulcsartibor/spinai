@@ -18,4 +18,4 @@ export interface ReviewState {
   pull_request_id?: number;
   reviews?: FileReview[];
   botName?: string;
-} 
+}

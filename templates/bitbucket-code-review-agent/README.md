@@ -159,7 +159,3 @@ npm run lint
 # Type checking
 npm run check-types
 ```
-
-## License
-
-MIT 

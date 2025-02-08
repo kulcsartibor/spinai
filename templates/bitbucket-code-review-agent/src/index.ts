@@ -48,10 +48,7 @@ app.post("/webhook", async (c) => {
 
     const body = await c.req.json<BitbucketWebhookPayload>();
 
-    if (
-      event === "pullrequest:created" ||
-      event === "pullrequest:updated"
-    ) {
+    if (event === "pullrequest:created" || event === "pullrequest:updated") {
       const { pullrequest, repository } = body;
       const [workspace, repo_slug] = repository.full_name.split("/");
 
@@ -132,7 +129,10 @@ app.post("/review-pr", async (c) => {
 
     if (!workspace || !repo_slug || !pull_request_id) {
       return c.json(
-        { error: "Missing required parameters: workspace, repo_slug, pull_request_id" },
+        {
+          error:
+            "Missing required parameters: workspace, repo_slug, pull_request_id",
+        },
         400
       );
     }
@@ -221,4 +221,4 @@ console.log(`Server is running on port ${port}`);
 serve({
   fetch: app.fetch,
   port,
-}); 
+});

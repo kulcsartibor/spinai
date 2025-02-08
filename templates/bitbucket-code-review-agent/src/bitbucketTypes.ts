@@ -31,4 +31,4 @@ export interface BitbucketWebhookPayload {
   actor: {
     display_name: string;
   };
-} 
+}

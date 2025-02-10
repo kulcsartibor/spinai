@@ -22,12 +22,27 @@ export interface InteractionSummary {
 
 export interface StepLogEntry {
   id: string;
-  stepType: "evaluation" | "action_execution";
+  stepType:
+    | "interaction_start"
+    | "plan_next_actions"
+    | "plan_action_parameters"
+    | "execute_action"
+    | "plan_final_response"
+    | "interaction_complete";
   timestamp: string;
   sessionId: string;
+  interactionId: string;
   context: Record<string, unknown>;
   reasoning?: string;
-  actions?: string[];
+  // For action planning
+  plannedActions?: string[];
+  // For parameter planning
+  targetActionId?: string;
+  actionParameters?: Record<string, unknown>;
+  // For action execution
+  executedActionId?: string;
+  actionResult?: unknown;
+  // Common fields
   status?: "started" | "completed" | "failed";
   durationMs?: number;
   costCents?: number;
@@ -39,6 +54,8 @@ export interface StepLogEntry {
   outputTokens?: number;
   response?: unknown;
   interactionState?: InteractionSummary;
+  rawInput?: string;
+  rawOutput?: string;
 }
 
 export interface InteractionLogEntry {

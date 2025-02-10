@@ -4,8 +4,13 @@ export interface CompletionUsage {
   costCents: number;
 }
 
-export interface CompletionResult<T = unknown> extends CompletionUsage {
+export interface CompletionResult<T> {
   content: T;
+  inputTokens: number;
+  outputTokens: number;
+  costCents: number;
+  rawInput: string;
+  rawOutput: string;
 }
 
 export interface CompletionOptions {

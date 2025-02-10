@@ -7,21 +7,24 @@ import { minus } from "./actions/minus";
 dotenv.config();
 
 // OpenAI Example:
-const llm = createOpenAILLM({
-  apiKey: process.env.OPENAI_API_KEY || "",
-  model: "gpt-4o-mini",
-});
+// const llm = createOpenAILLM({
+//   apiKey: process.env.OPENAI_API_KEY || "",
+//   model: "gpt-4o-mini",
+// });
 
 // Anthropic Example:
-// const llm = createAnthropicLLM({
-//   apiKey: process.env.ANTHROPIC_API_KEY || "",
-//   model: "claude-3-5-sonnet-20241022",
-// });
+const llm = createAnthropicLLM({
+  apiKey: process.env.ANTHROPIC_API_KEY || "",
+  model: "claude-3-sonnet-20240229",
+});
 
 const calculatorAgent = createAgent<number>({
   instructions: `You are a calculator agent that helps users perform mathematical calculations.`,
   actions: [sum, minus],
   llm,
+  // debug: "all",
+  spinApiKey: process.env.SPINAI_API_KEY,
+  agentId: "local-calc-test",
 });
 
 async function main() {

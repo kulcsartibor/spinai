@@ -39,6 +39,7 @@ export function createOpenAILLM(config: OpenAIConfig): LLM {
 
       const choice = response.choices[0];
       let content: T;
+      let rawOutput: string;
 
       if (schema) {
         const functionCall = choice.message.function_call;
@@ -46,8 +47,10 @@ export function createOpenAILLM(config: OpenAIConfig): LLM {
           throw new Error("Expected function call response");
         }
         content = JSON.parse(functionCall.arguments);
+        rawOutput = functionCall.arguments;
       } else {
         content = choice.message.content as T;
+        rawOutput = choice.message.content || "";
       }
 
       if (!response.usage) {
@@ -63,6 +66,8 @@ export function createOpenAILLM(config: OpenAIConfig): LLM {
           response.usage.completion_tokens,
           model
         ),
+        rawInput: prompt,
+        rawOutput,
       };
     },
   };

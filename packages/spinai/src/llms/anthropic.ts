@@ -43,9 +43,10 @@ export function createAnthropicLLM(config: AnthropicConfig): LLM {
         throw new Error("Expected text response from Claude");
       }
 
-      let content: T = response.content[0].text as T;
+      const rawOutput = response.content[0].text;
+      let content: T = rawOutput as T;
       if (schema) {
-        content = JSON.parse(content as unknown as string);
+        content = JSON.parse(rawOutput);
       }
 
       return {
@@ -57,6 +58,8 @@ export function createAnthropicLLM(config: AnthropicConfig): LLM {
           response.usage.output_tokens,
           model
         ),
+        rawInput: prompt,
+        rawOutput,
       };
     },
   };

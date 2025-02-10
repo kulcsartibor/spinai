@@ -120,6 +120,9 @@ export class LoggingService {
       externalCustomerId: this.externalCustomerId,
     };
 
+    // Debug logging
+    // console.log(`\n📝 Sending ${type} log:`, JSON.stringify(payload, null, 2));
+
     const response = await fetch(LOGGING_ENDPOINT, {
       method: "POST",
       headers: {
@@ -132,9 +135,11 @@ export class LoggingService {
       throw new Error(`Failed to send logs: ${response.statusText}`);
     }
   }
+
   /** Start a new interaction */
   logInteractionStart(input: string): void {
     this.originalInput = input;
+    // Log interaction entry
     const interactionStart: InteractionLogEntry = {
       id: this.interactionId,
       sessionId: this.sessionId,
@@ -144,6 +149,18 @@ export class LoggingService {
       isRerun: this.isRerun,
     };
     this.queueLog("interaction", interactionStart);
+
+    // Log interaction start step
+    this.queueLog("step", {
+      id: uuidv4(),
+      stepType: "interaction_start",
+      timestamp: this.getTimestamp(),
+      sessionId: this.sessionId,
+      interactionId: this.interactionId,
+      context: {},
+      status: "completed",
+      modelUsed: this.llmModel,
+    } as StepLogEntry);
   }
 
   /** Complete an interaction */
@@ -153,6 +170,22 @@ export class LoggingService {
     error?: Error,
     interactionState?: InteractionSummary
   ): void {
+    // Log interaction complete step first
+    this.queueLog("step", {
+      id: uuidv4(),
+      stepType: "interaction_complete",
+      timestamp: this.getTimestamp(),
+      sessionId: this.sessionId,
+      interactionId: this.interactionId,
+      context: {},
+      status: error ? "failed" : "completed",
+      durationMs,
+      errorMessage: error?.message,
+      response,
+      interactionState,
+    } as StepLogEntry);
+
+    // Then log final interaction entry
     this.queueLog("interaction", {
       id: this.interactionId,
       sessionId: this.sessionId,
@@ -171,19 +204,19 @@ export class LoggingService {
     } as InteractionLogEntry);
   }
 
-  /** Log the LLM's evaluation decision */
-  logEvaluation(
+  /** Log the LLM's evaluation for planning next actions */
+  logPlanNextActions(
     state: Record<string, unknown>,
     reasoning: string,
-    actions: string[],
+    plannedActions: string[],
     modelUsed: string,
     inputTokens: number,
     outputTokens: number,
     costCents: number,
     durationMs: number,
     response: unknown,
-    rawInput?: Record<string, unknown>,
-    rawOutput?: Record<string, unknown>
+    rawInput?: string,
+    rawOutput?: string
   ): void {
     this.totalInputTokens += inputTokens;
     this.totalOutputTokens += outputTokens;
@@ -191,19 +224,61 @@ export class LoggingService {
 
     this.queueLog("step", {
       id: uuidv4(),
-      stepType: "evaluation",
+      stepType: "plan_next_actions",
       timestamp: this.getTimestamp(),
       sessionId: this.sessionId,
       interactionId: this.interactionId,
       context: state,
       reasoning,
-      actions,
+      plannedActions,
       modelUsed,
       inputTokens,
       outputTokens,
       costCents,
       durationMs,
       response,
+      status: "completed",
+      rawInput,
+      rawOutput,
+    } as StepLogEntry);
+  }
+
+  /** Log the LLM's evaluation for planning action parameters */
+  logPlanActionParameters(
+    actionId: string,
+    parameters: Record<string, unknown>,
+    state: Record<string, unknown>,
+    reasoning: string,
+    modelUsed: string,
+    inputTokens: number,
+    outputTokens: number,
+    costCents: number,
+    durationMs: number,
+    response: unknown,
+    rawInput?: string,
+    rawOutput?: string
+  ): void {
+    this.totalInputTokens += inputTokens;
+    this.totalOutputTokens += outputTokens;
+    this.totalCostCents += costCents;
+
+    this.queueLog("step", {
+      id: uuidv4(),
+      stepType: "plan_action_parameters",
+      timestamp: this.getTimestamp(),
+      sessionId: this.sessionId,
+      interactionId: this.interactionId,
+      context: state,
+      reasoning,
+      targetActionId: actionId,
+      actionParameters: parameters,
+      modelUsed,
+      inputTokens,
+      outputTokens,
+      costCents,
+      durationMs,
+      response,
+      status: "completed",
       rawInput,
       rawOutput,
     } as StepLogEntry);
@@ -219,19 +294,54 @@ export class LoggingService {
   ): void {
     this.queueLog("step", {
       id: uuidv4(),
-      stepType: "action_execution",
+      stepType: "execute_action",
       timestamp: this.getTimestamp(),
       sessionId: this.sessionId,
       interactionId: this.interactionId,
       context: state,
-      actions: [actionId],
+      executedActionId: actionId,
+      actionResult: result,
       status: error ? "failed" : "completed",
       durationMs,
       costCents: 0,
-      response: result,
-      ...(error && {
-        errorMessage: error.message,
-      }),
+      errorMessage: error?.message,
+    } as StepLogEntry);
+  }
+
+  /** Log the LLM's evaluation for planning the final response */
+  logPlanFinalResponse(
+    state: Record<string, unknown>,
+    reasoning: string,
+    modelUsed: string,
+    inputTokens: number,
+    outputTokens: number,
+    costCents: number,
+    durationMs: number,
+    response: unknown,
+    rawInput?: string,
+    rawOutput?: string
+  ): void {
+    this.totalInputTokens += inputTokens;
+    this.totalOutputTokens += outputTokens;
+    this.totalCostCents += costCents;
+
+    this.queueLog("step", {
+      id: uuidv4(),
+      stepType: "plan_final_response",
+      timestamp: this.getTimestamp(),
+      sessionId: this.sessionId,
+      interactionId: this.interactionId,
+      context: state,
+      reasoning,
+      modelUsed,
+      inputTokens,
+      outputTokens,
+      costCents,
+      durationMs,
+      response,
+      status: "completed",
+      rawInput,
+      rawOutput,
     } as StepLogEntry);
   }
 
@@ -244,12 +354,12 @@ export class LoggingService {
   ): void {
     this.queueLog("step", {
       id: uuidv4(),
-      stepType: "action_execution",
+      stepType: "execute_action",
       timestamp: this.getTimestamp(),
       sessionId: this.sessionId,
       interactionId: this.interactionId,
       context: state,
-      actions: [actionId],
+      executedActionId: actionId,
       status: "failed",
       errorMessage: typeof error === "string" ? error : JSON.stringify(error),
       errorSeverity: "critical",

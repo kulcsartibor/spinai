@@ -105,7 +105,7 @@ export class BasePlanner implements ActionPlanner {
     );
 
     if (this.loggingService) {
-      this.loggingService.logEvaluation(
+      this.loggingService.logPlanNextActions(
         state,
         result.content.reasoning,
         result.content.actions,
@@ -114,7 +114,9 @@ export class BasePlanner implements ActionPlanner {
         result.outputTokens,
         result.costCents,
         durationMs,
-        result.content
+        result.content,
+        prompt,
+        result.rawOutput
       );
     }
 
@@ -180,16 +182,19 @@ export class BasePlanner implements ActionPlanner {
     });
 
     if (this.loggingService) {
-      this.loggingService.logEvaluation(
+      this.loggingService.logPlanActionParameters(
+        action,
+        result.content.parameters,
         state,
         result.content.reasoning,
-        [action],
         llm.modelName,
         result.inputTokens,
         result.outputTokens,
         result.costCents,
         durationMs,
-        result.content
+        result.content,
+        prompt,
+        result.rawOutput
       );
     }
 
@@ -249,7 +254,21 @@ export class BasePlanner implements ActionPlanner {
         },
       });
 
-      this.logResponse(formattedResult, result, durationMs, state);
+      if (this.loggingService) {
+        this.loggingService.logPlanFinalResponse(
+          state,
+          formattedResult.reasoning,
+          llm.modelName,
+          result.inputTokens,
+          result.outputTokens,
+          result.costCents,
+          durationMs,
+          formattedResult.response,
+          prompt,
+          result.rawOutput
+        );
+      }
+
       return formattedResult;
     } else {
       // For text responses or undefined format, use the default text schema
@@ -278,29 +297,22 @@ export class BasePlanner implements ActionPlanner {
         },
       });
 
-      this.logResponse(formattedResult, result, durationMs, state);
-      return formattedResult;
-    }
-  }
+      if (this.loggingService) {
+        this.loggingService.logPlanFinalResponse(
+          state,
+          formattedResult.reasoning,
+          llm.modelName,
+          result.inputTokens,
+          result.outputTokens,
+          result.costCents,
+          durationMs,
+          formattedResult.response,
+          prompt,
+          result.rawOutput
+        );
+      }
 
-  private logResponse(
-    formattedResult: FormatResponseResult,
-    result: { costCents: number; inputTokens: number; outputTokens: number },
-    durationMs: number,
-    state: ActionPlannerState
-  ) {
-    if (this.loggingService) {
-      this.loggingService.logEvaluation(
-        state,
-        formattedResult.reasoning,
-        [],
-        "unknown",
-        result.inputTokens,
-        result.outputTokens,
-        result.costCents,
-        durationMs,
-        formattedResult
-      );
+      return formattedResult;
     }
   }
 }

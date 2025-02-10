@@ -1,5 +1,11 @@
 # spinai
 
+## 1.1.12
+
+### Patch Changes
+
+- e2df653: Update logging
+
 ## 1.1.11
 
 ### Patch Changes

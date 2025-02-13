@@ -1,0 +1,28 @@
+{
+  "name": "mintlify-doc-updater",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "tsx watch src/server.ts",
+    "start": "tsx src/server.ts",
+    "test": "tsx src/test.ts",
+    "test:watch": "tsx watch src/test.ts",
+    "test:webhook": "tsx src/test-webhook.ts",
+    "build": "tsc",
+    "lint": "eslint \"src/**/*.ts*\"",
+    "check-types": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@hono/node-server": "^1.8.2",
+    "@octokit/rest": "^20.0.2",
+    "dotenv": "^16.4.7",
+    "hono": "^4.0.9",
+    "openai": "^4.79.3",
+    "spinai": "*",
+    "tsx": "^4.7.1"
+  },
+  "devDependencies": {
+    "@types/node": "^20",
+    "typescript": "5.5.4"
+  }
+}

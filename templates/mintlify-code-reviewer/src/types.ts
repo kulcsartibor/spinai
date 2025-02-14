@@ -18,49 +18,51 @@ export interface DocUpdate {
   reason: string;
 }
 
+export interface DocConfig {
+  // Essential settings
+  docsPath: string; // Path to docs (e.g., "docs" or "apps/docs")
+  isMonorepo?: boolean; // Is this a monorepo setup?
+
+  // Repository settings (optional, defaults to PR repository)
+  docsRepoOwner?: string; // GitHub owner of docs repo if different
+  docsRepoName?: string; // Name of docs repo if different
+  docsBranch?: string; // Branch to update (defaults to 'main')
+
+  // Documentation settings
+  fileTypes?: string[]; // Doc file types (defaults to ['.mdx', '.md'])
+  ignorePaths?: string[]; // Paths to ignore
+
+  // PR settings
+  createNewPr?: boolean; // Create new PR vs update original (defaults to true)
+  labels?: string[]; // Labels to add to PR
+
+  // Optional customization
+  styleGuide?: string; // Custom documentation style guide
+}
+
 export interface DocUpdateConfig {
-  // Directory configurations
-  docsDir: string; // Where documentation files are located within the docs repository
-  codeDir?: string; // Optional: restrict which code directories to monitor
-
-  // Documentation repository configuration
+  docsPath: string;
   docsRepo?: {
-    owner: string; // GitHub org/user that owns the docs repo
-    repo: string; // Repository name containing the docs
-    branch?: string; // Branch to use (defaults to 'main' or repository default)
-    monorepo?: boolean; // Whether this is a monorepo setup
+    owner: string;
+    repo: string;
+    branch: string;
+    monorepo: boolean;
   };
-
-  // Documentation matching rules
-  matchRules?: {
-    // Map of code paths to doc paths (e.g., { "packages/spinai": "docs/api" })
+  matchRules: {
+    docExtensions: string[];
+    ignorePatterns: string[];
     pathMappings?: Record<string, string>;
-    // File patterns to ignore
-    ignorePatterns?: string[];
-    // Additional file extensions to consider as docs (default is ['.mdx'])
-    docExtensions?: string[];
   };
-
-  // PR creation settings
   prConfig: {
-    // Whether to update the original PR or create a new one
     updateOriginalPr: boolean;
-    // Custom PR title template
-    titleTemplate?: string;
-    // Custom PR body template
-    bodyTemplate?: string;
-    // Branch name prefix (default is 'docs/update')
-    branchPrefix?: string;
-    // Labels to add to the PR
-    labels?: string[];
+    branchPrefix: string;
+    titleTemplate: string;
+    bodyTemplate: string;
+    labels: string[];
   };
-
-  // LLM settings for doc generation
   llmConfig?: {
-    // Temperature for doc generation (default 0.3 for more precise updates)
-    temperature?: number;
-    // System prompt additions for customizing doc style
     styleGuide?: string;
+    temperature?: number;
   };
 }
 

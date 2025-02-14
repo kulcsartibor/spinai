@@ -216,7 +216,7 @@ export const analyzeDocStructure = createAction({
     console.log("\n=== Analyzing Documentation Structure ===");
     console.log("Repository:", `${docsRepo.owner}/${docsRepo.repo}`);
     console.log("Branch:", docsRepo.branch);
-    console.log("Docs Directory:", state.config.docsDir);
+    console.log("Docs Directory:", state.config.docsPath);
 
     // Build initial structure
     let docStructure = await buildDocStructure(
@@ -224,7 +224,7 @@ export const analyzeDocStructure = createAction({
       docsRepo.owner,
       docsRepo.repo,
       docsRepo.branch,
-      state.config.docsDir
+      state.config.docsPath
     );
 
     // Analyze references between files

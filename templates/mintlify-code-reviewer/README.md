@@ -1,122 +1,196 @@
-# GitHub Code Review Agent
-An AI-powered code review bot that automatically reviews pull requests using GPT-4 and provides detailed, line-by-line feedback.
+# Mintlify Doc Updater
 
-```bash
-npx create-spinai
-```
-and choose the Github-code-reviewer template.
-
+Automatically keep your [Mintlify](https://mintlify.com) documentation in sync with code changes using SpinAI. This agent watches your pull requests and automatically creates documentation updates when code changes.
 
 ## Features
 
-- 🤖 Automatic PR reviews when opened or updated
-- 📝 Line-by-line code feedback
-- 🔍 Focuses on:
-  - Code quality and best practices
-  - Potential bugs and issues
-  - Performance considerations
-  - Security concerns
-- 🎨 Customizable bot name and appearance
-- 📊 Review tracking with SpinAI
+- 🤖 Automatic documentation updates based on code changes
+- 📚 Intelligent analysis of code and documentation relationships
+- 🔄 Automatic navigation updates in `mint.json`
+- 🎯 Smart prioritization of documentation updates
+- 🎨 Maintains your existing documentation style
+- 🏗️ Supports monorepo setups
 
-## Setup
+## Quick Start
 
-1. Install dependencies:
+1. Create a new project:
 ```bash
-npm install
+npx create-spinai
 ```
 
-2. Copy the environment variables file and configure it:
+2. Select `mintlify-docs-updater` from the template options.
+
+3. Set up environment variables in `.env`:
 ```bash
-cp .env.example .env
+# Edit .env with your keys:
+# OPENAI_API_KEY=your-openai-key
+# GITHUB_TOKEN=your-github-token
 ```
 
-3. Fill in your `.env` file:
-```env
-# OpenAI API Key for the code review
-OPENAI_API_KEY=your_openai_api_key_here
+To get a GitHub token:
+1. Go to [GitHub Settings > Developer Settings > Personal Access Tokens > Tokens (classic)](https://github.com/settings/tokens)
+2. Click "Generate new token (classic)"
+3. Give it a name (e.g., "Mintlify Doc Updater")
+4. Select these permissions:
+   - For public repositories: `public_repo`
+   - For private repositories: `repo`
+   - Also select: `read:org` if you're using it with organization repositories
+5. Copy the token and add it to your `.env` file
 
-# GitHub Personal Access Token with repo scope
-GITHUB_TOKEN=your_github_token_here
+4. Configure the agent in `src/config.ts`:
+```typescript
+// For a standard Mintlify setup (docs in same repo)
+export const defaultConfig: Required<DocConfig> = {
+  docsPath: "docs",              // Path to your Mintlify docs
+  isMonorepo: false,
+  docsRepoOwner: "your-username",  // Your GitHub username or org
+  docsRepoName: "your-repo",       // The repository name
+  docsBranch: "main",
+  fileTypes: [".mdx", ".md"],
+  ignorePaths: ["**/node_modules/**"],
+  createNewPr: true,
+  labels: ["documentation"],
+  styleGuide: "",
+};
 
-# SpinAI API Key for agent tracking and monitoring
-SPINAI_API_KEY=your_spinai_api_key_here
+// For a monorepo setup (e.g., docs in apps/docs)
+export const defaultConfig: Required<DocConfig> = {
+  docsPath: "apps/docs",         // Adjust to your monorepo docs path
+  isMonorepo: true,
+  docsRepoOwner: "",
+  docsRepoName: "",
+  docsBranch: "main",
+  fileTypes: [".mdx", ".md"],
+  ignorePaths: ["**/node_modules/**"],
+  createNewPr: true,
+  labels: ["documentation"],
+  styleGuide: "",
+};
 
-# Port for the webhook server (optional)
-PORT=3000
+// For docs in a separate repository
+export const defaultConfig: Required<DocConfig> = {
+  docsPath: "docs",
+  isMonorepo: false,
+  docsRepoOwner: "your-org",     // Owner of the docs repo
+  docsRepoName: "docs",          // Name of the docs repo
+  docsBranch: "main",
+  fileTypes: [".mdx", ".md"],
+  ignorePaths: ["**/node_modules/**"],
+  createNewPr: true,
+  labels: ["documentation"],
+  styleGuide: "",
+};
 ```
 
-### Getting the Required API Keys
+5. Configure GitHub webhook:
+   - Go to your repository settings
+   - Add webhook: `http://your-server:3000/webhook` (use ngrok for local development)
+   - Select events: "Pull requests"
+   - Content type: "application/json"
 
-1. **GitHub Token**:
-   - Go to GitHub Settings → Developer Settings → Personal Access Tokens → Tokens (classic)
-   - Create a new token with `repo` scope
-   - This token determines which GitHub account the bot will comment as
-
-2. **OpenAI API Key**:
-   - Get your API key from [OpenAI's platform](https://platform.openai.com/api-keys)
-   - Make sure you have access to GPT-4
-
-3. **SpinAI API Key**:
-   - Get your API key from SpinAI's dashboard
-
-## Setting Up GitHub Webhook
-
-1. Go to your repository's Settings → Webhooks → Add webhook
-2. Configure the webhook:
-   - Payload URL: Your server URL + `/webhook` (e.g., `https://your-domain.com/webhook`)
-   - Content type: `application/json`
-   - Secret: (optional) Add a webhook secret for security
-   - Events: Select "Pull requests"
-
-For local testing:
+6. Start the server:
 ```bash
-# Install ngrok
-npm install -g ngrok
-
-# Start your server
 npm run dev
-
-# In another terminal, create a tunnel
-ngrok http 3000
+# or
+yarn dev
 ```
 
-Use the ngrok URL as your webhook URL in GitHub settings.
+That's it! The agent will now automatically review pull requests and create documentation updates.
 
-## Usage
+## Configuration
 
-1. Start the server:
-```bash
-npm run dev
+The agent accepts a simple configuration object:
+
+```typescript
+interface DocConfig {
+  // Essential settings
+  docsPath: string;           // Path to docs (e.g., "docs" or "apps/docs")
+  isMonorepo?: boolean;       // Is this a monorepo setup?
+  
+  // Repository settings (optional)
+  docsRepoOwner?: string;     // GitHub owner of docs repo if different
+  docsRepoName?: string;      // Name of docs repo if different
+  docsBranch?: string;        // Branch to update (defaults to 'main')
+  
+  // Documentation settings
+  fileTypes?: string[];       // Doc file types (defaults to ['.mdx', '.md'])
+  ignorePaths?: string[];     // Paths to ignore
+  
+  // PR settings
+  createNewPr?: boolean;      // Create new PR vs update original
+  labels?: string[];          // Labels to add to PR
+  
+  // Optional customization
+  styleGuide?: string;        // Custom documentation style guide
+}
 ```
 
-2. The bot will automatically:
-   - Review new PRs when they're opened
-   - Review PRs when new changes are pushed
-   - Add line-specific comments with suggestions
-   - Add a summary comment on the PR
+### Using the Agent Directly
 
-## Customization
+If you want to use the agent without the server:
 
-1. **Review Focus**: Edit the prompt in `src/actions/reviewCode.ts`
-2. **Comment Style**: Modify the comment formatting in `src/actions/postReviewComments.ts`
+```typescript
+import { createDocUpdateAgent } from "mintlify-doc-updater";
 
-## Development
+const agent = createDocUpdateAgent({
+  config: {
+    docsPath: "docs"
+  }
+});
 
-```bash
-# Run in development mode with hot reload
-npm run dev
-
-# Build the project
-npm run build
-
-# Run linting
-npm run lint
-
-# Type checking
-npm run check-types
+// Use the agent directly
+const result = await agent({
+  input: "Review pull request #123",
+  externalCustomerId: "user123",
+  state: {
+    owner: "org",
+    repo: "repo",
+    pull_number: 123,
+    config: {} // Will be populated from your config
+  }
+});
 ```
+
+### Environment Variables
+
+- `OPENAI_API_KEY` (required): Your OpenAI API key
+- `GITHUB_TOKEN` (required): GitHub token with repo access
+- `PORT` (optional): Server port (default: 3000)
+
+The GitHub token needs these permissions:
+- `repo` scope for private repositories
+- `public_repo` scope for public repositories
+
+### GitHub App Setup
+
+For production use, we recommend setting up a GitHub App:
+
+1. Create a new GitHub App
+2. Configure permissions:
+   - Pull requests: Read & write
+   - Contents: Read & write
+   - Metadata: Read-only
+3. Subscribe to events:
+   - Pull request
+   - Pull request review
+4. Install the app on your repositories
+5. Use the app's credentials instead of a personal token
+
+## How It Works
+
+When a pull request is opened or updated, the agent:
+
+1. Analyzes code changes to understand what functionality changed
+2. Scans existing documentation structure and relationships
+3. Plans necessary documentation updates
+4. Generates precise, accurate documentation updates
+5. Updates navigation structure in `mint.json` if needed
+6. Creates a new PR with all documentation changes
+
+## Contributing
+
+We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) for details.
 
 ## License
 
-MIT 
+MIT License - see [LICENSE](LICENSE) for details. 

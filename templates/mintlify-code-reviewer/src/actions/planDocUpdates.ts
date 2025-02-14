@@ -5,7 +5,6 @@ import type {
   CodeAnalysis,
   DocStructure,
   UpdatePlan,
-  PlannedDocUpdate,
 } from "../types";
 import OpenAI from "openai";
 

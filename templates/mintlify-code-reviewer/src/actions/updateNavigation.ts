@@ -24,10 +24,10 @@ async function getMintJsonContent(
   owner: string,
   repo: string,
   branch: string,
-  docsDir: string
+  docsPath: string
 ): Promise<{ content: string; path: string; sha: string }> {
   // Try first in the docs directory (monorepo case)
-  const mintJsonPath = `${docsDir}/mint.json`;
+  const mintJsonPath = `${docsPath}/mint.json`;
   console.log("Looking for mint.json at:", mintJsonPath);
 
   try {
@@ -190,6 +190,21 @@ export const updateNavigation = createAction({
 
     console.log("\n=== Updating Navigation Structure ===");
 
+    // Collect all navigation changes
+    const allChanges =
+      state.updatePlan.navigationChanges?.flatMap((group) =>
+        group.changes.map((change) => ({
+          ...change,
+          group: group.group,
+        }))
+      ) || [];
+
+    // Skip if no navigation changes
+    if (allChanges.length === 0) {
+      console.log("No navigation changes needed, skipping update");
+      return context;
+    }
+
     // Get current mint.json content
     const {
       content: mintJsonContent,
@@ -200,21 +215,12 @@ export const updateNavigation = createAction({
       state.docsRepo?.owner || parameters.owner,
       state.docsRepo?.repo || parameters.repo,
       state.docsRepo?.branch || "main",
-      state.config.docsDir
+      state.config.docsPath
     );
 
     // Parse current navigation
     const mintJson = JSON.parse(mintJsonContent);
     const currentNavigation: NavigationItem[] = mintJson.navigation || [];
-
-    // Collect all navigation changes
-    const allChanges =
-      state.updatePlan.navigationChanges?.flatMap((group) =>
-        group.changes.map((change) => ({
-          ...change,
-          group: group.group,
-        }))
-      ) || [];
 
     // Apply changes to navigation structure
     const updatedNavigation = applyNavigationChanges(

@@ -1,28 +1,32 @@
+import { Hono } from "hono";
+import { serve } from "@hono/node-server";
 import { createDocUpdateAgent } from "./index";
+import { handleWebhook } from "./webhooks";
+import type { DocConfig } from "./types";
 
-console.log("Starting documentation update server...");
+export interface ServerOptions {
+  config?: Partial<DocConfig>;
+  openAiKey?: string;
+  githubToken?: string;
+  port?: number;
+}
 
-createDocUpdateAgent({
-  config: {
-    docsRepo: {
-      owner: "AtotheY",
-      repo: "mintlify-pr-test",
-      monorepo: true,
-    },
-    docsDir: "apps/docs",
-    matchRules: {
-      docExtensions: [".mdx", ".md"],
-      pathMappings: {
-        "packages/": "docs/api",
-        "examples/": "docs/examples",
-      },
-      ignorePatterns: ["**/node_modules/**", "**/.git/**"],
-    },
-    prConfig: {
-      updateOriginalPr: false,
-      branchPrefix: "docs/update",
-      titleTemplate: "📚 Update documentation for {prTitle}",
-      labels: ["documentation"],
-    },
-  },
-});
+export async function startServer(options: ServerOptions = {}) {
+  const agent = createDocUpdateAgent(options);
+  const app = new Hono();
+
+  // Single webhook endpoint
+  app.post("/webhook", (c) => handleWebhook(c, agent));
+
+  // Start server
+  const port = options.port || parseInt(process.env.PORT || "3000", 10);
+  const server = serve({
+    fetch: app.fetch,
+    port,
+  });
+
+  console.log(`🚀 Server running at http://localhost:${port}`);
+
+  // Return both the agent and server instance
+  return { agent, server };
+}

@@ -21,6 +21,12 @@ const TEMPLATES: Template[] = [
     repo: "fallomai/spinai/templates/default",
   },
   {
+    name: "Mintlify docs updater",
+    description:
+      "An agent that automatically updates Mintlify documentation based on PRs",
+    repo: "fallomai/spinai/templates/mintlify-docs-updater",
+  },
+  {
     name: "minimal",
     description: "Minimal setup with no actions or agents created",
     repo: "fallomai/spinai/templates/minimal",

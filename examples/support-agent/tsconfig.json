@@ -1,5 +1,5 @@
 {
-  "name": "ergo-crm-agent",
+  "name": "crm-support-agent",
   "type": "module",
   "private": true,
   "scripts": {

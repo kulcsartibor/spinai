@@ -156,6 +156,7 @@ const result = await agent({
 - `OPENAI_API_KEY` (required): Your OpenAI API key
 - `GITHUB_TOKEN` (required): GitHub token with repo access
 - `PORT` (optional): Server port (default: 3000)
+- `SPINAI_API_KEY` (optional): SpinAI API key for monitoring and observability. Get one at [app.spinai.dev](https://app.spinai.dev)
 
 The GitHub token needs these permissions:
 - `repo` scope for private repositories
@@ -193,4 +194,4 @@ We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) f
 
 ## License
 
-MIT License - see [LICENSE](LICENSE) for details. 
+MIT License - see [LICENSE](LICENSE) for details.

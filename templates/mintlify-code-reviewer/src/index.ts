@@ -41,7 +41,8 @@ export function createDocUpdateAgent(
       model: "gpt-4-turbo-preview",
     }),
     agentId: "mintlify-update-agent",
-    spinApiKey: process.env.SPINAI_API_KEY,
+    // Optional: Enable SpinAI monitoring
+    // spinApiKey: process.env.SPINAI_API_KEY,
   });
 
   return agent;

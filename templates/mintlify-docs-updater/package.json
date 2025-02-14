@@ -1,5 +1,5 @@
 {
-  "name": "mintlify-doc-updater",
+  "name": "mintlify-docs-updater",
   "version": "0.1.0",
   "private": true,
   "scripts": {

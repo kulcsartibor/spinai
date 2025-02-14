@@ -1,5 +1,11 @@
 # spinai
 
+## 1.1.13
+
+### Patch Changes
+
+- ba1893e: Add mintlify example
+
 ## 1.1.12
 
 ### Patch Changes

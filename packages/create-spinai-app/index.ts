@@ -221,7 +221,9 @@ new Command("create-spinai-app")
       console.log(chalk.cyan(`     cd ${projectName}\n`));
 
       // Then set up API key
-      console.log(chalk.cyan("  2. Set up your OpenAI API key:"));
+      console.log(
+        chalk.cyan("  2. Set up your ENV variables (read the README.MD):")
+      );
       console.log(
         chalk.cyan(
           "     • Get your API key from https://platform.openai.com/api-keys"

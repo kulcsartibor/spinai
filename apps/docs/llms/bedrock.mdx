@@ -1,0 +1,73 @@
+---
+title: "Integrating Amazon Bedrock LLMs"
+description: "Learn how to integrate Amazon Bedrock LLMs with SpinAI for advanced natural language processing capabilities."
+---
+
+## Introduction
+
+Amazon Bedrock LLMs offer state-of-the-art natural language processing capabilities, enabling developers to integrate advanced AI models into their applications. This documentation covers the setup, configuration, and usage of Amazon Bedrock LLMs within the SpinAI framework.
+
+## Setup and Configuration
+
+To begin using Amazon Bedrock LLMs, you need to configure your environment with the necessary credentials and default settings.
+
+```typescript
+interface BedrockConfig {
+  region?: string;
+  access_key?: string;
+  secret_key?: string;
+  profile?: string;
+  model?: string; // Defaults to "anthropic.claude-3-5-sonnet-20240620-v1:0"
+}
+```
+
+Ensure you have the AWS credentials (`access_key` and `secret_key`) or a configured AWS profile (`profile`) for authentication. The `region` should be set to the AWS region where the Bedrock LLMs are available.
+
+## Creating a Bedrock LLM
+
+With the configuration in place, you can create an instance of the Bedrock LLM as follows:
+
+```typescript
+import { createBedrockLLM } from "spinai";
+
+const bedrockLLM = createBedrockLLM({
+  access_key: process.env.AWS_ACCESS_KEY_ID,
+  secret_key: process.env.AWS_SECRET_ACCESS_KEY,
+  region: "us-east-1",
+  model: "your-model-id", // Optional
+});
+```
+
+This instance can then be used to generate text completions, parse text, or any other supported operations by the Bedrock LLM.
+
+## Example Usage
+
+Here's how you can use the Bedrock LLM for generating text completions:
+
+```typescript
+async function generateText(prompt: string) {
+  const completion = await bedrockLLM.complete({
+    prompt: prompt,
+    maxTokens: 1024, // Optional
+    temperature: 0.7, // Optional
+  });
+
+  console.log(completion.content);
+}
+```
+
+This function sends a prompt to the Bedrock LLM and logs the generated text completion.
+
+## Best Practices
+
+- **Caching Credentials**: Use environment variables or AWS credential files to manage your AWS credentials securely.
+- **Error Handling**: Implement comprehensive error handling to catch and manage errors returned by the Bedrock LLM API.
+- **Resource Management**: Keep track of the tokens used by your requests to manage costs effectively.
+
+## Troubleshooting
+
+- **Authentication Errors**: Ensure your AWS credentials are correctly configured and have the necessary permissions to access Bedrock LLMs.
+- **Model Not Found**: Verify that the model ID is correct and that the model is available in your AWS region.
+- **Rate Limits**: Be mindful of AWS rate limits for Bedrock LLMs to avoid service interruptions.
+
+For more detailed information on Amazon Bedrock LLMs and their capabilities, refer to the official AWS documentation.

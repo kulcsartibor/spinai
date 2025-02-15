@@ -60,6 +60,7 @@ export function createGeminiLLM(config: GeminiConfig): LLM {
           throw new Error("Parsed response does not match schema");
         }
         content = parsedOutput;
+
       } else {
         content = rawOutput as T;
       }

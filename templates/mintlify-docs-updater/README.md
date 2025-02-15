@@ -15,7 +15,7 @@ Automatically keep your [Mintlify](https://mintlify.com) documentation in sync w
 
 1. Create a new project:
 ```bash
-npx create-spinai
+npx create-spinai-app
 ```
 
 2. Select `mintlify-docs-updater` from the template options.

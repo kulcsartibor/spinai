@@ -38,6 +38,7 @@ export function createCloudflareAILLM(config: CloudflareConfig): LLM {
           headers: {
             Authorization: `Bearer ${config.apiToken}`,
             "Content-Type": "application/json",
+            Accept: "application/json",
           },
           body: JSON.stringify({
             messages: [
@@ -45,7 +46,7 @@ export function createCloudflareAILLM(config: CloudflareConfig): LLM {
                 ? [
                     {
                       role: "system",
-                      content: `Respond only with a JSON object matching this schema:\n${JSON.stringify(
+                      content: `Do not include any explanation or text at the end and only respond with a JSON object matching this schema:\n${JSON.stringify(
                         schema,
                         null,
                         2

@@ -1,5 +1,6 @@
 export { createOpenAILLM } from "./llms/openai";
 export { createAnthropicLLM } from "./llms/anthropic";
+export { createCloudflareAILLM } from "./llms/cloudflare";
 export { createAgent } from "./agents/create";
 export { createAction } from "./actions/create";
 export * from "./types/action";

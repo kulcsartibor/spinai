@@ -1,20 +1,14 @@
 #!/usr/bin/env node
 
 import { spawn } from "child_process";
-import { fileURLToPath } from "url";
-import { dirname, join } from "path";
+import { createRequire } from "module";
 
-const __dirname = dirname(fileURLToPath(import.meta.url));
+const require = createRequire(import.meta.url);
+const createSpinaiAppPath = require.resolve("create-spinai-app/dist/index.js");
 
-// Forward all arguments to create-spinai-app
-const createSpinaiApp = join(
-  __dirname,
-  "node_modules",
-  ".bin",
-  "create-spinai-app"
-);
-const child = spawn(createSpinaiApp, process.argv.slice(2), {
+const child = spawn("node", [createSpinaiAppPath, ...process.argv.slice(2)], {
   stdio: "inherit",
+  shell: true,
 });
 
 child.on("exit", (code) => {

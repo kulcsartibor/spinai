@@ -1,0 +1,5 @@
+---
+"create-spinai": patch
+---
+
+Fix

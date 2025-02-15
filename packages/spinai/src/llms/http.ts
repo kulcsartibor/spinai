@@ -14,7 +14,7 @@ export function createHttpLLM(config: HttpLLMConfig): LLM {
     throw new Error("HTTP endpoint is required");
   }
 
-  const model = "custom-http-model"
+  const model = "custom-http-model";
 
   return {
     modelName: model,

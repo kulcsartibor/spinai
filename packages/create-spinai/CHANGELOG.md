@@ -1,5 +1,11 @@
 # create-spinai
 
+## 1.0.2
+
+### Patch Changes
+
+- cd9243b: Fix
+
 ## 1.0.1
 
 ### Patch Changes

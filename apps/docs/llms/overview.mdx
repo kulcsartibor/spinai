@@ -1,12 +1,14 @@
 ---
 title: "LLM Support"
-description: "Language models supported by SpinAI"
+description: "Language models supported by SpinAI, including new Cloudflare and HTTP-based options."
 ---
 
-SpinAI supports multiple LLMs for agent decision making:
+SpinAI now supports multiple LLMs for agent decision making, expanding our offerings to include:
 
 - [OpenAI](/llms/openai)
 - [Anthropic](/llms/anthropic)
+- [Cloudflare](/llms/cloudflare) {/* New */}
+- [HTTP-based LLM](/llms/http) {/* New */}
 
 Each LLM can be configured with custom settings like:
 
@@ -24,6 +26,22 @@ Consider these factors when choosing an LLM:
 - API reliability
 - Token context limits
 
+## Introducing Cloudflare and HTTP-based LLMs
+
+SpinAI has expanded its LLM support to include Cloudflare and custom HTTP-based LLMs, allowing for more flexibility and customization in integrating language models into your applications.
+
+### Cloudflare
+
+The Cloudflare LLM offers a secure and scalable way to access powerful language models. It is particularly suited for applications requiring high throughput and low latency.
+
+[Learn more about setting up Cloudflare LLM](/llms/cloudflare)
+
+### HTTP-based LLM
+
+Our HTTP-based LLM support enables you to integrate any language model that can be accessed over HTTP. This option provides maximum flexibility, allowing you to use proprietary models or other third-party models not directly supported by SpinAI.
+
+[Learn more about setting up HTTP-based LLMs](/llms/http)
+
 ## Next Steps
 
 <CardGroup>
@@ -33,4 +51,12 @@ Consider these factors when choosing an LLM:
   <Card title="Anthropic Setup" icon="brain" href="/llms/anthropic">
     Use Claude models
   </Card>
+  <Card title="Cloudflare Setup" icon="cloud" href="/llms/cloudflare"> {/* New */}
+    Use Cloudflare models
+  </Card>
+  <Card title="HTTP LLM Setup" icon="globe" href="/llms/http"> {/* New */}
+    Use custom HTTP-based models
+  </Card>
 </CardGroup>
+
+By incorporating Cloudflare and HTTP-based LLMs into our suite of supported models, SpinAI continues to lead in providing versatile and powerful AI integration options for developers.

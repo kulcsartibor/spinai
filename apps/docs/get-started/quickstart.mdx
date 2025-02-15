@@ -11,13 +11,26 @@ Use our CLI to create a new SpinAI project:
 npx create-spinai
 ```
 
-## Choose a template, and configure your .env (read the README of the template you choose)
+## Install Required Dependencies
 
-Usually you'll need at minimum a `.env` file with your LLM's api key (OPENAI_API_KEY by default).
+After creating your project, you need to install the necessary dependencies. Navigate to your project directory and run:
 
 ```bash
-OPENAI_API_KEY=your_api_key_here
+npm install
 ```
+
+This will install all required packages, including the newly added `@google/generative-ai` package for integrating Google's Gemini model, along with other dependencies such as `@anthropic-ai/sdk` and `openai`.
+
+## Configure Your .env File
+
+Usually, you'll need at minimum a `.env` file with your LLM's API key (`OPENAI_API_KEY` by default) and any other necessary environment variables specific to the AI models you're integrating.
+
+```bash
+OPENAI_API_KEY=your_openai_api_key_here
+GOOGLE_AI_API_KEY=your_google_ai_api_key_here
+```
+
+Ensure you replace `your_openai_api_key_here` and `your_google_ai_api_key_here` with your actual API keys.
 
 ## Run Your Agent
 
@@ -29,18 +42,22 @@ npm run dev
 
 That's it! Your agent will now:
 
-1. Receive the user's question
-2. Decide to use the getWeather action
-3. Execute the action
-4. Provide a response
+1. Receive the user's question.
+2. Decide to use the appropriate action based on the configured AI model.
+3. Execute the action.
+4. Provide a response.
 
 ## Next Steps
 
+Explore the following resources to further develop and enhance your AI agent:
+
 <CardGroup>
   <Card title="Development Guide" icon="code" href="/get-started/development">
-    Learn how to build more complex agents
+    Learn how to build more complex agents.
   </Card>
   <Card title="Examples" icon="lightbulb" href="/examples">
-    See real-world examples
+    See real-world examples.
   </Card>
 </CardGroup>
+
+This quickstart guide has been updated to include the integration of Google's Gemini model via the `@google/generative-ai` package, ensuring you have the most up-to-date setup instructions for your SpinAI projects.

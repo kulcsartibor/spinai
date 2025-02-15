@@ -1,5 +1,5 @@
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-import { createAgent, createOpenAILLM, createAnthropicLLM } from "spinai";
+import { createAgent, createOpenAILLM, createAnthropicLLM, createBedrockLLM } from "spinai";
 import * as dotenv from "dotenv";
 import { sum } from "./actions/sum";
 import { minus } from "./actions/minus";
@@ -17,6 +17,11 @@ const llm = createAnthropicLLM({
   apiKey: process.env.ANTHROPIC_API_KEY || "",
   model: "claude-3-sonnet-20240229",
 });
+
+// Bedrock Example:
+// const llm = createBedrockLLM({
+//   model: "amazon.nova-micro-v1:0"
+// })
 
 const calculatorAgent = createAgent<number>({
   instructions: `You are a calculator agent that helps users perform mathematical calculations.`,

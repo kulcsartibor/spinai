@@ -1,4 +1,5 @@
 import { BedrockRuntimeClient, ConverseCommand, ToolChoice } from "@aws-sdk/client-bedrock-runtime";
+import { fromIni } from "@aws-sdk/credential-providers";
 import { LLM, CompletionOptions, CompletionResult } from "./base";
 import { calculateCost } from "../utils/tokenCounter";
 
@@ -11,13 +12,19 @@ export interface BedrockConfig {
 }
 
 export function createBedrockLLM(config: BedrockConfig): LLM {
+  const credentials = config.access_key && config.secret_key 
+  ? { 
+      accessKeyId: config.access_key, 
+      secretAccessKey: config.secret_key 
+    } 
+  : config.profile
+    ? fromIni({ profile: config.profile }) 
+    : undefined;
+
   const bedrock = new BedrockRuntimeClient({
     region: config.region,
     profile: config.profile,
-    credentials: {
-      accessKeyId: config.access_key,
-      secretAccessKey: config.secret_key
-    },
+    credentials,
   });
 
   const defaultModel = "anthropic.claude-3-5-sonnet-20240620-v1:0";
@@ -31,41 +38,25 @@ export function createBedrockLLM(config: BedrockConfig): LLM {
       temperature,
       maxTokens,
     }: CompletionOptions): Promise<CompletionResult<T>> {
-
-      const toolChoice: ToolChoice = model.startsWith("anthropic.claude-3")
-        ? {
-          tool: {
-            name: "json_output", // When  using Claude 3
-          },
-        }
-        : {
-          auto: {}, // Default behavior when not using Claude 3
-        };
-      
       const response = await bedrock.send(new ConverseCommand({
         modelId: model,
         messages: [{ role: "user", content: [{ text: prompt }] }],
         inferenceConfig: { // InferenceConfiguration
-          maxTokens: maxTokens || 1024,
+          maxTokens: maxTokens ?? 1024, // Ensure maxTokens is always a number
           temperature: temperature ?? 0.7,
         },
-        toolConfig: {
-          tools: [
+        ...(schema && {
+          system: [
             {
-              toolSpec: {
-                name: "json_output", // required
-                description: `Respond only with a JSON object matching this schema:\n${JSON.stringify(schema, null, 2)}`,
-                inputSchema: {
-                  json: JSON.stringify(schema),
-                },
-              },
+              text: `Respond only with a JSON object matching this schema:\n${JSON.stringify(schema, null, 2)}`,
             },
           ],
-          toolChoice
-        }
+        }),
       }));
 
-      const rawOutput = response.output.message?.content?.[0]?.text || "";
+      // Ensure response.output and response.output.message exist before accessing them
+      const rawOutput = response.output?.message?.content?.[0]?.text ?? "";
+      console.log("Raw output:", response.output?.message?.content);
 
       if (!rawOutput) {
         throw new Error("Expected text response from Bedrock");
@@ -76,15 +67,15 @@ export function createBedrockLLM(config: BedrockConfig): LLM {
         content = JSON.parse(rawOutput);
       }
 
+      // Ensure response.usage exists and assign default values if undefined
+      const inputTokens = response.usage?.inputTokens ?? 0;
+      const outputTokens = response.usage?.outputTokens ?? 0;
+
       return {
         content,
-        inputTokens: response.usage.inputTokens,
-        outputTokens: response.usage.outputTokens,
-        costCents: calculateCost(
-          response.usage.inputTokens,
-          response.usage.outputTokens,
-          model
-        ),
+        inputTokens,
+        outputTokens,
+        costCents: calculateCost(inputTokens, outputTokens, model),
         rawInput: prompt,
         rawOutput,
       };

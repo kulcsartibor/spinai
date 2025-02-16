@@ -18,11 +18,6 @@ const llm = createAnthropicLLM({
   model: "claude-3-sonnet-20240229",
 });
 
-// Bedrock Example:
-// const llm = createBedrockLLM({
-//   model: "amazon.nova-micro-v1:0"
-// })
-
 const calculatorAgent = createAgent<number>({
   instructions: `You are a calculator agent that helps users perform mathematical calculations.`,
   actions: [sum, minus],

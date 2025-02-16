@@ -55,8 +55,7 @@ export function createBedrockLLM(config: BedrockConfig): LLM {
       }));
 
       // Ensure response.output and response.output.message exist before accessing them
-      const rawOutput = response.output?.message?.content?.[0]?.text ?? "";
-      console.log("Raw output:", response.output?.message?.content);
+      const rawOutput = response.output?.message?.content?.[0]?.text ?? null;
 
       if (!rawOutput) {
         throw new Error("Expected text response from Bedrock");

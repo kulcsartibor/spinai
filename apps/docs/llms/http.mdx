@@ -1,5 +1,5 @@
 ---
-title: "Using Custom HTTP-based LLMs"
+title: "Custom HTTP-based LLMs"
 description: "Learn how to implement, configure, and use custom HTTP-based Large Language Models (LLMs) with SpinAI."
 ---
 
@@ -18,7 +18,7 @@ const config: HttpLLMConfig = {
   endpoint: "https://your.custom.model/endpoint",
   apiKey: "your_api_key", // Optional
   headers: {
-    "Custom-Header": "Value" // Optional
+    "Custom-Header": "Value", // Optional
   },
   transformRequest: (body) => {
     // Optional: Modify the request body before sending
@@ -27,7 +27,7 @@ const config: HttpLLMConfig = {
   transformResponse: (response) => {
     // Optional: Transform the response into a string
     return response;
-  }
+  },
 };
 
 const customLLM = createHttpLLM(config);
@@ -93,11 +93,14 @@ Here's how you might send a request to your custom LLM and handle the response:
 ```typescript
 const prompt = "Explain the significance of HTTP status codes.";
 
-customLLM.complete({ prompt }).then((result) => {
-  console.log("Completion:", result.content);
-}).catch((error) => {
-  console.error("Error:", error);
-});
+customLLM
+  .complete({ prompt })
+  .then((result) => {
+    console.log("Completion:", result.content);
+  })
+  .catch((error) => {
+    console.error("Error:", error);
+  });
 ```
 
 By following these guidelines, you can integrate any HTTP-accessible language model into your SpinAI projects, providing you with the flexibility to use the model that best fits your application's requirements.

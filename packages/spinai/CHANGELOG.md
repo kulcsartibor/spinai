@@ -1,5 +1,11 @@
 # spinai
 
+## 1.2.2
+
+### Patch Changes
+
+- bf14ee3: sync versions
+
 ## 1.2.0
 
 ### Minor Changes

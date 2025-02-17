@@ -1,5 +1,11 @@
 # create-spinai-app
 
+## 1.2.2
+
+### Patch Changes
+
+- bf14ee3: sync versions
+
 ## 1.1.15
 
 ### Patch Changes

@@ -1,5 +1,5 @@
 ---
-title: "Integrating Amazon Bedrock LLMs"
+title: "Amazon Bedrock"
 description: "Using Amazon Bedrock models with SpinAI"
 ---
 
@@ -14,7 +14,6 @@ const llm = createBedrockLLM({
   secret_key: process.env.AWS_SECRET_KEY,
   profile: "my-profile", // This should match a named profile in ~/.aws/config
   model: "anthropic.claude-3-5-sonnet-20240620-v1:0", // Optional
-
 });
 
 const agent = createAgent({

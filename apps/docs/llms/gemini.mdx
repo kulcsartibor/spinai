@@ -1,14 +1,14 @@
 ---
-title: "Anthropic"
-description: "Using Claude models with SpinAI"
+title: "Integrating Google's Gemini Model"
+description: "Learn how to integrate and utilize Google's Gemini model with SpinAI for advanced language learning and generation tasks."
 ---
 
 ## Usage
 
 ```typescript
-import { createAgent, createAnthropicLLM } from "spinai";
+import { createAgent, createGeminiLLM } from "spinai";
 
-const llm = createAnthropicLLM({
+const llm = createGeminiLLM({
   apiKey: process.env.ANTHROPIC_API_KEY,
   model: "claude-3-opus-20240229", // Optional
 });
@@ -18,13 +18,4 @@ const agent = createAgent({
   actions: [getCustomerInfo, createTicket],
   llm,
 });
-```
-
-## Configuration
-
-```typescript
-interface AnthropicConfig {
-  apiKey: string;
-  model?: string;
-}
 ```

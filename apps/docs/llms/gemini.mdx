@@ -3,73 +3,19 @@ title: "Integrating Google's Gemini Model"
 description: "Learn how to integrate and utilize Google's Gemini model with SpinAI for advanced language learning and generation tasks."
 ---
 
-## Introduction
-
-Google's Gemini model represents a significant advancement in the field of generative AI, offering unparalleled capabilities for natural language understanding and generation. The SpinAI package now supports integration with the Gemini model, enabling developers to leverage its capabilities for a wide range of applications, from automated content creation to sophisticated conversational agents.
-
-## Setup and Configuration
-
-To begin using the Gemini model within your SpinAI projects, you'll first need to configure the model with your API key and optionally specify the model version you wish to use.
+## Usage
 
 ```typescript
-import { createGeminiLLM } from "spinai";
+import { createAgent, createGeminiLLM } from "spinai";
 
-const geminiLLM = createGeminiLLM({
-  apiKey: process.env.GOOGLE_API_KEY, // Your Google API key
-  model: "gemini-2.0-flash", // Optional, defaults to gemini-2.0-flash
+const llm = createGeminiLLM({
+  apiKey: process.env.ANTHROPIC_API_KEY,
+  model: "claude-3-opus-20240229", // Optional
+});
+
+const agent = createAgent({
+  instructions: "Help users with support tickets",
+  actions: [getCustomerInfo, createTicket],
+  llm,
 });
 ```
-
-### Configuration Options
-
-```typescript
-interface GeminiConfig {
-  apiKey: string; // Your Google API key is required
-  model?: string; // Model version, optional
-}
-```
-
-## Example Usage
-
-Integrating the Gemini model into your project is straightforward. Here's a basic example demonstrating how to generate content based on a prompt.
-
-```typescript
-async function generateContent() {
-  const content = await geminiLLM.complete({
-    prompt: "Write a brief introduction to the Gemini model.",
-    maxTokens: 256,
-  });
-
-  console.log(content);
-}
-```
-
-### Advanced Configuration Example
-
-For more advanced use cases, you can customize the generation process by specifying additional options such as `temperature` and `maxTokens`, which control the creativity of the responses and the maximum length of the generated content, respectively.
-
-```typescript
-async function generateAdvancedContent() {
-  const content = await geminiLLM.complete({
-    prompt: "Explain the benefits of using generative AI in healthcare.",
-    temperature: 0.9,
-    maxTokens: 512,
-  });
-
-  console.log(content);
-}
-```
-
-## Best Practices
-
-- **API Key Security**: Ensure your API key is securely stored and not hard-coded directly into your application's source code.
-- **Rate Limits**: Be mindful of Google's API rate limits to avoid service interruptions.
-- **Content Moderation**: Always implement content moderation when generating content for public consumption to ensure it adheres to community guidelines and standards.
-
-## Troubleshooting
-
-- **API Key Issues**: If you encounter authentication errors, double-check your API key and ensure it has not expired.
-- **Model Responses**: For unexpected model responses, consider adjusting the `temperature` and `maxTokens` parameters to fine-tune the generative output.
-- **Rate Limiting**: Should you hit rate limits, review your usage patterns and consider implementing caching or request throttling as necessary.
-
-For more detailed information on the SpinAI package and additional models, refer to the [overview documentation](/docs/llms/overview).

@@ -66,6 +66,7 @@
         "llms/overview",
         "llms/openai",
         "llms/anthropic",
+        "llms/bedrock",
         "llms/cloudflare",
         "llms/http",
         "llms/gemini"

@@ -1,5 +1,11 @@
 # create-spinai-app
 
+## 1.1.15
+
+### Patch Changes
+
+- bf518cc: Make anthropic's schema passing more robust, and add ajv validation for action params
+
 ## 1.1.14
 
 ### Patch Changes

@@ -1,5 +1,15 @@
 # spinai
 
+## 1.2.0
+
+### Minor Changes
+
+- e27a17f: Added support for Amazon Bedrock LLMs
+
+### Patch Changes
+
+- bf518cc: Make anthropic's schema passing more robust, and add ajv validation for action params
+
 ## 1.1.14
 
 ### Patch Changes

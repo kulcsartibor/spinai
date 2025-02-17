@@ -31,12 +31,16 @@ export function createAnthropicLLM(config: AnthropicConfig): LLM {
     }: CompletionOptions): Promise<CompletionResult<T>> {
       const response = await anthropic.messages.create({
         model,
-        messages: [{ role: "user", content: prompt }],
+        messages: [
+          {
+            role: "user",
+            content: schema
+              ? `You must respond ONLY with a valid JSON object matching this schema:\n${JSON.stringify(schema, null, 2)}\n\n${prompt}`
+              : prompt,
+          },
+        ],
         temperature: temperature ?? 0.7,
         max_tokens: maxTokens || 1024,
-        ...(schema && {
-          system: `Respond only with a JSON object matching this schema:\n${JSON.stringify(schema, null, 2)}`,
-        }),
       });
 
       if (response.content[0].type !== "text") {
@@ -44,9 +48,16 @@ export function createAnthropicLLM(config: AnthropicConfig): LLM {
       }
 
       const rawOutput = response.content[0].text;
-      let content: T = rawOutput as T;
+      let content: T;
+
       if (schema) {
-        content = JSON.parse(rawOutput);
+        try {
+          content = JSON.parse(rawOutput);
+        } catch (e) {
+          throw new Error(`Failed to parse JSON response: ${rawOutput}`);
+        }
+      } else {
+        content = rawOutput as T;
       }
 
       return {

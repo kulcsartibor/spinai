@@ -1,6 +1,7 @@
 import { LLM } from "../llms/base";
 import { Action } from "../types/action";
 import { ResponseFormat } from "../types/agent";
+import Ajv from "ajv";
 import {
   ActionPlanner,
   ActionPlannerState,
@@ -25,12 +26,14 @@ import { log } from "../utils/debugLogger";
 export class BasePlanner implements ActionPlanner {
   private totalCostCents = 0;
   private instructions: string;
+  private ajv: Ajv;
 
   constructor(
     private loggingService?: any,
     instructions: string = ""
   ) {
     this.instructions = instructions;
+    this.ajv = new Ajv();
   }
 
   getTotalCost(): number {
@@ -140,6 +143,15 @@ export class BasePlanner implements ActionPlanner {
     const actionDef = availableActions.find((a) => a.id === action);
     if (!actionDef?.parameters) {
       throw new Error(`Action ${action} has no parameter schema defined`);
+    }
+
+    // Validate the parameter schema using Ajv
+    const validate = this.ajv.compile(actionDef.parameters);
+    if (!validate.schema) {
+      console.log("throwing");
+      throw new Error(
+        `Invalid JSON schema for action ${action}: ${this.ajv.errorsText(validate.errors)}`
+      );
     }
 
     const prompt = GET_ACTION_PARAMETERS_PROMPT.replace("{{action}}", action)

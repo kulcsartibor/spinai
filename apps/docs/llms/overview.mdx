@@ -1,21 +1,15 @@
 ---
 title: "LLM Support"
-description: "Language models supported by SpinAI, including new Cloudflare and HTTP-based options."
+description: "Language models supported by SpinAI, including new Cloudflare, HTTP-based, and Gemini model options."
 ---
 
 SpinAI now supports multiple LLMs for agent decision making, expanding our offerings to include:
 
 - [OpenAI](/llms/openai)
 - [Anthropic](/llms/anthropic)
-- [Cloudflare](/llms/cloudflare) {/* New */}
-- [HTTP-based LLM](/llms/http) {/* New */}
-
-Each LLM can be configured with custom settings like:
-
-- Model selection
-- Temperature
-- Token limits
-- API configuration
+- [Cloudflare](/llms/cloudflare)
+- [HTTP-based LLM](/llms/http)
+- [Gemini](/llms/gemini)
 
 ## Choosing an LLM
 
@@ -25,38 +19,20 @@ Consider these factors when choosing an LLM:
 - Response quality
 - API reliability
 - Token context limits
+- Time to response
 
-## Introducing Cloudflare and HTTP-based LLMs
+## Best Practices
 
-SpinAI has expanded its LLM support to include Cloudflare and custom HTTP-based LLMs, allowing for more flexibility and customization in integrating language models into your applications.
+Usually, for the agent's LLM, you'll want to choose a model that's robust in it's decision making, can handle a decent amount of tokens (depending on your context), and can respond within a reasonable amount of time. Keep in mind, for each action you expect your agent to run, you can expect 1-2 calls to your agent's base LLM each time.
 
-### Cloudflare
+If response times matter for your application, you might want to use a more lightweight model under the hood.
 
-The Cloudflare LLM offers a secure and scalable way to access powerful language models. It is particularly suited for applications requiring high throughput and low latency.
+## Contributing
 
-[Learn more about setting up Cloudflare LLM](/llms/cloudflare)
+Missing an LLM integration you'd like to see? We welcome contributions! You can:
 
-### HTTP-based LLM
+1. Open an issue to discuss the integration
+2. Submit a pull request with your implementation
+3. Check our [existing pull requests](https://github.com/Fallomai/spinai/pulls) to see if someone is already working on it
 
-Our HTTP-based LLM support enables you to integrate any language model that can be accessed over HTTP. This option provides maximum flexibility, allowing you to use proprietary models or other third-party models not directly supported by SpinAI.
-
-[Learn more about setting up HTTP-based LLMs](/llms/http)
-
-## Next Steps
-
-<CardGroup>
-  <Card title="OpenAI Setup" icon="openai" href="/llms/openai">
-    Use OpenAI models
-  </Card>
-  <Card title="Anthropic Setup" icon="brain" href="/llms/anthropic">
-    Use Claude models
-  </Card>
-  <Card title="Cloudflare Setup" icon="cloud" href="/llms/cloudflare"> {/* New */}
-    Use Cloudflare models
-  </Card>
-  <Card title="HTTP LLM Setup" icon="globe" href="/llms/http"> {/* New */}
-    Use custom HTTP-based models
-  </Card>
-</CardGroup>
-
-By incorporating Cloudflare and HTTP-based LLMs into our suite of supported models, SpinAI continues to lead in providing versatile and powerful AI integration options for developers.
+We're always looking to expand our LLM support to better serve the community's needs.

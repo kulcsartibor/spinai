@@ -1,0 +1,75 @@
+---
+title: "Calculator Agent"
+description: "Build an AI agent that acts as a calculator using SpinAI"
+---
+
+## Overview
+
+A simple calculator agent that demonstrates core SpinAI concepts. The agent:
+
+- Processes mathematical expressions in natural language
+- Dynamically chooses between addition and subtraction operations
+- Returns numerical results
+
+## Structure
+
+```bash
+src/
+├── actions/
+│   ├── sum.ts     # Addition operation
+│   └── minus.ts   # Subtraction operation
+└── index.ts       # Main agent setup
+```
+
+## Quick Start
+
+1. Create a new project:
+
+```bash
+npx create-spinai
+```
+
+2. Select the default template
+
+3. Set up your environment:
+
+```bash
+# .env
+OPENAI_API_KEY=your-key-here
+```
+
+## How It Works
+
+1. **Agent Setup**: Uses OpenAI (swappable with [any supported LLM](/llms/overview)) for decision making
+2. **Available Actions**:
+   - `sum`: Adds two numbers
+   - `minus`: Subtracts two numbers
+3. **Input Processing**: Converts natural language (e.g. "What is 5 plus 3 - 1?") into mathematical operations
+4. **State Management**: Tracks calculation progress through multiple operations
+
+## Example Usage
+
+```typescript
+const calculatorAgent = createAgent({
+  instructions: `You are a calculator agent that helps users perform mathematical calculations.`,
+  actions: [sum, minus],
+  llm,
+});
+
+// Example: "What is 5 plus 3 minus 1?"
+const { response } = await calculatorAgent({
+  input: "What is 5 plus 3 minus 1?",
+  state: {},
+});
+```
+
+## Next Steps
+
+Here are some easy things you can add to get your hands dirty and learn how Spin works
+
+- Add a multiply action
+- Add a division action
+- Try to use the state returned by the agent call to keep a running sum that you can continue performing mathematical operations on, like a real calculator
+- Add any agentId (i.e "calculator-agent") and your SpinAPI key to the createAgent parameters and track your model on [our dashboard](https://app.spinai.dev).
+
+This example serves as a basic introduction to Spin's framework.

@@ -18,19 +18,40 @@ A lightweight framework for building AI agents with TypeScript
 ## Getting Started
 
 Visit our [documentation](https://docs.spinai.dev) for:
+
 - Installation guide
 - Quick start tutorial
 - API reference
 - Examples and best practices
 - Advanced usage
 
-## Features
+# Quickstart
 
-- 🎯 **Task-focused**: Agents execute specific actions to achieve goals
-- 🔄 **DAG-based**: Handles complex action dependencies automatically
-- 🔌 **Pluggable**: Works with any LLM that supports chat completions
-- 🛠️ **Type-safe**: Built with TypeScript for robust development
-- 🪶 **Lightweight**: Zero dependencies beyond your chosen LLM
+## Create a New Project
+
+Use our CLI to create a new SpinAI project:
+
+```bash
+npx create-spinai
+```
+
+## Choose a template, and configure your .env
+
+Read the README of the template you chose for a full list of env variables to setup.
+
+Usually you'll need at minimum a `.env` file with your LLM's api key. All templates use OpenAI by default, but you can change the provider to your preferred LLM.
+
+```bash
+OPENAI_API_KEY=your_api_key_here
+```
+
+## Run Your Agent
+
+Start your agent:
+
+```bash
+npm run dev
+```
 
 ## Community
 

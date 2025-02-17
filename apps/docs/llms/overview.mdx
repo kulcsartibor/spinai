@@ -21,26 +21,18 @@ Consider these factors when choosing an LLM:
 - Token context limits
 - Time to response
 
-## Next Steps
+## Best Practices
 
-<CardGroup>
-  <Card title="OpenAI Setup" icon="openai" href="/llms/openai">
-    Use OpenAI models
-  </Card>
-  <Card title="Anthropic Setup" icon="brain" href="/llms/anthropic">
-    Use Claude models
-  </Card>
-  <Card title="Cloudflare Setup" icon="cloud" href="/llms/cloudflare">
-    Use Cloudflare models
-  </Card>
-  <Card title="HTTP LLM Setup" icon="globe" href="/llms/http">
-    Use custom HTTP-based models
-  </Card>
-  <Card title="Gemini Setup" icon="gemini" href="/llms/gemini">
-    {" "}
-    {/* New */}
-    Use Gemini models
-  </Card>
-</CardGroup>
+Usually, for the agent's LLM, you'll want to choose a model that's robust in it's decision making, can handle a decent amount of tokens (depending on your context), and can respond within a reasonable amount of time. Keep in mind, for each action you expect your agent to run, you can expect 1-2 calls to your agent's base LLM each time.
 
-By incorporating Cloudflare, HTTP-based LLMs, and the Gemini model into our suite of supported models, SpinAI continues to lead in providing versatile and powerful AI integration options for developers.
+If response times matter for your application, you might want to use a more lightweight model under the hood.
+
+## Contributing
+
+Missing an LLM integration you'd like to see? We welcome contributions! You can:
+
+1. Open an issue to discuss the integration
+2. Submit a pull request with your implementation
+3. Check our [existing pull requests](https://github.com/Fallomai/spinai/pulls) to see if someone is already working on it
+
+We're always looking to expand our LLM support to better serve the community's needs.

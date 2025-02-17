@@ -11,14 +11,16 @@ import { createAgent, createAnthropicLLM } from "spinai";
 const llm = createAnthropicLLM({
   apiKey: process.env.ANTHROPIC_API_KEY,
   model: "claude-3-opus-20240229", // Optional
-  temperature: 0.7, // Optional
-  maxTokens: 1024, // Optional
 });
 
 const agent = createAgent({
   instructions: "Help users with support tickets",
   actions: [getCustomerInfo, createTicket],
   llm,
+});
+
+const { response } = await agent({
+  input: "I want a refund",
 });
 ```
 
@@ -27,8 +29,6 @@ const agent = createAgent({
 ```typescript
 interface AnthropicConfig {
   apiKey: string;
-  model?: string; // Defaults to claude-3-opus-20240229
-  temperature?: number; // Defaults to 0.7
-  maxTokens?: number; // Defaults to 1024
+  model?: string;
 }
 ```

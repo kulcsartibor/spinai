@@ -1,20 +1,16 @@
 ---
 title: "LLM Support"
-description: "Language models supported by SpinAI"
+description: "Language models supported by SpinAI, including new Cloudflare, HTTP-based, and Gemini model options."
 ---
 
-SpinAI supports multiple LLMs for agent decision making:
+SpinAI now supports multiple LLMs for agent decision making, expanding our offerings to include:
 
 - [OpenAI](/llms/openai)
 - [Anthropic](/llms/anthropic)
 - [Amazon Bedrock](/llms/bedrock)
-
-Each LLM can be configured with custom settings like:
-
-- Model selection
-- Temperature
-- Token limits
-- API configuration
+- [Gemini](/llms/gemini)
+- [Cloudflare](/llms/cloudflare)
+- [HTTP-based LLM](/llms/http)
 
 ## Choosing an LLM
 
@@ -24,21 +20,20 @@ Consider these factors when choosing an LLM:
 - Response quality
 - API reliability
 - Token context limits
+- Time to response
 
-For those interested in leveraging the latest in AI technology, the addition of Amazon Bedrock to our supported LLMs offers an exciting new option. Bedrock provides a flexible and powerful tool for various AI-driven tasks, ensuring high-quality responses and reliable performance.
+## Best Practices
 
-## Next Steps
+Usually, for the agent's LLM, you'll want to choose a model that's robust in it's decision making, can handle a decent amount of tokens (depending on your context), and can respond within a reasonable amount of time. Keep in mind, for each action you expect your agent to run, you can expect 1-2 calls to your agent's base LLM each time.
 
-<CardGroup>
-  <Card title="OpenAI Setup" icon="openai" href="/llms/openai">
-    Use OpenAI models
-  </Card>
-  <Card title="Anthropic Setup" icon="brain" href="/llms/anthropic">
-    Use Claude models
-  </Card>
-  <Card title="Amazon Bedrock Setup" icon="aws" href="/llms/bedrock">
-    Use Amazon Bedrock models
-  </Card>
-</CardGroup>
+If response times matter for your application, you might want to use a more lightweight model under the hood.
 
-For detailed information on how to set up and use Amazon Bedrock with SpinAI, refer to the [Amazon Bedrock documentation](/llms/bedrock). This guide provides step-by-step instructions on configuring the Bedrock LLM for your needs, including model selection, API settings, and custom completion options to enhance your AI-driven applications.
+## Contributing
+
+Missing an LLM integration you'd like to see? We welcome contributions! You can:
+
+1. Open an issue to discuss the integration
+2. Submit a pull request with your implementation
+3. Check our [existing pull requests](https://github.com/Fallomai/spinai/pulls) to see if someone is already working on it
+
+We're always looking to expand our LLM support to better serve the community's needs.

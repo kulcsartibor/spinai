@@ -56,6 +56,7 @@
         "core-concepts/task-loop",
         "core-concepts/agents",
         "core-concepts/actions",
+        "core-concepts/state-and-parameters",
         "core-concepts/observability"
       ]
     },
@@ -65,20 +66,18 @@
         "llms/overview",
         "llms/openai",
         "llms/anthropic",
-        "llms/bedrock"
+        "llms/bedrock",
+        "llms/cloudflare",
+        "llms/http",
+        "llms/gemini"
       ]
     },
     {
       "group": "Examples",
       "pages": [
         {
-          "group": "Zendesk Support",
-          "pages": [
-            "examples/zendesk-support/overview",
-            "examples/zendesk-support/implementation",
-            "examples/zendesk-support/configuration",
-            "examples/zendesk-support/deployment"
-          ]
+          "group": "Calculator agent (beginners)",
+          "pages": ["examples/calculator-agent/overview"]
         }
       ]
     }

@@ -11,13 +11,16 @@ import { createAgent, createOpenAILLM } from "spinai";
 const llm = createOpenAILLM({
   apiKey: process.env.OPENAI_API_KEY,
   model: "gpt-4-turbo-preview", // Optional
-  temperature: 0.7, // Optional
 });
 
 const agent = createAgent({
   instructions: "Help users with support tickets",
   actions: [getCustomerInfo, createTicket],
   llm,
+});
+
+const { response } = await agent({
+  input: "I want a refund",
 });
 ```
 
@@ -26,7 +29,6 @@ const agent = createAgent({
 ```typescript
 interface OpenAIConfig {
   apiKey: string;
-  model?: string; // Defaults to gpt-4-turbo-preview
-  temperature?: number; // Defaults to 0.7
+  model?: string;
 }
 ```

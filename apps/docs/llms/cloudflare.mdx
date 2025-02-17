@@ -1,0 +1,90 @@
+---
+title: "Cloudflare"
+description: "Learn how to set up and use Cloudflare's LLM with SpinAI for advanced AI-driven interactions."
+---
+
+## Introduction
+
+Cloudflare's LLM provides a powerful platform for developing AI-driven applications. This documentation covers the setup, configuration, and usage of Cloudflare LLM within the SpinAI framework, enabling developers to leverage Cloudflare's AI capabilities in their projects.
+
+## Setup
+
+To begin using Cloudflare LLM with SpinAI, you must first ensure that you have a Cloudflare account and have access to the necessary API tokens and account IDs. The setup process involves configuring your environment with these credentials and integrating the Cloudflare LLM into your SpinAI project.
+
+## Configuration
+
+Before you can start using the Cloudflare LLM, you need to configure it with your Cloudflare account details. The configuration object requires your Cloudflare API token and account ID. Optionally, you can specify the model you wish to use; if not specified, a default model is used.
+
+```typescript
+interface CloudflareConfig {
+  apiToken: string;
+  accountId: string;
+  model?: string; // Optional, defaults to "@cf/meta/llama-2-7b-chat-int8"
+}
+```
+
+Ensure that your Cloudflare API token and account ID are securely stored and not hard-coded into your application. It is recommended to use environment variables for storing these sensitive details.
+
+## Usage
+
+After setting up and configuring the Cloudflare LLM, you can start using it to generate AI-driven responses. The `createCloudflareAILLM` function initializes the LLM with your configuration and returns an instance that can be used to interact with Cloudflare's AI.
+
+```typescript
+import { createCloudflareAILLM } from "spinai";
+
+const cloudflareLLM = createCloudflareAILLM({
+  apiToken: process.env.CLOUDFLARE_API_TOKEN,
+  accountId: process.env.CLOUDFLARE_ACCOUNT_ID,
+  model: "@cf/meta/llama-2-7b-chat-int8", // Optional
+});
+
+// Example usage
+const response = await cloudflareLLM.complete({
+  prompt: "What is the weather like today?",
+  maxTokens: 1024, // Optional
+  temperature: 0.7, // Optional
+});
+```
+
+## Examples
+
+### Basic Cloudflare LLM Setup
+
+This example demonstrates the minimal setup required to start using Cloudflare LLM with SpinAI.
+
+```typescript
+import { createCloudflareAILLM } from "spinai";
+
+const llm = createCloudflareAILLM({
+  apiToken: process.env.CLOUDFLARE_API_TOKEN,
+  accountId: process.env.CLOUDFLARE_ACCOUNT_ID,
+});
+
+// Using the LLM for generating responses
+const response = await llm.complete({
+  prompt: "Explain the concept of relativity.",
+});
+```
+
+### Advanced Configuration Options
+
+In this example, we specify an alternative model and configure additional parameters for the completion request.
+
+```typescript
+import { createCloudflareAILLM } from "spinai";
+
+const llm = createCloudflareAILLM({
+  apiToken: process.env.CLOUDFLARE_API_TOKEN,
+  accountId: process.env.CLOUDFLARE_ACCOUNT_ID,
+  model: "@cf/meta/llama-2-7b-chat-int8", // Custom model
+});
+
+// Using the LLM with advanced options
+const response = await llm.complete({
+  prompt: "Create a short story about a time-traveling scientist.",
+  temperature: 0.9,
+  maxTokens: 1500,
+});
+```
+
+By following these steps and examples, you can integrate Cloudflare LLM into your SpinAI projects, enabling you to harness the power of AI for a wide range of applications.

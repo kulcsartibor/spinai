@@ -11,9 +11,11 @@ Use our CLI to create a new SpinAI project:
 npx create-spinai
 ```
 
-## Configure Environment
+## Choose a template, and configure your .env
 
-Create a `.env` file with your OpenAI API key:
+Read the README of the template you chose for a full list of env variables to setup
+
+Usually you'll need at minimum a `.env` file with your LLM's api key. All templates use OpenAI by default, but you can change the provider to your preferried LLM.
 
 ```bash
 OPENAI_API_KEY=your_api_key_here
@@ -27,12 +29,7 @@ Start your agent:
 npm run dev
 ```
 
-That's it! Your agent will now:
-
-1. Receive the user's question
-2. Decide to use the getWeather action
-3. Execute the action
-4. Provide a response
+That's it! Your agent will now
 
 ## Next Steps
 
@@ -40,7 +37,10 @@ That's it! Your agent will now:
   <Card title="Development Guide" icon="code" href="/get-started/development">
     Learn how to build more complex agents
   </Card>
+  <Card title="Development Guide" icon="code" href="/llms/overview">
+    Choose a different LLM provider
+  </Card>
   <Card title="Examples" icon="lightbulb" href="/examples">
-    See real-world examples
+    View example SpinAI apps
   </Card>
 </CardGroup>

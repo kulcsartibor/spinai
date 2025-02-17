@@ -1,5 +1,11 @@
 # spinai
 
+## 1.1.14
+
+### Patch Changes
+
+- beeab1b: Allow resuse of actions
+
 ## 1.1.13
 
 ### Patch Changes

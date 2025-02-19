@@ -1,6 +1,6 @@
 {
   "name": "create-spinai",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "type": "module",
   "description": "Alias package for create-spinai-app",
   "repository": {

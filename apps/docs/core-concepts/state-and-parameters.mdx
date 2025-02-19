@@ -1,0 +1,112 @@
+---
+title: "State & Parameters"
+description: "How SpinAI agents can make use of state"
+---
+
+SpinAI allows you to store and use information in actions using the `context.state` object.
+
+## State vs Parameters
+
+#### State
+
+State is a persistent object that:
+
+- Can only be modified by your Actions
+- Can have a default value that you pass in when you start the interaction
+- Persists between action calls
+- Useful for tracking progress or storing computation results
+- Can be accessed via `context.state` in any action
+- Can be accessed via `context.state` after an interaction is complete
+
+Here's how to work with state in an example action:
+
+```typescript
+  async run(context, parameters) {
+    const { a, b } = parameters;
+    // Update state with result
+    const result = a + b;
+    context.state.result = result;
+    return context;
+  },
+```
+
+You can also access any variable stored in state at runtime after your agent has completed running:
+
+```typescript
+const { response, state } = await agent({
+  input: "Create a ticket for my broken laptop",
+  state: {},
+});
+
+console.log({ state }); // whatever you added to state in your actions
+// will be accessible here after the agent runs
+```
+
+#### Parameters
+
+Parameters are values that your agent passes into actions. They are:
+
+- Dynamically determined by the LLM during the task loop
+- Based on the action's parameter schema
+- Derived from previous action results and current state
+- Best for handling dynamic, per-action inputs
+
+```typescript
+// Example parameter schema
+parameters: {
+  type: "object",
+  properties: {
+    a: { type: "number", description: "First number" },
+    b: { type: "number", description: "Second number" },
+  },
+  required: ["a", "b"],
+}
+```
+
+SpinAI's task loop follows a two-step decision process:
+
+1. **Action Selection**
+
+   - First, the LLM decides which action(s) to run based on the current context and goal
+   - This decision is made using the action's description, the current state, and the user's input
+
+2. **Parameter Determination**
+   - Before executing the chosen action, SpinAI makes a separate decision to determine the exact parameters
+   - Parameters are intelligently derived from:
+     - Results of previously run actions
+     - Current application state
+     - User's original input
+     - Any other available context
+
+For example, in a calculator agent:
+
+```typescript
+// For the input "what is 5 plus 3 minus 1?"
+// First action: sum is selected
+const sumResult = await sum.run(context, {
+  a: 5, // Agent decides to pass this in from user input
+  b: 3, // Agent decides to pass this in from user input
+});
+// Result: 8 stored in state
+
+// Second action: minus is selected
+const minusResult = await minus.run(context, {
+  a: 8, // Agent decides to pass this in from previous sum result
+  b: 1, // Agent decides to pass this in from user input
+});
+// Final result: 7
+```
+
+## Best Practices
+
+1. **Parameters**
+
+   - Use for operation-specific inputs that the LLM can decide on what to pass in
+   - Keep schemas simple and well-documented
+   - Always include parameter descriptions
+   - Mark truly required fields as required
+
+2. **State**
+   - Initialize your agent's interaction with default state variables if needed
+   - Use for persistent data across actions that won't change (i.e customer emails, and other static data)
+   - Keep state structure consistent

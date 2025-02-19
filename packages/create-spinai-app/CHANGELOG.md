@@ -1,5 +1,23 @@
 # create-spinai-app
 
+## 1.2.2
+
+### Patch Changes
+
+- bf14ee3: sync versions
+
+## 1.1.15
+
+### Patch Changes
+
+- bf518cc: Make anthropic's schema passing more robust, and add ajv validation for action params
+
+## 1.1.14
+
+### Patch Changes
+
+- beeab1b: Allow resuse of actions
+
 ## 1.1.13
 
 ### Patch Changes

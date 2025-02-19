@@ -5,100 +5,72 @@ description: "How SpinAI agents make and execute decisions"
 
 ## What is the Task Loop?
 
-The task loop is SpinAI's core decision-making process that:
+The task loop is SpinAI's core decision-making process that uses a planner to:
 
-- Analyzes user input
-- Decides which actions to take
-- Executes actions in order
-- Determines when tasks are complete
+- Determine which actions to run
+- Prepare parameters for each action
+- Execute actions in sequence
+- Generate final responses
 
 ## How it Works
 
-1. **Decision Making**
-   The LLM analyzes the input and available actions:
+The task loop uses a planner that leverages your agent's LLM for three key decisions:
 
-   ```typescript
-   // LLM receives:
-   - User's input
-   - Available actions and their descriptions
-   - Results from previous actions
-   ```
+1. **Planning Next Actions**
 
-2. **Action Selection**
-   The LLM returns a decision:
+   - Analyzes user input and current state, including already executed actions, and results
+   - Decides which actions should run next
+   - Returns a list of action IDs to execute
 
-   ```typescript
-   interface LLMDecision {
-     actions: string[]; // Actions to execute
-     isDone: boolean; // Task completion status
-     response: string; // Response to user
-     reasoning?: string; // Optional explanation
-     summary?: string; // Optional summary
-   }
-   ```
+2. **Parameter Preparation**
 
-3. **Dependency Resolution**
-   SpinAI orders the actions based on dependencies:
+   - Before each action runs
+   - Determines exact parameters needed
+   - Uses context from previous actions and state to pass in specific parameters into your action
 
-   ```typescript
-   // Example dependency chain
-   getCustomerInfo → validateSubscription → createTicket
-   ```
+3. **Response Generation**
 
-4. **Action Execution**
-   Actions run in order, sharing state through context:
-   ```typescript
-   // Each action:
-   1. Receives the context
-   2. Performs its task
-   3. Updates the state
-   4. Returns the modified context
-   ```
+   - When no more actions are needed
+   - Creates final response to user
+   - Uses accumulated context and state
+   - Defaults to a string, but you can pass in a responseFormat to get structured JSON (see [Agents](/core-concepts/agents))
 
-## Decision Flow
+## Flow Diagram
 
 ```mermaid
 graph TD
-    A[User Input] --> B[LLM Decision]
+    A[Agent Called] --> B[Plan Next Actions]
     B --> C{Actions Needed?}
-    C -->|Yes| D[Resolve Dependencies]
-    D --> E[Execute Actions]
-    E --> F[Update State]
-    F --> B
-    C -->|No| G[Return Response]
+    C -->|Yes| D[Prepare Action Parameters]
+    D --> E[Execute Action]
+    E --> B
+    C -->|No| F[Generate Final Response]
 ```
 
-## State Management
-
-The task loop maintains state throughout the process:
+## Example Flow
 
 ```typescript
-// Initial state
-const context = {
-  input: "user question",
+// 1. Agent gets called
+const result = await agent({
+  input: "Add 5 and 3, then subtract 2",
   state: {},
-};
+});
 
-// After actions run
-const context = {
-  input: "user question",
-  state: {
-    customerInfo: { ... },
-    ticketId: "123",
-    response: "I've created ticket #123",
-  },
-};
-```
+// 2. Planner decides actions: ["sum", "minus"]
 
-## Logging and Debugging
+// 3. For first action (sum):
+// - Prepare parameters: { a: 5, b: 3 }
+// - Execute sum action
+// - Result stored in state
 
-The task loop provides detailed logging:
+// 4. For second action (minus):
+// - Prepare parameters: { a: 8, b: 2 }
+// - Execute minus action
+// - Result stored in state
 
-```typescript
-ℹ️ Processing request { input: "I need help" }
-ℹ️ Planning next actions ["getCustomerInfo"]
-ℹ️ Executing action: getCustomerInfo
-ℹ️ Task complete { response: "I've found your info..." }
+// 5. No more actions needed
+// - Generate final response
+// - Return result to user
 ```
 
 ## Next Steps
@@ -107,7 +79,11 @@ The task loop provides detailed logging:
   <Card title="Agents" icon="robot" href="/core-concepts/agents">
     Learn about agent configuration
   </Card>
-  <Card title="Examples" icon="lightbulb" href="/examples">
-    See real-world implementations
+  <Card
+    title="State & Parameters"
+    icon="database"
+    href="/core-concepts/state-and-parameters"
+  >
+    Understand state management
   </Card>
 </CardGroup>

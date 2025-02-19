@@ -18,7 +18,7 @@ const llm = createOpenAILLM({
 //   model: "claude-3-5-sonnet-20241022",
 // });
 
-const calculatorAgent = createAgent<number>({
+const calculatorAgent = createAgent({
   instructions: `You are a calculator agent that helps users perform mathematical calculations.`,
   actions: [sum, minus],
   llm,

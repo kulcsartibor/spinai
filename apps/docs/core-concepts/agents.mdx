@@ -5,7 +5,7 @@ description: "AI agents that coordinate actions to achieve goals"
 
 # Agents
 
-Agents are the core building blocks of SpinAI. They combine LLMs with actions to solve tasks.
+Agents are the core building blocks of SpinAI. They combine your chosen LLM with actions to solve tasks the way a human decision maker would.
 
 ## Quick Start
 
@@ -27,7 +27,7 @@ const agent = createAgent({
 
 // Use the agent
 const { response } = await agent({
-  input: "Find me a red t-shirt under $30",
+  input: "Order me a medium red t-shirt under $30",
 });
 ```
 
@@ -82,7 +82,7 @@ const { response } = await agent({
 });
 ```
 
-### 2. Structured Responses
+### 2. Structured Responses (Response Format)
 
 Agent that returns typed data:
 
@@ -131,13 +131,14 @@ const { response, totalCostCents } = await agent({
 
 ### 4. Session Management with Reruns
 
+In order to use reruns, the state at the end of the last interaction can be passed in to the new rerun interaction.
+
 Maintaining context across interactions:
 
 ```typescript
 // Initial interaction
 const { response, sessionId, state } = await agent({
   input: "Create a ticket for my broken laptop",
-  state: { customerId: "123" },
 });
 
 // Follow-up using .rerun()
@@ -167,28 +168,6 @@ Example output (default level):
    Parameters: {"customerId": "123"}
 📊 Task complete (took 892ms, cost 1.2¢)
 ```
-
-## Best Practices
-
-1. **Clear Instructions**
-
-   ```typescript
-   instructions: "You are a support agent that helps users with order issues";
-   ```
-
-2. **Focused Action Sets**
-
-   ```typescript
-   actions: [getCustomerInfo, getOrderStatus, createTicket];
-   ```
-
-3. **State Management**
-   ```typescript
-   state: {
-     customerId: "123",
-     region: "US",
-   }
-   ```
 
 ## Next Steps
 

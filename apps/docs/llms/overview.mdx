@@ -1,19 +1,16 @@
 ---
 title: "LLM Support"
-description: "Language models supported by SpinAI"
+description: "Language models supported by SpinAI."
 ---
 
-SpinAI supports multiple LLMs for agent decision making:
+SpinAI now supports multiple LLMs for agent decision making, expanding our offerings to include:
 
 - [OpenAI](/llms/openai)
 - [Anthropic](/llms/anthropic)
-
-Each LLM can be configured with custom settings like:
-
-- Model selection
-- Temperature
-- Token limits
-- API configuration
+- [Amazon Bedrock](/llms/bedrock)
+- [Gemini](/llms/gemini)
+- [Cloudflare](/llms/cloudflare)
+- [HTTP-based LLM](/llms/http)
 
 ## Choosing an LLM
 
@@ -23,14 +20,20 @@ Consider these factors when choosing an LLM:
 - Response quality
 - API reliability
 - Token context limits
+- Time to response
 
-## Next Steps
+## Best Practices
 
-<CardGroup>
-  <Card title="OpenAI Setup" icon="openai" href="/llms/openai">
-    Use OpenAI models
-  </Card>
-  <Card title="Anthropic Setup" icon="brain" href="/llms/anthropic">
-    Use Claude models
-  </Card>
-</CardGroup>
+Usually, for the agent's LLM, you'll want to choose a model that's robust in it's decision making, can handle a decent amount of tokens (depending on your context), and can respond within a reasonable amount of time. Keep in mind, for each action you expect your agent to run, you can expect 1-2 calls to your agent's base LLM each time.
+
+If response times matter for your application, you might want to use a more lightweight model under the hood.
+
+## Contributing
+
+Missing an LLM integration you'd like to see? We welcome contributions! You can:
+
+1. Open an issue to discuss the integration
+2. Submit a pull request with your implementation
+3. Check our [existing pull requests](https://github.com/Fallomai/spinai/pulls) to see if someone is already working on it
+
+We're always looking to expand our LLM support to better serve the community's needs.

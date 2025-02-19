@@ -4,6 +4,7 @@
   "scripts": {
     "build": "turbo build --filter=!./examples/**",
     "dev": "turbo dev --filter=!./examples/**",
+    "docs": "turbo docs --filter=!./examples/**",
     "lint": "turbo lint --filter=!./examples/**",
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
     "update-packages": "changeset",

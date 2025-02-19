@@ -65,90 +65,6 @@ interface ActionConfig {
 }
 ```
 
-## Parameters and State
-
-Actions can receive input through parameters and access shared state through context:
-
-```typescript
-interface SpinAiContext {
-  input: string; // Original user input
-  state: Record<string, any>; // Shared state between actions
-}
-```
-
-Example using parameters and context:
-
-```typescript
-const createTicket = createAction({
-  id: "createTicket",
-  description: "Creates a support ticket",
-  parameters: {
-    type: "object",
-    properties: {
-      priority: {
-        type: "string",
-        description: "Ticket priority level",
-      },
-      category: {
-        type: "string",
-        description: "Support ticket category",
-      },
-    },
-    required: ["priority"],
-  },
-  async run(context, parameters) {
-    const { priority, category } = parameters || {};
-    const { customer } = context.state; // Access state from previous actions
-
-    // Create ticket with parameters and state
-    context.state.ticket = {
-      customerId: customer?.id,
-      description: context.input,
-      priority,
-      category,
-    };
-
-    return context;
-  },
-});
-```
-
-## Parameter Resolution
-
-SpinAI's task loop follows a two-step decision process:
-
-1. **Action Selection**
-
-   - First, the LLM decides which action(s) to run based on the current context and goal
-   - This decision is made using the action's description, the current state, and the user's input
-
-2. **Parameter Determination**
-   - Before executing the chosen action, SpinAI makes a separate decision to determine the exact parameters
-   - Parameters are intelligently derived from:
-     - Results of previously run actions
-     - Current application state
-     - User's original input
-     - Any other available context
-
-For example, in a calculator agent:
-
-```typescript
-// For the input "what is 5 plus 3 minus 1?"
-// First action: sum is selected
-const sumResult = await sum.run(context, {
-  a: 5, // From user input
-  b: 3, // From user input
-});
-// Result: 8 stored in state
-
-// Second action: minus is selected
-const minusResult = await minus.run(context, {
-  a: 8, // From previous sum result
-  b: 1, // From user input
-});
-// Final result: 7
-```
-
 ## Dependencies
 
 Actions can depend on other actions:
@@ -195,6 +111,7 @@ SpinAI automatically:
    - Storing action results
    - Sharing data between actions
    - Maintaining conversation context
+   - See [State & Parameters](/core-concepts/state-and-parameters) for advanced usage
 
 4. **Error Handling**
    Validate parameters and use the retry system for unreliable operations:
@@ -211,6 +128,13 @@ SpinAI automatically:
 <CardGroup>
   <Card title="Task Loop" icon="arrows-spin" href="/core-concepts/task-loop">
     Learn how actions are orchestrated
+  </Card>
+  <Card
+    title="State & Parameters"
+    icon="arrows-spin"
+    href="/core-concepts/state-and-parameters"
+  >
+    Learn how state and parameters work
   </Card>
   <Card title="Agents" icon="robot" href="/core-concepts/agents">
     See how to use actions in agents

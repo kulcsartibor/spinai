@@ -1,4 +1,5 @@
 import OpenAI from "openai";
+import type { ChatCompletionMessageParam } from "openai/resources/chat/completions";
 import { calculateCost } from "../utils/tokenCounter";
 import { LLM, CompletionOptions, CompletionResult } from "./base";
 
@@ -8,6 +9,10 @@ export interface xAIConfig {
 }
 
 export function createXAILLM(config: xAIConfig): LLM {
+  if (!config.apiKey) {
+    throw new Error("xAI API key is required");
+  }
+
   const client = new OpenAI({
     apiKey: config.apiKey,
     baseURL: "https://api.x.ai/v1",
@@ -25,80 +30,60 @@ export function createXAILLM(config: xAIConfig): LLM {
       maxTokens,
     }: CompletionOptions): Promise<CompletionResult<T>> {
       try {
-        const payload: any = {
+        const messages: ChatCompletionMessageParam[] = [
+          ...(schema
+            ? [
+                {
+                  role: "system" as const,
+                  content: `Respond with a JSON object matching this schema: ${JSON.stringify(
+                    schema,
+                    null,
+                    2
+                  )}`,
+                },
+              ]
+            : []),
+          { role: "user" as const, content: prompt },
+        ];
+
+        const response = await client.chat.completions.create({
           model,
-          messages: [{ role: "user", content: prompt }],
+          messages,
           temperature: temperature ?? 0.7,
           max_tokens: maxTokens,
-        };
-
-        if (schema) {
-          payload.response_format = { type: "json_object" };
-          payload.functions = [
-            {
-              name: "format_response",
-              description: "Format the response according to schema",
-              parameters: schema,
-            },
-          ];
-          payload.function_call = { name: "format_response" };
-        }
-
-        console.debug("xAI payload:", payload);
-
-        const response = await client.chat.completions.create(payload);
-
-        console.debug("xAI response:", response);
+          response_format: schema ? { type: "json_object" } : undefined,
+        });
 
         const choice = response.choices[0];
+        const rawOutput = choice.message.content || "";
         let content: T;
-        let rawOutput: string;
 
         if (schema) {
-          const functionCall = choice.message.function_call;
-          if (!functionCall?.arguments) {
-            console.error(
-              "xAI response does not include function_call.arguments",
-              choice
-            );
-            throw new Error("Expected function call response from xAI");
-          }
           try {
-            content = JSON.parse(functionCall.arguments);
-          } catch (err) {
-            console.error(
-              "Error parsing function_call.arguments as JSON:",
-              functionCall.arguments
+            content = JSON.parse(rawOutput);
+          } catch (e) {
+            throw new Error(
+              `Failed to parse JSON response: ${rawOutput} error: ${e}`
             );
-            throw new Error("Invalid JSON in function_call.arguments");
           }
-          rawOutput = functionCall.arguments;
         } else {
-          content = choice.message.content as T;
-          rawOutput = choice.message.content || "";
-        }
-
-        let promptTokens = 0;
-        let completionTokens = 0;
-        if (response.usage) {
-          promptTokens = response.usage.prompt_tokens;
-          completionTokens = response.usage.completion_tokens;
-        } else {
-          console.warn(
-            "xAI response is missing usage data. Using fallback token counts of 0."
-          );
+          content = rawOutput as T;
         }
 
         return {
           content,
-          inputTokens: promptTokens,
-          outputTokens: completionTokens,
-          costCents: calculateCost(promptTokens, completionTokens, model),
+          inputTokens: response.usage?.prompt_tokens || 0,
+          outputTokens: response.usage?.completion_tokens || 0,
+          costCents: calculateCost(
+            response.usage?.prompt_tokens || 0,
+            response.usage?.completion_tokens || 0,
+            model
+          ),
           rawInput: prompt,
           rawOutput,
         };
       } catch (error) {
-        console.error("Error during xAI completion:", error);
+        console.error("xAI completion error:", error);
         throw error;
       }
     },

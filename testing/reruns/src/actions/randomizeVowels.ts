@@ -35,7 +35,7 @@ export const randomizeVowels = createAction({
       })
       .join("");
 
-    context.state.generatedWord = randomizedWord;
+    context.state.word = randomizedWord;
     return context;
   },
 });

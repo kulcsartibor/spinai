@@ -24,7 +24,7 @@ export const reverseWord = createAction({
     }
 
     const reversed = word.split("").reverse().join("");
-    context.state.reversedWord = reversed;
+    context.state.word = reversed;
 
     return context;
   },

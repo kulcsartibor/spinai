@@ -24,7 +24,7 @@ export const addExclamation = createAction({
     }
 
     const withExclamation = `!!!${word}!!!`;
-    context.state.finalWord = withExclamation;
+    context.state.word = withExclamation;
 
     return context;
   },

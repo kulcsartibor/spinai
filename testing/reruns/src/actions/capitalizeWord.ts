@@ -24,7 +24,7 @@ export const capitalizeWord = createAction({
     }
 
     const capitalized = word.toUpperCase();
-    context.state.capitalizedWord = capitalized;
+    context.state.word = capitalized;
 
     return context;
   },

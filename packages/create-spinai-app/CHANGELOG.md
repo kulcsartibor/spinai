@@ -1,5 +1,11 @@
 # create-spinai-app
 
+## 1.2.3
+
+### Patch Changes
+
+- baf1ead: Add additionalInstructions as an optional parameter to actions, and remove deps blocking
+
 ## 1.2.2
 
 ### Patch Changes

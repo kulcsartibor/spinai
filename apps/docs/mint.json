@@ -69,7 +69,8 @@
         "llms/bedrock",
         "llms/cloudflare",
         "llms/http",
-        "llms/gemini"
+        "llms/gemini",
+        "llms/xAi"
       ]
     },
     {

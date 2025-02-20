@@ -9,7 +9,7 @@ export const reverseWord = createAction({
     properties: {
       word: {
         type: "string",
-        description: "The word to reverse",
+        description: "The current word thus far to reverse",
       },
     },
     required: ["word"],
@@ -19,6 +19,7 @@ export const reverseWord = createAction({
     parameters?: Record<string, unknown>
   ): Promise<SpinAiContext> {
     const word = parameters?.word as string;
+    console.log({ word });
     if (!word) {
       throw new Error("No word parameter provided");
     }

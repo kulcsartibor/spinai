@@ -9,26 +9,20 @@ import { addExclamation } from "./actions/addExclamation";
 dotenv.config();
 
 // OpenAI Example:
-// const llm = createOpenAILLM({
-//   apiKey: process.env.OPENAI_API_KEY || "",
-//   model: "gpt-4o-mini",
-// });
-
-const llm = createAnthropicLLM({
-  apiKey: process.env.ANTHROPIC_API_KEY || "",
-  model: "claude-3-opus-20240229", // Optional
+const llm = createOpenAILLM({
+  apiKey: process.env.OPENAI_API_KEY || "",
+  model: "gpt-4o",
 });
+
+// const llm = createAnthropicLLM({
+//   apiKey: process.env.ANTHROPIC_API_KEY || "",
+//   model: "claude-3-opus-20240229", // Optional
+// });
 
 // randomizeVowels -> reverseWord -> capitalizeWord -> addExclamation
 const testAgent = createAgent<string>({
-  instructions: `You are an agent that performs a series of word transformations. 
-  Make sure you perform all actions at least once, but plan them one at a time in this order:
-
-  1. addExclamation
-  2. capitalizeWord
-  3. randomizeVowels
-  4. reverseWord
-  .
+  instructions: `You are an agent that performs a series of word transformations on the inputted world.
+  Make sure you perform all actions once once, in any order. Don't strip exclamation marks that the addExclemation action adds.
   
   `,
   actions: [addExclamation, randomizeVowels, capitalizeWord, reverseWord],
@@ -54,7 +48,7 @@ const rerunAgent = createAgent<string>({
   `,
   actions: [addExclamation, randomizeVowels, capitalizeWord, reverseWord],
   llm,
-  // debug: "verbose",
+  debug: "verbose",
   // spinApiKey: process.env.SPINAI_API_KEY,
   agentId: "deps-test-agent",
 });
@@ -68,13 +62,14 @@ async function main() {
 
   console.log({ state });
 
-  const { response: newResponse } = await rerunAgent.rerun({
-    input: "Piacere",
-    state: {},
+  const { response: newResponse, state: newState } = await rerunAgent.rerun({
+    input: "I don't like how the transformations were done, i want it redone",
+    state,
     sessionId: "abc123",
   });
 
-  console.log(newResponse);
+  console.log({ newResponse });
+  console.log({ rerunState: newState });
 
   console.log("Final result:", response);
 }

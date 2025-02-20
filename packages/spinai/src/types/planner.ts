@@ -23,23 +23,25 @@ export interface FormatResponseResult {
   outputTokens?: number;
 }
 
+export interface ExecutedAction {
+  id: string;
+  parameters?: Record<string, unknown>;
+  result?: unknown;
+  status: "success" | "error";
+  errorMessage?: string;
+}
 export interface ActionPlannerState {
   input: string;
-  context: Record<string, unknown>;
-  executedActions: Array<{
-    id: string;
-    parameters?: Record<string, unknown>;
-    result?: unknown;
-    status: "success" | "error";
-    errorMessage?: string;
-  }>;
+  state: Record<string, unknown>;
+  executedActions: Array<ExecutedAction>;
+  previousInteractionsActions?: Array<ExecutedAction>;
 }
 
 export interface ActionPlanner {
   planNextActions(params: {
     llm: LLM;
     input: string;
-    state: ActionPlannerState;
+    plannerState: ActionPlannerState;
     availableActions: Action[];
     isRerun: boolean;
   }): Promise<PlanNextActionsResult>;
@@ -48,14 +50,14 @@ export interface ActionPlanner {
     llm: LLM;
     action: string;
     input: string;
-    state: ActionPlannerState;
+    plannerState: ActionPlannerState;
     availableActions: Action[];
   }): Promise<ActionParametersResult>;
 
   formatResponse(params: {
     llm: LLM;
     input: string;
-    state: ActionPlannerState;
+    plannerState: ActionPlannerState;
     responseFormat?: ResponseFormat;
   }): Promise<FormatResponseResult>;
 

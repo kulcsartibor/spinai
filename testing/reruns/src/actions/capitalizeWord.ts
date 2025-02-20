@@ -9,7 +9,7 @@ export const capitalizeWord = createAction({
     properties: {
       word: {
         type: "string",
-        description: "The word to capitalize",
+        description: "The word current word thus far to capitalize",
       },
     },
     required: ["word"],
@@ -19,6 +19,7 @@ export const capitalizeWord = createAction({
     parameters?: Record<string, unknown>
   ): Promise<SpinAiContext> {
     const word = parameters?.word as string;
+    console.log({ word });
     if (!word) {
       throw new Error("No word parameter provided");
     }

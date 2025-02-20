@@ -46,8 +46,3 @@ export const FORMAT_RESPONSE_SCHEMA = {
   },
   required: ["response", "reasoning"],
 } as const;
-
-export const DEFAULT_TEXT_RESPONSE_SCHEMA = {
-  type: "string",
-  description: "A clear summary of the actions taken and their outcomes",
-} as const;

@@ -6,7 +6,6 @@ import type {
   AgentResponse,
   ResponseFormat,
 } from "../types/agent";
-import { resolveDependencies } from "./deps";
 import { log, setDebugEnabled } from "./debugLogger";
 import { LoggingService } from "./logging";
 import { BasePlanner } from "../decisions/planner";
@@ -59,13 +58,15 @@ export async function runTaskLoop<T = string>(params: {
   // Initialize planner
   const planner = new BasePlanner(logger, params.instructions);
 
-  // Initialize state tracking
-  const executedActions = new Set<string>();
   const plannerState: ActionPlannerState = {
     input: context.input,
-    context: context.state,
+    state: context.state,
     executedActions: [],
   };
+
+  if (context?.isRerun && context?.state?.executedActions) {
+    plannerState.previousInteractionsActions = context.state.executedActions;
+  }
 
   // Track retry attempts for each action
   const actionRetries = new Map<string, number>();
@@ -79,7 +80,7 @@ export async function runTaskLoop<T = string>(params: {
       const planResult = await planner.planNextActions({
         llm: model,
         input: context.input,
-        state: plannerState,
+        plannerState,
         availableActions: actions,
         isRerun: context.isRerun ?? false,
       });
@@ -93,7 +94,7 @@ export async function runTaskLoop<T = string>(params: {
         const responseResult = await planner.formatResponse({
           llm: model,
           input: context.input,
-          state: plannerState,
+          plannerState,
           responseFormat: params.responseFormat,
         });
         totalCostCents += planner.getTotalCost();
@@ -101,16 +102,6 @@ export async function runTaskLoop<T = string>(params: {
         log(responseResult.response as string, { type: "response" });
 
         const totalDuration = Date.now() - taskStartTime;
-
-        // Get executed actions with their parameters
-        const actionSummary = plannerState.executedActions.map((action) => {
-          const paramStr = action.parameters
-            ? ` (${JSON.stringify(action.parameters)})`
-            : "";
-          const resultStr =
-            action.result !== undefined ? ` -> ${action.result}` : "";
-          return `${action.id}${paramStr}${resultStr}`;
-        });
 
         // Create interaction summary
         const interactionSummary = {
@@ -156,8 +147,6 @@ export async function runTaskLoop<T = string>(params: {
           data: {
             durationMs: totalDuration,
             costCents: totalCostCents,
-            executedActions:
-              actionSummary.length > 0 ? actionSummary : undefined,
             interactionState: interactionSummary,
           },
         });
@@ -179,11 +168,8 @@ export async function runTaskLoop<T = string>(params: {
         };
       }
 
-      // Resolve dependencies and execute actions
-      const orderedActions = resolveDependencies(planResult.actions, actions);
-
       // Execute each planned action in dependency order
-      for (const plannedActionId of orderedActions) {
+      for (const plannedActionId of planResult.actions) {
         const action = actions.find((a) => a.id === plannedActionId);
         if (!action) {
           const errorMessage = `Action ${plannedActionId} not found`;
@@ -193,11 +179,6 @@ export async function runTaskLoop<T = string>(params: {
             status: "error",
             errorMessage,
           });
-          executedActions.add(plannedActionId);
-          continue;
-        }
-
-        if (executedActions.has(plannedActionId)) {
           continue;
         }
 
@@ -208,7 +189,7 @@ export async function runTaskLoop<T = string>(params: {
 
         // Keep retrying until success or max retries exceeded
         while (currentRetries <= maxRetries) {
-          const actionStartTime = Date.now();
+          const entireActionStartTime = Date.now();
 
           try {
             // Only get parameters on first try or if they're undefined
@@ -217,7 +198,7 @@ export async function runTaskLoop<T = string>(params: {
                 llm: model,
                 action: action.id,
                 input: context.input,
-                state: plannerState,
+                plannerState,
                 availableActions: actions,
               });
               parameters = paramResult.parameters;
@@ -225,9 +206,16 @@ export async function runTaskLoop<T = string>(params: {
               planner.resetCost();
             }
 
+            const actionStartTime = Date.now();
             // Execute the action
             context = await action.run(context, parameters);
             const actionDuration = Date.now() - actionStartTime;
+            log(`Finished executing ${action.id}`, {
+              type: "action",
+              data: {
+                durationMs: actionDuration,
+              },
+            });
 
             // Reset retry count on success
             actionRetries.delete(plannedActionId);
@@ -239,7 +227,6 @@ export async function runTaskLoop<T = string>(params: {
               result: context.state[action.id],
               status: "success",
             });
-            executedActions.add(plannedActionId);
 
             // Log success
             logger.logActionComplete(
@@ -255,7 +242,7 @@ export async function runTaskLoop<T = string>(params: {
             lastError =
               error instanceof Error ? error : new Error(String(error));
             const errorMessage = lastError.message;
-            const actionErrorDuration = Date.now() - actionStartTime;
+            const actionErrorDuration = Date.now() - entireActionStartTime;
 
             // Increment retry count
             currentRetries++;
@@ -300,7 +287,6 @@ export async function runTaskLoop<T = string>(params: {
               status: "error",
               errorMessage: `${errorMessage} (Max retries ${maxRetries} exceeded)`,
             });
-            executedActions.add(plannedActionId);
 
             // Log final error
             logger.logActionComplete(

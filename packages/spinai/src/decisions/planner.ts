@@ -13,7 +13,6 @@ import {
   PLAN_NEXT_ACTIONS_SCHEMA,
   ACTION_PARAMETERS_SCHEMA,
   FORMAT_RESPONSE_SCHEMA,
-  DEFAULT_TEXT_RESPONSE_SCHEMA,
 } from "../types/schemas";
 import {
   PLAN_NEXT_ACTIONS_PROMPT,
@@ -44,7 +43,7 @@ export class BasePlanner implements ActionPlanner {
     this.totalCostCents = 0;
   }
 
-  private formatState(state: ActionPlannerState): string {
+  private formatPlannerState(state: ActionPlannerState): string {
     return JSON.stringify(state, null, 2);
   }
 
@@ -67,13 +66,13 @@ export class BasePlanner implements ActionPlanner {
   async planNextActions({
     llm,
     input,
-    state,
+    plannerState,
     availableActions,
     isRerun,
   }: {
     llm: LLM;
     input: string;
-    state: ActionPlannerState;
+    plannerState: ActionPlannerState;
     availableActions: Action[];
     isRerun: boolean;
   }): Promise<PlanNextActionsResult> {
@@ -81,14 +80,40 @@ export class BasePlanner implements ActionPlanner {
       ? PLAN_NEXT_ACTIONS_RERUN_PROMPT
       : PLAN_NEXT_ACTIONS_PROMPT;
 
+    const { state, previousInteractionsActions, executedActions } =
+      plannerState;
+
     const prompt = promptTemplate
       .replace("{{instructions}}", this.instructions)
-      .replace("{{state}}", this.formatState(state))
       .replace("{{input}}", input)
       .replace(
         "{{availableActions}}",
         this.formatAvailableActions(availableActions)
-      );
+      )
+      .replace(
+        "{{state.context}}",
+        JSON.stringify(
+          Object.fromEntries(
+            Object.entries(state).filter(
+              ([key]) =>
+                !["executedActions", "previousInteractionsActions"].includes(
+                  key
+                )
+            )
+          ),
+          null,
+          2
+        )
+      )
+      .replace(
+        "{{state.previousInteractionsActions}}",
+        JSON.stringify(previousInteractionsActions || [], null, 2)
+      )
+      .replace(
+        "{{state.executedActions}}",
+        JSON.stringify(executedActions || [], null, 2)
+      )
+      .replace("{{plannerState}}", this.formatPlannerState(plannerState));
 
     const startTime = Date.now();
     const result = await llm.complete<PlanNextActionsResult>({
@@ -117,7 +142,7 @@ export class BasePlanner implements ActionPlanner {
 
     if (this.loggingService) {
       this.loggingService.logPlanNextActions(
-        state,
+        plannerState,
         result.content.reasoning,
         result.content.actions,
         llm.modelName,
@@ -138,13 +163,13 @@ export class BasePlanner implements ActionPlanner {
     llm,
     action,
     input,
-    state,
+    plannerState,
     availableActions,
   }: {
     llm: LLM;
     action: string;
     input: string;
-    state: ActionPlannerState;
+    plannerState: ActionPlannerState;
     availableActions: Action[];
   }): Promise<ActionParametersResult> {
     // Find the action definition
@@ -170,7 +195,7 @@ export class BasePlanner implements ActionPlanner {
         "{{parameterSchema}}",
         JSON.stringify(actionDef.parameters, null, 2)
       )
-      .replace("{{state}}", this.formatState(state));
+      .replace("{{plannerState}}", this.formatPlannerState(plannerState));
 
     const startTime = Date.now();
     const result = await llm.complete<ActionParametersResult>({
@@ -205,7 +230,7 @@ export class BasePlanner implements ActionPlanner {
       this.loggingService.logPlanActionParameters(
         action,
         result.content.parameters,
-        state,
+        plannerState,
         result.content.reasoning,
         llm.modelName,
         result.inputTokens,
@@ -224,12 +249,12 @@ export class BasePlanner implements ActionPlanner {
   async formatResponse({
     llm,
     input,
-    state,
+    plannerState,
     responseFormat,
   }: {
     llm: LLM;
     input: string;
-    state: ActionPlannerState;
+    plannerState: ActionPlannerState;
     responseFormat?: ResponseFormat;
   }): Promise<FormatResponseResult> {
     const formatInstructions =
@@ -242,7 +267,7 @@ export class BasePlanner implements ActionPlanner {
       this.instructions
     )
       .replace("{{input}}", input)
-      .replace("{{state}}", this.formatState(state))
+      .replace("{{plannerState}}", this.formatPlannerState(plannerState))
       .replace("{{responseFormat}}", formatInstructions);
 
     const startTime = Date.now();
@@ -276,7 +301,7 @@ export class BasePlanner implements ActionPlanner {
 
       if (this.loggingService) {
         this.loggingService.logPlanFinalResponse(
-          state,
+          plannerState,
           formattedResult.reasoning,
           llm.modelName,
           result.inputTokens,
@@ -319,7 +344,7 @@ export class BasePlanner implements ActionPlanner {
 
       if (this.loggingService) {
         this.loggingService.logPlanFinalResponse(
-          state,
+          plannerState,
           formattedResult.reasoning,
           llm.modelName,
           result.inputTokens,

@@ -78,9 +78,7 @@
       "pages": [
         {
           "group": "Calculator agent (beginners)",
-          "pages": [
-            "examples/calculator-agent/overview"
-          ]
+          "pages": ["examples/calculator-agent/overview"]
         }
       ]
     }

@@ -32,6 +32,10 @@ const MODEL_COSTS = {
   "@cf/anthropic/claude-instant-1.2": { input: 0.8, output: 2.4 },
   "@cf/anthropic/claude-2.1": { input: 8.0, output: 24.0 },
   "custom-http-model": { input: 0.5, output: 1.5 },
+
+  // deepseek Models
+  "deepseek-chat": { input: 0.27, output: 1.1 },
+  "deepseek-reasoner": { input: 0.55, output: 2.19 },
 } as const;
 
 type ModelId = keyof typeof MODEL_COSTS;

@@ -5,6 +5,7 @@ export { createXAILLM } from "./llms/xAi";
 export { createCloudflareAILLM } from "./llms/cloudflare";
 export { createHttpLLM } from "./llms/http";
 export { createBedrockLLM } from "./llms/bedrock";
+export { createDeepSeekAILLM } from "./llms/deepseek";
 export { createAgent } from "./agents/create";
 export { createAction } from "./actions/create";
 export * from "./types/action";

@@ -1,7 +1,8 @@
-import { createAgent, createAnthropicLLM } from "spinai";
+import { createAgent } from "spinai";
 import { sum } from "../actions/calculator/sum";
 import { minus } from "../actions/calculator/minus";
 import { describe, test, expect, jest } from "@jest/globals";
+import { testLLM } from "src/llms";
 
 interface ExecutedAction {
   id: string;
@@ -15,15 +16,10 @@ interface ExecutedAction {
 jest.setTimeout(30000); // 30 seconds
 
 describe("A basic calculator agent", () => {
-  const llm = createAnthropicLLM({
-    apiKey: process.env.ANTHROPIC_API_KEY || "",
-    model: "claude-3-sonnet-20240229",
-  });
-
   const calculatorAgent = createAgent<number>({
     instructions: `You are a calculator agent that helps users perform mathematical calculations.`,
     actions: [sum, minus],
-    llm,
+    llm: testLLM,
     debug: "none", // Disable debug logging for tests
   });
 

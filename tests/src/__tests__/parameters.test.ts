@@ -1,7 +1,8 @@
-import { createAgent, createOpenAILLM } from "spinai";
+import { createAgent } from "spinai";
 import { parameterSum } from "../actions/calculator/parameterSum";
 import { minus } from "../actions/calculator/minus";
 import { describe, test, expect, jest } from "@jest/globals";
+import { testLLM } from "src/llms";
 
 interface ExecutedAction {
   id: string;
@@ -15,20 +16,10 @@ interface ExecutedAction {
 jest.setTimeout(300000);
 
 describe("Parameter handling in agents", () => {
-  // const llm = createAnthropicLLM({
-  //   apiKey: process.env.ANTHROPIC_API_KEY || "",
-  //   model: "claude-3-sonnet-20240229",
-  // });
-
-  const llm = createOpenAILLM({
-    apiKey: process.env.OPENAI_API_KEY || "",
-    model: "gpt-4o-mini",
-  });
-
   const parameterAgent = createAgent<number>({
     instructions: `You are a calculator agent that helps users perform mathematical calculations.`,
     actions: [parameterSum, minus],
-    llm,
+    llm: testLLM,
     debug: "none",
   });
 

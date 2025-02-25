@@ -17,7 +17,7 @@ const config: JestConfigWithTsJest = {
   },
   moduleDirectories: ["node_modules", "src"],
   setupFiles: ["<rootDir>/src/test-setup.ts"],
-  maxWorkers: "50%",
+  maxWorkers: "4",
 };
 
 export default config;

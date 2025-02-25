@@ -6,7 +6,7 @@
     "dev": "turbo dev --filter=!./examples/**",
     "docs": "turbo docs --filter=!./examples/**",
     "lint": "turbo lint --filter=!./examples/**",
-    "test": "turbo test --filter=./tests",
+    "test": "cd tests && npm run test",
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
     "update-packages": "changeset",
     "publish-packages": "turbo run build lint --filter=!./examples/** && changeset version && changeset publish"
@@ -29,6 +29,8 @@
   ],
   "dependencies": {
     "@changesets/cli": "^2.27.11",
-    "changeset": "^0.2.6"
+    "ai": "^4.1.46",
+    "changeset": "^0.2.6",
+    "dotenv": "^16.4.7"
   }
 }

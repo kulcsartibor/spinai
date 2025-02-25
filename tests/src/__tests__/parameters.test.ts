@@ -2,7 +2,7 @@ import { createAgent } from "spinai";
 import { parameterSum } from "../actions/calculator/parameterSum";
 import { minus } from "../actions/calculator/minus";
 import { describe, test, expect, jest } from "@jest/globals";
-import { testLLM } from "src/llms";
+import { testLLM } from "../llms";
 
 interface ExecutedAction {
   id: string;
@@ -20,7 +20,7 @@ describe("Parameter handling in agents", () => {
     instructions: `You are a calculator agent that helps users perform mathematical calculations.`,
     actions: [parameterSum, minus],
     llm: testLLM,
-    debug: "none",
+    debug: "verbose",
   });
 
   test.concurrent("should handle the number 10 rule correctly", async () => {

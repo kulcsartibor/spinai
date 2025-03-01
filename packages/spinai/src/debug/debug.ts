@@ -1,4 +1,4 @@
-import { DebugMode, LogOptions } from "../types/debug";
+import { DebugMode, LogOptions } from "./debug.types";
 
 let debugMode: DebugMode = "default";
 

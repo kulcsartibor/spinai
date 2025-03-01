@@ -1,4 +1,5 @@
-import { SpinAiContext } from "./context";
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import { SpinAiContext } from "../context";
 
 export interface Action {
   id: string;
@@ -11,13 +12,12 @@ export interface Action {
   run: (
     context: SpinAiContext,
     parameters?: Record<string, unknown>
-  ) => Promise<SpinAiContext>;
+  ) => Promise<any>;
   dependsOn?: string[];
   retries?: number;
 }
 
 export interface ActionContext {
   input: string;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   state: Record<string, any>;
 }

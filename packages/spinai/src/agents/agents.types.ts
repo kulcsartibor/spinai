@@ -1,6 +1,7 @@
-import { Action } from "./action";
-import { LLM } from "./llms";
-import { DebugMode } from "./debug";
+import { LanguageModelV1 } from "ai";
+import { Action } from "../actions";
+import { DebugMode } from "../debug";
+import { Messages } from "../messages";
 
 export interface JSONResponseFormat {
   type: "json";
@@ -16,7 +17,7 @@ export type ResponseFormat = { type: "text" } | JSONResponseFormat;
 export interface AgentConfig {
   instructions: string;
   actions: Action[];
-  llm: LLM;
+  model: LanguageModelV1;
   agentId?: string;
   spinApiKey?: string;
   training?: {
@@ -34,4 +35,5 @@ export interface AgentResponse<T = unknown> {
   totalDurationMs: number;
   totalCostCents: number;
   state: Record<string, unknown>;
+  messages: Messages;
 }

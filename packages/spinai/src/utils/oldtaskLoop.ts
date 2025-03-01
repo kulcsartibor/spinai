@@ -1,17 +1,13 @@
 import { v4 as uuidv4 } from "uuid";
-import type { Action } from "../types/action";
-import type { SpinAiContext } from "../types/context";
-import type {
-  AgentConfig,
-  AgentResponse,
-  ResponseFormat,
-} from "../types/agent";
-import { log, setDebugEnabled } from "./debugLogger";
-import { LoggingService } from "./logging";
+import type { Action } from "../actions";
+import type { SpinAiContext } from "../context/context.types";
+import type { AgentConfig, AgentResponse, ResponseFormat } from "../agents";
+import { log, setDebugEnabled } from "../debug/debug";
+import { LoggingService } from "../logging/logging";
 import { BasePlanner } from "../decisions/planner";
 import { LLM } from "../types/llms";
 import { ActionPlannerState } from "../types/planner";
-import { DebugMode } from "../types/debug";
+import { DebugMode } from "../debug/debug.types";
 
 export async function runTaskLoop<T = string>(params: {
   actions: Action[];

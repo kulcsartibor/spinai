@@ -3,11 +3,10 @@ import type {
   StepLogEntry,
   InteractionLogEntry,
   InteractionSummary,
-} from "../types/logging";
+} from "./logging.types";
 import { v4 as uuidv4 } from "uuid";
 
-const LOGGING_ENDPOINT = "https://logs.spinai.dev/log";
-// const LOGGING_ENDPOINT = "http://0.0.0.0:8000/log";
+const DEFAULT_LOGGING_ENDPOINT = "https://logs.spinai.dev/log";
 
 export class LoggingService {
   private agentId?: string;
@@ -31,6 +30,7 @@ export class LoggingService {
   private readonly ERROR_COOLDOWN_MS = 5000; // Only show error every 5 seconds
   private originalInput: string = "";
   private isRerun: boolean;
+  private loggingEndpoint: string;
 
   constructor(config: {
     agentId?: string;
@@ -40,6 +40,7 @@ export class LoggingService {
     llmModel: string;
     externalCustomerId?: string;
     isRerun?: boolean;
+    loggingEndpoint?: string;
   }) {
     this.agentId = config.agentId;
     this.spinApiKey = config.spinApiKey;
@@ -49,6 +50,7 @@ export class LoggingService {
     this.externalCustomerId = config.externalCustomerId;
     this.isRerun = config.isRerun ?? false;
     this.startTime = Date.now();
+    this.loggingEndpoint = config.loggingEndpoint ?? DEFAULT_LOGGING_ENDPOINT;
   }
 
   private getTimestamp(): string {
@@ -123,7 +125,7 @@ export class LoggingService {
     // Debug logging
     // console.log(`\n📝 Sending ${type} log:`, JSON.stringify(payload, null, 2));
 
-    const response = await fetch(LOGGING_ENDPOINT, {
+    const response = await fetch(this.loggingEndpoint, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

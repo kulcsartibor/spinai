@@ -3,8 +3,7 @@ import type { SpinAiContext } from "spinai";
 
 export const sum = createAction({
   id: "sum",
-  description:
-    "Adds two numbers together. Extract the numbers from the user's request and provide them as parameters 'a' and 'b'. Example: For 'what is 5 plus 3', use a=5 and b=3.",
+  description: "Adds two numbers together.",
   parameters: {
     type: "object",
     properties: {
@@ -13,10 +12,7 @@ export const sum = createAction({
     },
     required: ["a", "b"],
   },
-  async run(
-    context: SpinAiContext,
-    parameters?: Record<string, unknown>
-  ): Promise<SpinAiContext> {
+  async run(context: SpinAiContext, parameters?: Record<string, unknown>) {
     const { a, b } = parameters || {};
 
     if (typeof a !== "number" || typeof b !== "number") {
@@ -24,8 +20,7 @@ export const sum = createAction({
     }
 
     const result = a + b;
-    context.state.result = result;
 
-    return context;
+    return result;
   },
 });

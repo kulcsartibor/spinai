@@ -3,8 +3,7 @@ import type { SpinAiContext } from "spinai";
 
 export const minus = createAction({
   id: "minus",
-  description:
-    "Subtracts two numbers. Extract the numbers from the user's request and provide them as parameters 'a' and 'b'. Example: For 'what is 5 minus 3', use a=5 and b=3.",
+  description: "Subtracts two numbers.",
   parameters: {
     type: "object",
     properties: {
@@ -13,10 +12,7 @@ export const minus = createAction({
     },
     required: ["a", "b"],
   },
-  async run(
-    context: SpinAiContext,
-    parameters?: Record<string, unknown>
-  ): Promise<SpinAiContext> {
+  async run(context: SpinAiContext, parameters?: Record<string, unknown>) {
     const { a, b } = parameters || {};
 
     if (typeof a !== "number" || typeof b !== "number") {
@@ -24,8 +20,7 @@ export const minus = createAction({
     }
 
     const result = a - b;
-    context.state.result = result;
 
-    return context;
+    return result;
   },
 });

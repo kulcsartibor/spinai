@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { SpinAiContext } from "../context";
+import { TaskLoopParams } from "../taskloop";
 
 export interface Action {
   id: string;
@@ -9,10 +9,10 @@ export interface Action {
     properties: Record<string, unknown>;
     required?: string[];
   };
-  run: (
-    context: SpinAiContext,
-    parameters?: Record<string, unknown>
-  ) => Promise<any>;
+  run: (params: {
+    context: TaskLoopParams;
+    parameters?: Record<string, unknown>;
+  }) => Promise<any>;
   dependsOn?: string[];
   retries?: number;
 }

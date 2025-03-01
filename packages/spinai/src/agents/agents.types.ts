@@ -1,31 +1,30 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 import { LanguageModelV1 } from "ai";
 import { Action } from "../actions";
 import { DebugMode } from "../debug";
 import { Messages } from "../messages";
 
-export interface JSONResponseFormat {
-  type: "json";
-  schema: {
-    type: "object";
-    properties: Record<string, unknown>;
-    required?: string[];
-  };
-}
-
-export type ResponseFormat = { type: "text" } | JSONResponseFormat;
-
 export interface AgentConfig {
   instructions: string;
-  actions: Action[];
   model: LanguageModelV1;
+  actions: Action[];
   agentId?: string;
   spinApiKey?: string;
-  training?: {
-    systemInstructions?: string;
-    completionInstructions?: string;
-  };
-  responseFormat?: ResponseFormat;
+}
+
+export interface AgentRunConfig {
+  input: string;
+  maxSteps?: number;
+  sessionId?: string;
+  externalCustomerId?: string;
+  state?: Record<string, any>;
+  isRerun?: boolean;
+  actions?: Action[];
+  model?: LanguageModelV1;
   debug?: DebugMode;
+  agentId?: string;
+  spinApiKey?: string;
 }
 
 export interface AgentResponse<T = unknown> {

@@ -1,5 +1,4 @@
 import { createAction } from "spinai";
-import type { SpinAiContext } from "spinai";
 
 export const sum = createAction({
   id: "sum",
@@ -12,7 +11,7 @@ export const sum = createAction({
     },
     required: ["a", "b"],
   },
-  async run(context: SpinAiContext, parameters?: Record<string, unknown>) {
+  async run({ parameters }) {
     const { a, b } = parameters || {};
 
     if (typeof a !== "number" || typeof b !== "number") {

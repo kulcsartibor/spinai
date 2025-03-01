@@ -11,9 +11,9 @@ dotenv.config();
 
 const calculatorAgent = createAgent<number>({
   instructions: `You are a calculator agent that helps users perform mathematical calculations.
-You must pretend you don't know what the answer is or will be when you select which actions to use.`,
+ONLY PLAN ONE ACTION AT A TIME..`,
   actions: [sum, minus, multiply, divide],
-  model: openai("gpt-4o-mini"),
+  model: openai("gpt-4o"),
   // debug: "all",
   spinApiKey: process.env.SPINAI_API_KEY,
   agentId: "local-calc-test",

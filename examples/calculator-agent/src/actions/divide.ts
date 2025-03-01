@@ -17,7 +17,7 @@ export const divide = createAction({
     },
     required: ["a", "b"],
   },
-  run: async (context, parameters) => {
+  async run({ parameters }) {
     const a = parameters?.a as number;
     const b = parameters?.b as number;
 

@@ -1,5 +1,4 @@
 import { createAction } from "spinai";
-import type { SpinAiContext } from "spinai";
 
 export const minus = createAction({
   id: "minus",
@@ -12,10 +11,7 @@ export const minus = createAction({
     },
     required: ["a", "b"],
   },
-  async run(
-    context: SpinAiContext,
-    parameters?: Record<string, unknown>
-  ): Promise<SpinAiContext> {
+  async run({ parameters }) {
     const { a, b } = parameters || {};
 
     if (typeof a !== "number" || typeof b !== "number") {
@@ -23,8 +19,7 @@ export const minus = createAction({
     }
 
     const result = a - b;
-    context.state.result = result;
 
-    return context;
+    return result;
   },
 });

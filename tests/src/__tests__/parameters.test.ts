@@ -19,7 +19,7 @@ describe("Parameter handling in agents", () => {
   const parameterAgent = createAgent<number>({
     instructions: `You are a calculator agent that helps users perform mathematical calculations.`,
     actions: [parameterSum, minus],
-    llm: testLLM,
+    model: testLLM,
     debug: "verbose",
   });
 

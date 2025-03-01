@@ -1,8 +1,5 @@
-import { createOpenAILLM, type LLM } from "spinai";
+import { openai } from "@ai-sdk/openai";
 
 // this is the LLM all the tests will use - swap this out with different providers to test that they work
 
-export const testLLM: LLM = createOpenAILLM({
-  apiKey: process.env.OPENAI_API_KEY || "",
-  model: "gpt-4o-mini",
-});
+export const testLLM = openai("gpt-4o");

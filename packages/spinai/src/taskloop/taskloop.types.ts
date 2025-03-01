@@ -1,6 +1,10 @@
+import type { Action } from "../actions";
+import { DebugMode } from "../debug/debug.types";
 import { AgentConfig, AgentRunConfig } from "../agents";
+import { z } from "zod";
 
-export type TaskLoopParams = AgentConfig & AgentRunConfig;
+export type TaskLoopParams<TResponseFormat = "text" | z.ZodType<any>> =
+  AgentConfig & AgentRunConfig<TResponseFormat>;
 
 export interface ExecutedAction {
   id: string;

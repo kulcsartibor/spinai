@@ -51,6 +51,7 @@ export class LoggingService {
     this.isRerun = config.isRerun ?? false;
     this.startTime = Date.now();
     this.loggingEndpoint = config.loggingEndpoint ?? DEFAULT_LOGGING_ENDPOINT;
+    console.log(this.loggingEndpoint);
   }
 
   private getTimestamp(): string {

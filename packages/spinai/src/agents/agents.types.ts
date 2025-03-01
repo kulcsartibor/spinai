@@ -4,6 +4,7 @@ import { LanguageModelV1 } from "ai";
 import { Action } from "../actions";
 import { DebugMode } from "../debug";
 import { Messages } from "../messages";
+import { z } from "zod";
 
 export interface AgentConfig {
   instructions: string;
@@ -11,9 +12,10 @@ export interface AgentConfig {
   actions: Action[];
   agentId?: string;
   spinApiKey?: string;
+  customLoggingEndpoint?: string;
 }
 
-export interface AgentRunConfig {
+export interface AgentRunConfig<TResponseFormat = "text" | z.ZodType<any>> {
   input: string;
   maxSteps?: number;
   sessionId?: string;
@@ -25,7 +27,13 @@ export interface AgentRunConfig {
   debug?: DebugMode;
   agentId?: string;
   spinApiKey?: string;
+  responseFormat?: TResponseFormat;
+  customLoggingEndpoint?: string;
 }
+
+// Helper type to extract the inferred type from a Zod schema
+export type InferResponseType<T> =
+  T extends z.ZodType<infer U> ? U : T extends "text" ? string : unknown;
 
 export interface AgentResponse<T = unknown> {
   response: T;

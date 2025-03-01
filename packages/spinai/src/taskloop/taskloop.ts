@@ -1,11 +1,11 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { v4 as uuidv4 } from "uuid";
-import type { AgentResponse } from "../agents";
+import type { AgentResponse, InferResponseType } from "../agents";
 import { log, setDebugEnabled } from "../debug";
 import { LoggingService } from "../logging";
 import { TaskLoopParams } from "./taskloop.types";
-import { generateObject } from "ai";
 import { planningSchema } from "../planning";
+import { generateObject } from "ai";
 import {
   Message,
   createSystemMessage,
@@ -15,10 +15,15 @@ import {
   createActionResultMessage,
 } from "../messages";
 import { calculateCost } from "../costs";
+import { z } from "zod";
+import { processAgentFinalResponse } from "./finalResponse";
 
-export async function runTaskLoop<T = string>(
-  taskLoopParams: TaskLoopParams
-): Promise<AgentResponse<T>> {
+export async function runTaskLoop<
+  TResponseFormat extends "text" | z.ZodType<any> = "text",
+  TResponse = InferResponseType<TResponseFormat>,
+>(
+  taskLoopParams: TaskLoopParams<TResponseFormat>
+): Promise<AgentResponse<TResponse>> {
   const {
     actions,
     model,
@@ -31,6 +36,8 @@ export async function runTaskLoop<T = string>(
     agentId,
     spinApiKey,
     state,
+    responseFormat,
+    customLoggingEndpoint,
   } = taskLoopParams;
   const modelId = model.modelId;
   const interactionId = uuidv4();
@@ -55,6 +62,10 @@ export async function runTaskLoop<T = string>(
   const taskStartTime = Date.now();
   const llmModel = model.modelId;
   // const modelProvider = model.provider;
+  console.log({
+    provider: model.provider,
+    modelId: model.modelId,
+  });
   const logger = new LoggingService({
     agentId: agentId,
     spinApiKey: spinApiKey,
@@ -62,6 +73,7 @@ export async function runTaskLoop<T = string>(
     interactionId,
     llmModel,
     externalCustomerId: externalCustomerId,
+    loggingEndpoint: customLoggingEndpoint,
   });
 
   // Initialize planner
@@ -91,12 +103,13 @@ export async function runTaskLoop<T = string>(
       } = response;
 
       console.log(reasoning);
-      console.log({ nextActions });
 
       if (!nextActions || nextActions.length === 0) {
-        const assistantTextMessage =
-          await createAssistantTextMessage(textResponse);
-        messages.push(assistantTextMessage);
+        if (responseFormat === "text") {
+          const assistantTextMessage =
+            await createAssistantTextMessage(textResponse);
+          messages.push(assistantTextMessage);
+        }
         break;
       }
 
@@ -168,7 +181,6 @@ export async function runTaskLoop<T = string>(
 
       await Promise.all(actionPromises);
     }
-    console.log("done loop");
   } catch (error) {
     const errorDuration = Date.now() - taskStartTime;
     logger.logActionError("task_loop_error", error, {}, errorDuration);
@@ -176,11 +188,20 @@ export async function runTaskLoop<T = string>(
     throw error;
   }
 
-  // console.log("Final messages:", JSON.stringify(messages, null, 2));
+  // Process the final agent response
+  const costRef = { totalCostCents };
+  const finalResponse = await processAgentFinalResponse<TResponse>(
+    messages,
+    responseFormat,
+    model,
+    modelId,
+    costRef
+  );
+  totalCostCents = costRef.totalCostCents;
 
   // Return a response with the current state
   return {
-    response: "Task completed" as unknown as T,
+    response: finalResponse,
     sessionId,
     interactionId,
     totalDurationMs: Date.now() - taskStartTime,

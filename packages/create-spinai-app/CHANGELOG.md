@@ -1,5 +1,11 @@
 # create-spinai-app
 
+## 2.0.0
+
+### Major Changes
+
+- 04e2259: Update to spin 2.0 using vercel's ai models under the hood, but our own task loop and agent control.
+
 ## 1.3.1
 
 ### Patch Changes

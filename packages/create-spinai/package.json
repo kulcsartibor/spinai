@@ -1,6 +1,6 @@
 {
   "name": "create-spinai",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "type": "module",
   "description": "Alias package for create-spinai-app",
   "repository": {
@@ -24,7 +24,7 @@
     "access": "public"
   },
   "dependencies": {
-    "create-spinai-app": "^1.1.13"
+    "create-spinai-app": "^2.0.0"
   },
   "engines": {
     "node": ">=18.18.0"

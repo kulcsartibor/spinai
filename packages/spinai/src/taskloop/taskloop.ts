@@ -47,6 +47,8 @@ export async function runTaskLoop<
 
   // Track total cost
   let totalCostCents = 0;
+  let totalPromptTokens = 0;
+  let totalCompletionTokens = 0;
 
   // Create system message
   const systemMessage = await createSystemMessage(instructions, actions);
@@ -97,6 +99,8 @@ export async function runTaskLoop<
 
       const costCents = calculateCost({ usage, model: modelId });
       totalCostCents += costCents;
+      totalPromptTokens += usage?.promptTokens;
+      totalCompletionTokens += usage?.completionTokens;
 
       const { nextActions, response } = object;
       const { reasoning, textResponse } = response;
@@ -230,6 +234,8 @@ export async function runTaskLoop<
     );
 
   totalCostCents = costRef.totalCostCents;
+  totalPromptTokens += usage?.promptTokens;
+  totalCompletionTokens += usage?.completionTokens;
 
   // Log the final response (no usage available from processAgentFinalResponse)
   logger.logFinalResponse({
@@ -251,6 +257,9 @@ export async function runTaskLoop<
     durationMs: Date.now() - taskStartTime,
     state: state || {},
     messages,
+    totalCostCents,
+    totalPromptTokens,
+    totalCompletionTokens,
   });
 
   // Return a response with the current state
@@ -260,6 +269,8 @@ export async function runTaskLoop<
     interactionId,
     totalDurationMs: Date.now() - taskStartTime,
     totalCostCents,
+    totalPromptTokens,
+    totalCompletionTokens,
     state: state || {},
     messages,
   };

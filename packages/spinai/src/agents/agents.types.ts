@@ -41,6 +41,8 @@ export interface AgentResponse<T = unknown> {
   interactionId: string;
   totalDurationMs: number;
   totalCostCents: number;
+  totalPromptTokens: number;
+  totalCompletionTokens: number;
   state: Record<string, unknown>;
   messages: Messages;
 }

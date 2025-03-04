@@ -18,9 +18,6 @@ export class LoggingService {
   private startTime: number;
   private loggingEndpoint: string;
   private isRerun: boolean;
-  private totalCostCents: number = 0;
-  private totalInputTokens: number = 0;
-  private totalOutputTokens: number = 0;
   private input: string = "";
   private initialState?: Record<string, unknown>;
 
@@ -200,15 +197,18 @@ export class LoggingService {
     error?: Error;
     state?: Record<string, unknown>;
     messages?: unknown[];
+    totalCostCents: number;
+    totalPromptTokens: number;
+    totalCompletionTokens: number;
   }): Promise<void> {
     const durationMs = params.durationMs || Date.now() - this.startTime;
 
     return this.logStep({
       step_type: "interaction_complete",
       status: params.error ? "failed" : "success",
-      total_input_tokens: this.totalInputTokens,
-      total_output_tokens: this.totalOutputTokens,
-      total_cost_cents: this.totalCostCents,
+      total_input_tokens: params.totalPromptTokens,
+      total_output_tokens: params.totalCompletionTokens,
+      total_cost_cents: params.totalCostCents,
       final_messages_state: params.messages,
       response: params.response,
       final_interaction_state: params.state,

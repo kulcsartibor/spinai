@@ -16,8 +16,3 @@ export interface Action {
   dependsOn?: string[];
   retries?: number;
 }
-
-export interface ActionContext {
-  input: string;
-  state: Record<string, any>;
-}

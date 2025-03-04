@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { v4 as uuidv4 } from "uuid";
 import { LoggingConfig } from "./logging.types";
+import { getPackageVersion } from "../utils/version";
 
 const DEFAULT_LOGGING_ENDPOINT = "https://logs.spinai.dev/log";
 
@@ -20,6 +20,7 @@ export class LoggingService {
   private isRerun: boolean;
   private input: string = "";
   private initialState?: Record<string, unknown>;
+  private packageVersion: string;
 
   constructor(config: LoggingConfig) {
     this.agentId = config.agentId;
@@ -34,6 +35,7 @@ export class LoggingService {
     this.loggingEndpoint = config.loggingEndpoint || DEFAULT_LOGGING_ENDPOINT;
     this.input = config.input;
     this.initialState = config.initialState;
+    this.packageVersion = getPackageVersion();
   }
 
   /**
@@ -50,15 +52,16 @@ export class LoggingService {
         agent_id: this.agentId,
         session_id: this.sessionId,
         interaction_id: this.interactionId,
+        model_id: this.modelId,
+        model_provider: this.modelProvider,
         external_customer_id: this.externalCustomerId,
-        step_id: uuidv4(),
-        step_type: params.stepType,
-        status: params.status,
+        is_rerun: this.isRerun,
+        package_version: this.packageVersion,
         ...params,
       };
 
       // Temporarily console.log the log body
-      console.log(`[LOG ${params.stepType}]`, JSON.stringify(body, null, 2));
+      // console.log(`[LOG ${params.step_type}]`, JSON.stringify(body, null, 2));
 
       try {
         const response = await fetch(this.loggingEndpoint, {
@@ -100,6 +103,7 @@ export class LoggingService {
       model_provider: this.modelProvider,
       is_rerun: this.isRerun,
       initial_interaction_state: this.initialState,
+      spin_version: this.packageVersion,
     });
   }
 
@@ -206,9 +210,9 @@ export class LoggingService {
     return this.logStep({
       step_type: "interaction_complete",
       status: params.error ? "failed" : "success",
-      total_input_tokens: params.totalPromptTokens,
-      total_output_tokens: params.totalCompletionTokens,
-      total_cost_cents: params.totalCostCents,
+      input_tokens: params.totalPromptTokens,
+      output_tokens: params.totalCompletionTokens,
+      cost_cents: params.totalCostCents,
       final_messages_state: params.messages,
       response: params.response,
       final_interaction_state: params.state,

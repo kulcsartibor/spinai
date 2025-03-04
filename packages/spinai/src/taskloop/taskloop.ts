@@ -126,7 +126,6 @@ export async function runTaskLoop<
         if (responseFormat === "text") {
           const assistantTextMessage =
             await createAssistantTextMessage(textResponse);
-          console.log({ assistantTextMessage });
           messages.push(assistantTextMessage);
         }
         break;

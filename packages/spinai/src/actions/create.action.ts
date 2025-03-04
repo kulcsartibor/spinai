@@ -1,8 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { Action } from "./actions.types";
-import { SpinAiContext } from "../context/context.types";
+import { TaskLoopParams } from "../taskloop";
 
-export function createAction(config: {
+export interface Action {
   id: string;
   description: string;
   parameters?: {
@@ -10,13 +9,20 @@ export function createAction(config: {
     properties: Record<string, unknown>;
     required?: string[];
   };
-  run: (
-    context: SpinAiContext,
-    parameters?: Record<string, unknown>
-  ) => Promise<any>;
+  run: (params: {
+    context: TaskLoopParams;
+    parameters?: Record<string, unknown>;
+  }) => Promise<any>;
   dependsOn?: string[];
   retries?: number;
-}): Action {
+}
+
+export interface ActionContext {
+  input: string;
+  state: Record<string, any>;
+}
+
+export function createAction(config: Action): Action {
   return {
     id: config.id,
     description: config.description,

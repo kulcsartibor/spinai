@@ -9,12 +9,20 @@ import { calculateCost } from "../costs";
  */
 export async function processAgentFinalResponse<T>(
   messages: Message[],
-  responseFormat: "text" | z.ZodType<any> | undefined,
+  responseFormat: "text" | z.ZodType<T> | undefined,
   model: any,
   modelId: string,
   costRef: { totalCostCents: number }
-): Promise<T> {
-  let finalResponse: any = "Task completed";
+): Promise<{
+  finalResponse: T;
+  rawInput: any;
+  usage: { promptTokens: number; completionTokens: number; costCents?: number };
+}> {
+  let finalResponse: T | "Task completed" = "Task completed";
+  let rawInput: any = {};
+  let promptTokens = 0;
+  let completionTokens = 0;
+  let costCents = 0;
 
   // Get the last assistant message text response
   const lastAssistantMessage = messages
@@ -28,7 +36,7 @@ export async function processAgentFinalResponse<T>(
     );
 
   if (lastAssistantMessage && "content" in lastAssistantMessage) {
-    finalResponse = lastAssistantMessage.content;
+    finalResponse = lastAssistantMessage.content as T;
   }
 
   // Format the response based on responseFormat
@@ -38,31 +46,42 @@ export async function processAgentFinalResponse<T>(
     } else if (responseFormat instanceof z.ZodType) {
       try {
         // Use generateObject with the Zod schema for proper validation
-        const result = await generateObject({
+        const {
+          object,
+          request,
+          usage: genUsage,
+        } = await generateObject({
           model,
           schema: responseFormat,
           messages,
           mode: "json",
         });
-
-        finalResponse = result.object;
+        finalResponse = object;
+        rawInput = request;
 
         // Add the structured response to the messages array using the helper function
         const structuredResponseMessage = await createAssistantTextMessage(
-          `Structured Response: ${JSON.stringify(finalResponse, null, 2)}`
+          JSON.stringify(finalResponse, null, 2)
         );
         messages.push(structuredResponseMessage);
 
-        // Add the cost of this final generation
-        costRef.totalCostCents += calculateCost({
-          usage: result.usage,
+        promptTokens += genUsage.promptTokens;
+        completionTokens += genUsage.completionTokens;
+        const genCost = calculateCost({
+          usage: genUsage,
           model: modelId,
         });
+        costRef.totalCostCents += genCost;
+        costCents += genCost;
       } catch (e) {
         console.warn("Response validation failed:", e);
       }
     }
   }
 
-  return finalResponse as T;
+  return {
+    finalResponse: finalResponse as T,
+    rawInput,
+    usage: { promptTokens, completionTokens, costCents },
+  };
 }

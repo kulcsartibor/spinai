@@ -19,20 +19,20 @@ const calculatorAgent = createAgent({
 ONLY PLAN ONE ACTION AT A TIME..`,
   actions: [sum, minus, multiply, divide],
   model: openai("gpt-4o"),
-  customLoggingEndpoint: "http://localhost:8000",
+  customLoggingEndpoint: "http://localhost:8000/log",
   // debug: "all",
-  // spinApiKey: process.env.SPINAI_API_KEY,
-  // agentId: "local-calc-test",
+  spinApiKey: process.env.SPINAI_API_KEY,
+  agentId: "spin-2.0-calc-test",
 });
 
 async function main() {
   const { response, messages } = await calculatorAgent({
-    input: "What is 5 plus 3 minus 1 plus 8?",
+    input: "What is 5 plus 3?",
     responseFormat: responseSchema,
   });
-
-  console.log("Final messages:", JSON.stringify(messages, null, 2));
-  console.log(response);
+  console.log({ response });
+  // console.log("Final messages:", JSON.stringify(messages, null, 2));
+  // console.log(response);
 }
 
 main().catch(console.error);

@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { AgentConfig, AgentRunConfig, InferResponseType } from "./agents.types";
 import { runTaskLoop } from "../taskloop";
 import { z } from "zod";

@@ -36,7 +36,7 @@ export async function runTaskLoop<
     agentId,
     spinApiKey,
     state,
-    responseFormat,
+    responseFormat = "text",
     customLoggingEndpoint,
   } = taskLoopParams;
   const modelId = model.modelId;
@@ -60,47 +60,61 @@ export async function runTaskLoop<
 
   // Initialize logging service
   const taskStartTime = Date.now();
-  const llmModel = model.modelId;
-  // const modelProvider = model.provider;
-  console.log({
-    provider: model.provider,
-    modelId: model.modelId,
-  });
+
   const logger = new LoggingService({
     agentId: agentId,
     spinApiKey: spinApiKey,
     sessionId,
     interactionId,
-    llmModel,
+    modelId,
+    modelProvider: model.provider,
     externalCustomerId: externalCustomerId,
     loggingEndpoint: customLoggingEndpoint,
+    isRerun: taskLoopParams.isRerun,
+    input,
+    initialState: state || {},
   });
-
-  // Initialize planner
 
   try {
     // Log interaction start
-    await logger.logInteractionStart(input);
+    logger.logInteractionStart();
 
     let stepCount = 0;
+
+    // THE "LOOP" IN TASKLOOP
     while (stepCount < maxSteps) {
       stepCount++;
       // console.log("messages:", JSON.stringify(messages, null, 2));
-      const { usage, object } = await generateObject({
+      const stepStartTime = Date.now();
+      const { usage, object, request } = await generateObject({
         model,
         schema: planningSchema,
         messages,
         mode: "json",
       });
 
-      totalCostCents += calculateCost({ usage, model: modelId });
+      const { body: rawInput } = request || {};
+
+      const costCents = calculateCost({ usage, model: modelId });
+      totalCostCents += costCents;
 
       const { nextActions, response } = object;
-      const {
+      const { reasoning, textResponse } = response;
+
+      // Log the planning step
+      logger.logPlanning({
         reasoning,
-        // parametersReasoning,
         textResponse,
-      } = response;
+        nextActions,
+        promptTokens: usage?.promptTokens,
+        completionTokens: usage?.completionTokens,
+        costCents,
+        durationMs: Date.now() - stepStartTime,
+        state,
+        rawInput,
+        rawOutput: object,
+        status: "completed",
+      });
 
       console.log(reasoning);
 
@@ -108,6 +122,7 @@ export async function runTaskLoop<
         if (responseFormat === "text") {
           const assistantTextMessage =
             await createAssistantTextMessage(textResponse);
+          console.log({ assistantTextMessage });
           messages.push(assistantTextMessage);
         }
         break;
@@ -152,6 +167,15 @@ export async function runTaskLoop<
           );
           messages.push(actionResultMessage);
 
+          // Log the action execution
+          logger.logAction({
+            actionId: action.id,
+            parameters,
+            result: actionResult,
+            durationMs: actionDuration,
+            state,
+          });
+
           log(`Finished executing ${action.id}`, {
             type: "action",
             data: {
@@ -167,6 +191,16 @@ export async function runTaskLoop<
             data: error,
           });
 
+          // Log the action error
+          logger.logAction({
+            actionId: action.id,
+            parameters,
+            result: "error running action",
+            durationMs: Date.now() - actionStartTime,
+            state,
+            error: error instanceof Error ? error : new Error(String(error)),
+          });
+
           // Add error tool result message
           const toolResultMessage = await createActionResultMessage(
             action.id,
@@ -174,30 +208,50 @@ export async function runTaskLoop<
             toolCallId
           );
           messages.push(toolResultMessage);
-
-          throw error;
         }
       });
 
       await Promise.all(actionPromises);
     }
   } catch (error) {
-    const errorDuration = Date.now() - taskStartTime;
-    logger.logActionError("task_loop_error", error, {}, errorDuration);
-    await logger.logInteractionComplete(null, errorDuration, error as Error);
-    throw error;
+    console.log(error);
   }
 
   // Process the final agent response
+  const responseStartTime = Date.now();
   const costRef = { totalCostCents };
-  const finalResponse = await processAgentFinalResponse<TResponse>(
-    messages,
-    responseFormat,
-    model,
-    modelId,
-    costRef
-  );
+  const { finalResponse, rawInput, usage } =
+    await processAgentFinalResponse<TResponse>(
+      messages,
+      responseFormat,
+      model,
+      modelId,
+      costRef
+    );
+
   totalCostCents = costRef.totalCostCents;
+
+  // Log the final response (no usage available from processAgentFinalResponse)
+  logger.logFinalResponse({
+    response: finalResponse,
+    usage: {
+      promptTokens: usage.promptTokens,
+      completionTokens: usage.completionTokens,
+      costCents: usage.costCents,
+    },
+    durationMs: Date.now() - responseStartTime,
+    state: state || {},
+    rawInput,
+    rawOutput: finalResponse,
+  });
+
+  // Log interaction complete
+  logger.logInteractionComplete({
+    response: finalResponse,
+    durationMs: Date.now() - taskStartTime,
+    state: state || {},
+    messages,
+  });
 
   // Return a response with the current state
   return {

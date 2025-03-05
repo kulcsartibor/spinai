@@ -1,5 +1,11 @@
 # spinai
 
+## 2.0.2
+
+### Patch Changes
+
+- e45e88e: try to fix versioning
+
 ## 2.0.1
 
 ### Patch Changes

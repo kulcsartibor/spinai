@@ -13,7 +13,8 @@
   "dependencies": {
     "axios": "^1.7.9",
     "dotenv": "^16.4.7",
-    "openai": "^4.79.3",
+    "@ai-sdk/openai": "^1.1.15",
+    "ai": "^4.1.47",
     "spinai": "*",
     "tsx": "^4.7.1"
   },

@@ -1,39 +1,45 @@
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-import { createAgent, createOpenAILLM, createAnthropicLLM, createBedrockLLM } from "spinai";
 import * as dotenv from "dotenv";
+import { openai } from "@ai-sdk/openai";
 import { sum } from "./actions/sum";
 import { minus } from "./actions/minus";
+import { divide } from "./actions/divide";
+import { multiply } from "./actions/multiply";
+import { createAgent } from "spinai";
+import { z } from "zod";
 
 dotenv.config();
 
-// OpenAI Example:
-// const llm = createOpenAILLM({
-//   apiKey: process.env.OPENAI_API_KEY || "",
-//   model: "gpt-4o-mini",
-// });
-
-// Anthropic Example:
-const llm = createAnthropicLLM({
-  apiKey: process.env.ANTHROPIC_API_KEY || "",
-  model: "claude-3-sonnet-20240229",
+const responseSchema = z.object({
+  finalNumber: z.number(),
 });
 
-const calculatorAgent = createAgent<number>({
-  instructions: `You are a calculator agent that helps users perform mathematical calculations.`,
-  actions: [sum, minus],
-  llm,
-  // debug: "all",
+const calculatorAgent = createAgent({
+  instructions: `You are a calculator agent that helps users perform mathematical calculations.
+ONLY PLAN ONE ACTION AT A TIME..`,
+  actions: [sum, minus, multiply, divide],
+  model: openai("gpt-4o"),
+  // customLoggingEndpoint: "http://localhost:8000/log",
   spinApiKey: process.env.SPINAI_API_KEY,
-  agentId: "local-calc-test",
+  agentId: "spin-2.0-calc-test",
 });
 
 async function main() {
-  const { response } = await calculatorAgent({
+  const { response, messages } = await calculatorAgent({
     input: "What is 5 plus 3 minus 1?",
-    state: {},
+    responseFormat: responseSchema,
   });
+  // console.log({ messages });
+  console.log({ response });
 
-  console.log(response);
+  // const { response: response2, messages: messages2 } = await calculatorAgent({
+  //   actions: [sum],
+  //   input: "Now minus it by 1",
+  //   responseFormat: responseSchema,
+  //   messages,
+  // });
+  console.log("Final messages:", JSON.stringify(messages, null, 2));
+  // console.log(response);
 }
 
 main().catch(console.error);

@@ -1,6 +1,5 @@
 import { createAction } from "spinai";
-import type { SpinAiContext } from "spinai";
-import { FileReview, ReviewFeedback, ReviewState } from "../types";
+import { FileReview, ReviewFeedback } from "../types";
 import { Octokit } from "@octokit/rest";
 
 export const postReviewComments = createAction({
@@ -19,32 +18,20 @@ export const postReviewComments = createAction({
     },
     required: ["owner", "repo", "pull_number"],
   },
-  async run(
-    context: SpinAiContext,
-    parameters?: Record<string, unknown>
-  ): Promise<SpinAiContext> {
+  async run({ context }): Promise<string> {
     if (!process.env.GITHUB_TOKEN) {
-      throw new Error(
-        "GITHUB_TOKEN environment variable is required for posting reviews"
-      );
+      return "GITHUB_TOKEN environment variable is required for posting reviews";
     }
 
     const octokit = new Octokit({
       auth: process.env.GITHUB_TOKEN,
     });
 
-    const {
-      owner,
-      repo,
-      pull_number,
-      botName = "SpinAI Bot 🤖",
-    } = parameters || {};
-
-    const state = context.state as ReviewState;
-    const { reviews } = state;
+    const { state } = context;
+    const { owner, repo, pull_number, reviews } = state || {};
 
     if (!reviews) {
-      throw new Error("No reviews found in context");
+      return "no reviews found in context";
     }
 
     // Create a review with all comments
@@ -64,7 +51,6 @@ export const postReviewComments = createAction({
       comments,
       body: `heyyy bestie! ✨ just did a vibe check on your code! dropped some comments for you to slay through 💅 keep coding bestie, you're doing amazing! 🚀`,
     });
-
-    return context;
+    return "Review comments posted successfully!";
   },
 });

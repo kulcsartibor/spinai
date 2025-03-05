@@ -1,5 +1,35 @@
 # spinai
 
+## 2.0.4
+
+### Patch Changes
+
+- 02d3029: I have the versioning right this time I know it! (i don't)
+
+## 2.0.3
+
+### Patch Changes
+
+- 7e29b71: try this versioning
+
+## 2.0.2
+
+### Patch Changes
+
+- e45e88e: try to fix versioning
+
+## 2.0.1
+
+### Patch Changes
+
+- c31aea2: Allowpre-seeding messages, and fix version validator
+
+## 2.0.0
+
+### Major Changes
+
+- 04e2259: Update to spin 2.0 using vercel's ai models under the hood, but our own task loop and agent control.
+
 ## 1.3.1
 
 ### Patch Changes

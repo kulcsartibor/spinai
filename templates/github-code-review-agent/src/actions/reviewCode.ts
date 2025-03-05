@@ -1,5 +1,4 @@
 import { createAction } from "spinai";
-import type { SpinAiContext } from "spinai";
 import type { ReviewResponse, FileReview, ReviewState } from "../types";
 import { Octokit } from "@octokit/rest";
 import OpenAI from "openai";
@@ -17,60 +16,38 @@ interface PullRequestParameters {
 export const reviewCode = createAction({
   id: "reviewCode",
   description: "Reviews code changes in a PR and generates feedback",
-  parameters: {
-    type: "object",
-    properties: {
-      owner: { type: "string", description: "Repository owner" },
-      repo: { type: "string", description: "Repository name" },
-      pull_number: { type: "number", description: "PR number" },
-      botName: {
-        type: "string",
-        description: "Name of the bot to use for comments",
-      },
-    },
-    required: ["owner", "repo", "pull_number"],
-  },
-  async run(
-    context: SpinAiContext,
-    parameters?: Record<string, unknown>
-  ): Promise<SpinAiContext> {
+  async run({ context }): Promise<string> {
     // Validate environment variables
     if (!process.env.OPENAI_API_KEY) {
-      throw new Error(
-        "OPENAI_API_KEY environment variable is required for code review"
-      );
+      return "OPENAI_API_KEY environment variable is required for code review";
     }
 
     if (!process.env.GITHUB_TOKEN) {
-      throw new Error(
-        "GITHUB_TOKEN environment variable is required for fetching PR details"
-      );
+      return "GITHUB_TOKEN environment variable is required for fetching PR details";
     }
 
     // Initialize API clients
     const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
     const octokit = new Octokit({ auth: process.env.GITHUB_TOKEN });
 
-    // Parse and validate parameters
-    const params = parameters as Record<string, unknown>;
+    const { state } = context || {};
+    const { owner, repo, pull_number } = state || {};
+
     if (
-      !params?.owner ||
-      !params?.repo ||
-      typeof params.owner !== "string" ||
-      typeof params.repo !== "string" ||
-      typeof params.pull_number !== "number"
+      !owner ||
+      !repo ||
+      typeof owner !== "string" ||
+      typeof repo !== "string" ||
+      typeof pull_number !== "number"
     ) {
-      throw new Error(
-        "Missing or invalid required parameters: owner, repo, or pull_number"
-      );
+      return "Missing or invalid required parameters: owner, repo, or pull_number";
     }
 
     const pullRequestParams: PullRequestParameters = {
-      owner: params.owner,
-      repo: params.repo,
-      pull_number: params.pull_number,
-      botName:
-        typeof params.botName === "string" ? params.botName : "SpinAI Bot 🤖",
+      owner,
+      repo,
+      pull_number,
+      botName: "SpinAI Bot 🤖",
     };
 
     // Get PR diff
@@ -108,12 +85,10 @@ export const reviewCode = createAction({
         });
       }
     }
-
-    // Update context state
-    const state = context.state as ReviewState;
-    state.reviews = reviews;
-    state.botName = pullRequestParams.botName;
-    return context;
+    if (state) {
+      state.reviews = reviews;
+    }
+    return "Review code changes and generate feedback successfully stored in state.";
   },
 });
 

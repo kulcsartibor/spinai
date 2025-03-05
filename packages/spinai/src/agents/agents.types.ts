@@ -29,6 +29,7 @@ export interface AgentRunConfig<TResponseFormat = "text" | z.ZodType<any>> {
   spinApiKey?: string;
   responseFormat?: TResponseFormat;
   customLoggingEndpoint?: string;
+  messages?: Messages;
 }
 
 // Helper type to extract the inferred type from a Zod schema

@@ -31,6 +31,12 @@ async function main() {
     responseFormat: responseSchema,
   });
   console.log({ response });
+  const { response: response2, messages: messages2 } = await calculatorAgent({
+    actions: [sum],
+    input: "Now minus it by 1",
+    responseFormat: responseSchema,
+    messages,
+  });
   // console.log("Final messages:", JSON.stringify(messages, null, 2));
   // console.log(response);
 }

@@ -35,9 +35,10 @@ export async function runTaskLoop<
     sessionId = uuidv4(),
     agentId,
     spinApiKey,
-    state,
+    state = {},
     responseFormat = "text",
     customLoggingEndpoint,
+    messages: initialMessages = [],
   } = taskLoopParams;
   const modelId = model.modelId;
   const interactionId = uuidv4();
@@ -54,7 +55,7 @@ export async function runTaskLoop<
   const systemMessage = await createSystemMessage(instructions, actions);
   const userMessage = await createUserMessage(input);
   // Initialize messages array with system message
-  const messages: Message[] = [systemMessage, userMessage];
+  const messages: Message[] = [...initialMessages, systemMessage, userMessage];
 
   log(`Starting interaction with ${debug ?? "default"} logging`, {
     type: "summary",

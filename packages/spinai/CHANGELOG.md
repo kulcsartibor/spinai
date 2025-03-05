@@ -1,5 +1,11 @@
 # spinai
 
+## 2.0.4
+
+### Patch Changes
+
+- 02d3029: I have the versioning right this time I know it! (i don't)
+
 ## 2.0.3
 
 ### Patch Changes

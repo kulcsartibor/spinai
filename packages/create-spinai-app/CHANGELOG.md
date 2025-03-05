@@ -1,5 +1,11 @@
 # create-spinai-app
 
+## 2.0.1
+
+### Patch Changes
+
+- c31aea2: Allowpre-seeding messages, and fix version validator
+
 ## 2.0.0
 
 ### Major Changes

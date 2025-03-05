@@ -1,5 +1,11 @@
 # spinai
 
+## 2.0.3
+
+### Patch Changes
+
+- 7e29b71: try this versioning
+
 ## 2.0.2
 
 ### Patch Changes

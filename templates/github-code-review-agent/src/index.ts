@@ -1,10 +1,10 @@
 import * as dotenv from "dotenv";
-import { createAgent, createOpenAILLM } from "spinai";
+import { createAgent } from "spinai";
 import { serve } from "@hono/node-server";
 import { Hono } from "hono";
 import { reviewCode } from "./actions/reviewCode";
 import { postReviewComments } from "./actions/postReviewComments";
-import { ReviewState } from "./types";
+import { openai } from "@ai-sdk/openai";
 dotenv.config();
 
 // Validate required environment variables
@@ -15,12 +15,7 @@ if (!process.env.GITHUB_TOKEN) {
   throw new Error("GITHUB_TOKEN is required");
 }
 
-const llm = createOpenAILLM({
-  apiKey: process.env.OPENAI_API_KEY,
-  model: "gpt-4o-mini",
-});
-
-const codeReviewAgent = createAgent<ReviewState>({
+const codeReviewAgent = createAgent({
   instructions: `You are a code review agent that analyzes pull requests and provides helpful feedback.
   You focus on code quality, best practices, potential bugs, and security concerns.
   Your feedback should be specific, actionable, and constructive.
@@ -30,7 +25,7 @@ const codeReviewAgent = createAgent<ReviewState>({
   2. Generate specific, line-by-line feedback
   3. Post the feedback as review comments on the PR`,
   actions: [reviewCode, postReviewComments],
-  llm,
+  model: openai("gpt-4o-mini"),
 });
 
 // Set up Hono app

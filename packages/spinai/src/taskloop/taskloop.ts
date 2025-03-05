@@ -41,6 +41,7 @@ export async function runTaskLoop<
     messages: initialMessages = [],
   } = taskLoopParams;
   const modelId = model.modelId;
+  const modelProvider = model.provider;
   const interactionId = uuidv4();
 
   // Set debug logging based on parameter
@@ -55,7 +56,10 @@ export async function runTaskLoop<
   const systemMessage = await createSystemMessage(instructions, actions);
   const userMessage = await createUserMessage(input);
   // Initialize messages array with system message
-  const messages: Message[] = [...initialMessages, systemMessage, userMessage];
+  const messages: Message[] =
+    initialMessages.length === 0
+      ? [systemMessage, userMessage]
+      : [...initialMessages, userMessage];
 
   log(`Starting interaction with ${debug ?? "default"} logging`, {
     type: "summary",
@@ -70,7 +74,7 @@ export async function runTaskLoop<
     sessionId,
     interactionId,
     modelId,
-    modelProvider: model.provider,
+    modelProvider,
     externalCustomerId: externalCustomerId,
     loggingEndpoint: customLoggingEndpoint,
     isRerun: taskLoopParams.isRerun,

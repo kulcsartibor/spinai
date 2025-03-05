@@ -1,9 +1,9 @@
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { createAgent } from "spinai";
 import * as dotenv from "dotenv";
+import { openai } from "@ai-sdk/openai";
 import { sum } from "./actions/sum";
 import { minus } from "./actions/minus";
-import { openai } from "@ai-sdk/openai";
 
 dotenv.config();
 

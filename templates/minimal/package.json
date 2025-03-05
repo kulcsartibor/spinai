@@ -12,6 +12,7 @@
   "dependencies": {
     "dotenv": "^16.4.7",
     "spinai": "*",
+    "@ai-sdk/openai": "^1.1.15",
     "tsx": "^4.7.1"
   },
   "devDependencies": {

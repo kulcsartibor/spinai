@@ -19,7 +19,7 @@ Then, configure your agent with the API key and a unique agent ID:
 const agent = createAgent({
   instructions: "You are a customer support agent.",
   actions: [getCustomerInfo, getSubscriptionStatus, createTicket],
-  llm,
+  model,
   // Enable observability with these two fields:
   agentId: "customer-support-agent", // Choose any unique identifier
   spinApiKey: process.env.SPINAI_API_KEY,
@@ -48,3 +48,24 @@ Visit [app.spinai.dev](https://app.spinai.dev) to view your agent logs and metri
 - Error tracking and debugging tools
 
 All interactions are grouped by agent ID, making it easy to monitor specific agents or use cases within your application.
+
+## Next Steps
+
+<CardGroup>
+  <Card title="Task Loop" icon="arrows-spin" href="/core-concepts/task-loop">
+    Learn how actions are orchestrated
+  </Card>
+  <Card
+    title="State & Parameters"
+    icon="arrows-spin"
+    href="/core-concepts/state-and-parameters"
+  >
+    Learn how state and parameters work
+  </Card>
+  <Card title="Actions" icon="puzzle-piece" href="/core-concepts/actions">
+    Learn how to use actions in agents
+  </Card>
+  <Card title="Agents" icon="robot" href="/core-concepts/agents">
+    See how to use actions in agents
+  </Card>
+</CardGroup>

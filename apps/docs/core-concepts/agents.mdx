@@ -3,179 +3,117 @@ title: "Agents"
 description: "AI agents that coordinate actions to achieve goals"
 ---
 
-# Agents
+**Agents** are the core building blocks of SpinAI. They combine your chosen LLM with actions to solve tasks the way a human decision maker would.
 
-Agents are the core building blocks of SpinAI. They combine your chosen LLM with actions to solve tasks the way a human decision maker would.
+They control what actions to call, what parameters to pass into those actions, all while maintaining state between them and keeping track of the execution history.
 
-## Quick Start
+### Creating an agent
+
+To create an agent, use the `createAgent` function with any of the [models supported by Vercel's AI SDK](https://sdk.vercel.ai/docs/introduction). Note the model will automatically read your local `.env` file to authenticate itself.
 
 ```typescript
-import { createAgent, createOpenAILLM } from "spinai";
-import { searchProducts, createOrder } from "./actions";
+import { createAgent } from "spinai";
+import { openai } from "@ai-sdk/openai";
 
-// Initialize your LLM
-const llm = createOpenAILLM({
-  apiKey: process.env.OPENAI_API_KEY,
-});
-
-// Create an agent
-const agent = createAgent({
-  instructions: "You are a helpful shopping assistant",
-  actions: [searchProducts, createOrder],
-  llm,
-});
-
-// Use the agent
-const { response } = await agent({
-  input: "Order me a medium red t-shirt under $30",
+const calculatorAgent = createAgent({
+  instructions: `You are a calculator agent.`,
+  actions: [sum, minus],
+  model: openai("gpt-4o"),
 });
 ```
-
-## Configuration Options
 
 ### Agent Creation Parameters
 
-| Parameter        | Type                                        | Required | Description                                         |
-| ---------------- | ------------------------------------------- | -------- | --------------------------------------------------- |
-| `instructions`   | `string`                                    | Yes      | Instructions that guide the agent's behavior        |
-| `actions`        | `Action[]`                                  | Yes      | Array of actions the agent can perform              |
-| `llm`            | `BaseLLM`                                   | Yes      | Language model for decision making                  |
-| `spinApiKey`     | `string`                                    | No       | API key for SpinAI dashboard integration            |
-| `agentId`        | `string`                                    | No       | Unique identifier for the agent in SpinAI dashboard |
-| `debug`          | `"none" \| "default" \| "verbose" \| "all"` | No       | Debug logging level                                 |
-| `responseFormat` | `JSONSchema`                                | No       | Schema for structured responses, defaults to string |
+| Parameter               | Type              | Required | Description                                                                             |
+| ----------------------- | ----------------- | -------- | --------------------------------------------------------------------------------------- |
+| `instructions`          | `string`          | Yes      | Agent description and task                                                              |
+| `model`                 | `LanguageModelV1` | Yes      | LLM to use for decision making                                                          |
+| `actions`               | `Action[]`        | Yes      | Actions the agent can execute                                                           |
+| `agentId`               | `string`          | No       | Agent identifier for logging (if using [SpinAI's log tracking](https://app.spinai.dev)) |
+| `spinApiKey`            | `string`          | No       | SpinAI API key for logging (if using [SpinAI's log tracking](https://app.spinai.dev))   |
+| `customLoggingEndpoint` | `string`          | No       | Custom logging endpoint for metrics                                                     |
 
-### Agent Execution Parameters
+## Calling your agent
 
-| Parameter            | Type                  | Required | Description                      |
-| -------------------- | --------------------- | -------- | -------------------------------- |
-| `input`              | `string`              | Yes      | User input or task description   |
-| `state`              | `Record<string  any>` | No       | Initial state for the execution  |
-| `externalCustomerId` | `string`              | No       | Customer identifier for tracking |
+To call an agent, it's as simple as using it as a function while passing an object in.
 
-### Return Values
-
-| Parameter         | Type                  | Description                                         |
-| ----------------- | --------------------- | --------------------------------------------------- |
-| `response`        | `T \| string`         | Agent's response (typed if responseFormat provided) |
-| `totalCostCents`  | `number`              | Total cost of LLM calls in cents                    |
-| `totalDurationMs` | `number`              | Total execution time in milliseconds                |
-| `sessionId`       | `string`              | Unique identifier for the conversation              |
-| `interactionId`   | `string`              | Unique identifier for this specific interaction     |
-| `state`           | `Record<string, any>` | Final state after execution                         |
-
-## Use Cases
-
-### 1. Basic Agent
-
-Simple agent that responds to queries:
-
-```typescript
-const agent = createAgent({
-  instructions: "You are a helpful assistant",
-  actions: [searchKnowledge, respondToUser],
-  llm,
-});
-
-const { response } = await agent({
-  input: "How do I reset my password?",
+```tsx
+const { response } = await calculatorAgent({
+  input: "What is 5 plus 3 - 1?",
 });
 ```
 
-### 2. Structured Responses (Response Format)
+#### Calling your agent with a custom response format
 
-Agent that returns typed data:
+You can also call your agent with a custom response format by passing in a Zod object.
 
-```typescript
-interface OrderStatus {
-  orderId: string;
-  status: "pending" | "shipped" | "delivered";
-  estimatedDelivery?: string;
-}
+```tsx
+import { z } from "zod";
 
-const orderAgent = createAgent<OrderStatus>({
-  instructions: "Track order status",
-  actions: [getOrderDetails],
-  llm,
-  responseFormat: {
-    type: "object",
-    properties: {
-      orderId: { type: "string" },
-      status: { type: "string", enum: ["pending", "shipped", "delivered"] },
-      estimatedDelivery: { type: "string" },
-    },
-    required: ["orderId", "status"],
-  },
+const responseSchema = z.object({
+  finalNumber: z.number(),
 });
+
+const { response } = await calculatorAgent({
+  input: "What is 5 plus 3 - 1?",
+  responseFormat: responseSchema,
+});
+
+console.log(response.finalNumber);
 ```
 
-### 3. Dashboard Integration
+### Agent Run Parameters
 
-Agent with monitoring enabled:
+Note: Some parameters are the same as the [agent creation parameters](#agent-creation-parameters), but they can also be passed when calling the agent. Any duplicate parameters passed in to the agent run call will override the ones passed in to the agent creation. This allows you to be flexible with things like using different LLM models, and actions, for an existing agent at different times.
 
-```typescript
-const agent = createAgent({
-  instructions: "Handle customer support",
-  actions: [getCustomer, createTicket],
-  llm,
-  spinApiKey: process.env.SPINAI_API_KEY,
-  agentId: "support-agent",
-  debug: "verbose",
-});
+| Parameter               | Type                  | Required | Description                                                                                                            |
+| ----------------------- | --------------------- | -------- | ---------------------------------------------------------------------------------------------------------------------- |
+| `input`                 | `string`              | Yes      | User input to process                                                                                                  |
+| `state`                 | `Record<string, any>` | No       | A state object that can be accessed from inside your actions. Useful for any information your actions may need to run. |
+| `maxSteps`              | `number`              | No       | Maximum number of steps the agent should take                                                                          |
+| `externalCustomerId`    | `string`              | No       | External customer identifier for logging (if using [SpinAI's log tracking](https://app.spinai.dev))                    |
+| `actions`               | `Action[]`            | No       | Actions the agent can execute (overrides the ones passed in to the agent creation)                                     |
+| `model`                 | `LanguageModelV1`     | No       | LLM to use for decision making (overrides the one passed in to the agent creation)                                     |
+| `debug`                 | `DebugMode`           | No       | Debug mode for local runtime logging. 'verbose' for verbose logging, 'error' for error logging, 'off' for no logging.  |
+| `agentId`               | `string`              | No       | Agent identifier for logging (if using [SpinAI's log tracking](https://app.spinai.dev))                                |
+| `spinApiKey`            | `string`              | No       | SpinAI API key for logging (if using [SpinAI's log tracking](https://app.spinai.dev))                                  |
+| `responseFormat`        | `ZodObject`           | No       | Format of the response (defaults to "text" which returns a string).                                                    |
+| `customLoggingEndpoint` | `string`              | No       | Custom logging endpoint for metrics                                                                                    |
+| `messages`              | `Messages`            | No       | Messages to use for the agent (overrides the ones passed in to the agent creation)                                     |
 
-const { response, totalCostCents } = await agent({
-  input: "I need help with my order",
-  externalCustomerId: "customer_123",
-});
-```
+## Agent Response
 
-### 4. Session Management with Reruns
+The agent response object contains the following properties:
 
-In order to use reruns, the state at the end of the last interaction can be passed in to the new rerun interaction.
-
-Maintaining context across interactions:
-
-```typescript
-// Initial interaction
-const { response, sessionId, state } = await agent({
-  input: "Create a ticket for my broken laptop",
-});
-
-// Follow-up using .rerun()
-const { response: updatedResponse } = await agent.rerun({
-  sessionId: sessionId,
-  input: "Add that it's a MacBook Pro",
-  state: state,
-});
-```
-
-## Debug Logging
-
-Different debug levels provide varying amounts of information:
-
-| Level     | Information Shown             |
-| --------- | ----------------------------- |
-| `none`    | No logging                    |
-| `default` | Basic flow and metrics        |
-| `verbose` | Adds reasoning and parameters |
-| `all`     | Adds full prompts and details |
-
-Example output (default level):
-
-```bash
-🤖 Planning next actions (took 234ms, cost 0.5¢)
-⚡ Executing getCustomerInfo (took 123ms)
-   Parameters: {"customerId": "123"}
-📊 Task complete (took 892ms, cost 1.2¢)
-```
+| Property                | Type                  | Description                                                                                            |
+| ----------------------- | --------------------- | ------------------------------------------------------------------------------------------------------ |
+| `response`              | `T`                   | The final response of the agent. A string by default, or the zod type you passed into `responseFormat` |
+| `sessionId`             | `string`              | The session ID of the agent.                                                                           |
+| `interactionId`         | `string`              | The interaction ID of the agent.                                                                       |
+| `totalDurationMs`       | `number`              | The total duration of the agent in milliseconds.                                                       |
+| `totalCostCents`        | `number`              | The total cost of the agent in cents.                                                                  |
+| `totalPromptTokens`     | `number`              | The total number of prompt tokens processed by the agent.                                              |
+| `totalCompletionTokens` | `number`              | The total number of completion tokens processed by the agent.                                          |
+| `state`                 | `Record<string, any>` | The final state of the agent.                                                                          |
+| `messages`              | `Messages`            | The messages exchanged during the agent call.                                                          |
 
 ## Next Steps
 
 <CardGroup>
-  <Card title="Actions" icon="puzzle-piece" href="/core-concepts/actions">
-    Learn about creating actions
-  </Card>
   <Card title="Task Loop" icon="arrows-spin" href="/core-concepts/task-loop">
-    Understand how agents make decisions
+    Learn how actions are orchestrated
+  </Card>
+  <Card
+    title="State & Parameters"
+    icon="arrows-spin"
+    href="/core-concepts/state-and-parameters"
+  >
+    Learn how state and parameters work
+  </Card>
+  <Card title="Observability" icon="eye" href="/core-concepts/observability">
+    Learn how to make decisions observable
+  </Card>
+  <Card title="Actions" icon="puzzle-piece" href="/core-concepts/actions">
+    Learn how to use actions in agents
   </Card>
 </CardGroup>

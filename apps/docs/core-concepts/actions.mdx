@@ -9,8 +9,8 @@ Actions are discrete tasks that your AI agent can perform. They are:
 
 - Type-safe and predictable
 - Parameter-driven with state awareness
-- Dependency-aware
 - Reusable across agents
+- Modular and single responsibility
 
 ## Creating Actions
 
@@ -19,109 +19,80 @@ Use the `createAction` function to define actions:
 ```typescript
 import { createAction } from "spinai";
 
-export const minus = createAction({
-  id: "minus",
-  description: "Subtracts two numbers from each other",
+export const sum = createAction({
+  id: "sum",
+  description: "Adds two numbers together.",
   parameters: {
     type: "object",
     properties: {
-      a: { type: "number", description: "Number to subtract from" },
-      b: { type: "number", description: "Number to subtract" },
+      a: { type: "number", description: "First number to add" },
+      b: { type: "number", description: "Second number to add" },
     },
     required: ["a", "b"],
   },
-  async run(context, parameters) {
+  async run({ parameters }) {
     const { a, b } = parameters || {};
-    const result = a - b;
-    context.state.result = result;
-    return context;
+    const result = a + b;
+    return result;
   },
 });
 ```
 
-## Action Configuration
+### Using `context.state` in actions
 
-```typescript
-interface ActionConfig {
-  id: string; // Unique identifier
-  description: string; // Used by LLM to decide when to use this action
-  parameters?: {
-    type: "object";
-    properties: Record<
-      string,
-      {
-        type: string;
-        description: string;
-      }
-    >;
-    required?: string[];
-  }; // JSON Schema for action parameters
-  dependsOn?: string[]; // IDs of actions that must run first
-  retries?: number; // Number of retry attempts (default: 2)
-  run: (
-    context: SpinAiContext,
-    parameters?: Record<string, unknown>
-  ) => Promise<SpinAiContext>;
-}
+In some cases, you may want to use a specific value you've stored in state either in a previous action or in the initial agent call. You can do this by using the `context.state` object. This is useful if the value is static, like a user ID or email, which may not make sense to have an LLM determine via parameters.
+
+```tsx
+import { createAction } from "spinai";
+
+export const getUserInfo = createAction({
+  id: "getUserInfo",
+  description: "Gets user information.",
+  async run({ context }) {
+    const { state } = context || {};
+    const userId = state?.userId;
+    const user = await getUserById(userId);
+    return user;
+  },
+});
 ```
 
-## Dependencies
+### Setting `context.state` in actions
 
-Actions can depend on other actions:
+In other cases, you may want to set a value in state after an action has completed. This is different than returning the value, since state can be reliable accessed within other actions, or after the agent call is done, without being stored in the agent's message history. Return values however, are only accessible within the agent's message, and can be used by the agent as parameters for other actions.
 
-```typescript
-// Actions will run in the correct order
-dependsOn: ["validatePayment", "checkInventory"];
+```tsx
+import { createAction } from "spinai";
+
+export const getUserInfo = createAction({
+  id: "getUserInfo",
+  description: "Gets user information.",
+  async run({ context }) {
+    const { state } = context || {};
+    const userId = state?.userId;
+    const user = await getUserById(userId);
+    context.state.userEmail = user.email;
+    return user;
+  },
+});
 ```
 
-SpinAI automatically:
+### Context vs Parameters
 
-- Resolves dependency order
-- Ensures prerequisites run first
-- Prevents circular dependencies
-- Handles parallel execution when possible
+Parameters are values your agent passes into actions. They are dynamically determined by the LLM during the task loop and are based on the action's parameter schema.
 
-## Best Practices
+Context is the runtime environment that your agent has access to. It includes the `state` object, which is used to store and retrieve values between actions, as well as all the information you configured your agent with. This includes the `input` variable that you called the agent with. See [Agents](/core-concepts/agents) for a full list of all available context variables.
 
-1. **Clear Parameter Schemas**
-   Define clear parameter types and descriptions:
+### Returning vs context.state setting
 
-   ```typescript
-   parameters: {
-     type: "object",
-     properties: {
-       query: {
-         type: "string",
-         description: "Search query to find customer records"
-       }
-     }
-   }
-   ```
+When you return a value from an action, it allows your agent to use the value as a parameter for other actions if needed. However, it is only accessible within the agent's message history, and to use it in actions you'll need add it as a parameter.
 
-2. **Descriptive Action Descriptions**
-   Help the LLM understand both when to use the action AND what parameters it needs:
+On the other hand, when you set a value in `context.state`, it is accessible in other actions during runtime, and after the agent call is complete from the `state` variable.
 
-   ```typescript
-   description: "Searches for customers. Expects a 'query' parameter containing search terms like name or email.";
-   ```
+#### Best practices:
 
-3. **State Management**
-   While parameters are preferred for inputs, use state for:
-
-   - Storing action results
-   - Sharing data between actions
-   - Maintaining conversation context
-   - See [State & Parameters](/core-concepts/state-and-parameters) for advanced usage
-
-4. **Error Handling**
-   Validate parameters and use the retry system for unreliable operations:
-
-   ```typescript
-   // Parameter validation
-   if (!parameters?.query?.trim()) {
-     throw new Error("Search query cannot be empty");
-   }
-   ```
+- Use `context.state` for values that need to be shared between actions that are robust. Things like customer emails, user IDs, etc.
+- Use parameters for values that are dynamic and need to be determined by the LLM during the task loop.
 
 ## Next Steps
 
@@ -135,6 +106,9 @@ SpinAI automatically:
     href="/core-concepts/state-and-parameters"
   >
     Learn how state and parameters work
+  </Card>
+  <Card title="Observability" icon="eye" href="/core-concepts/observability">
+    Learn how to make decisions observable
   </Card>
   <Card title="Agents" icon="robot" href="/core-concepts/agents">
     See how to use actions in agents

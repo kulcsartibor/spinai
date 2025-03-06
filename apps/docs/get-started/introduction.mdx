@@ -11,58 +11,60 @@ SpinAI is a lightweight TypeScript framework for building AI agents that can:
 - Maintain state between actions
 - Make decisions using any LLM
 - Handle complex dependencies
+- Maintain observability of the agent's state, actions, and decision making throughout the agent's lifecycle.
 
 ## Key Concepts
 
 ### Agents
 
-Agents are the core of SpinAI. They:
+An agent is a self-contained, stateful entity that:
 
-- Receive user input
-- Decide which actions to take
-- Execute actions in the correct order
-- Provide responses back to users
+- Receives user input
+- Decides which actions to take / which tools to call
+- Maintains state between actions
+- Provides text or custom JSON responses back to the user
+- Can use any LLM supported by Vercel's AI SDK for decision making
 
 ```typescript
-const agent = createAgent({
-  instructions: "Help users with support tickets",
-  actions: [getCustomerInfo, createTicket],
-  llm: createOpenAILLM({ apiKey: process.env.OPENAI_API_KEY }),
+const calculatorAgent = createAgent({
+  instructions: `You are a calculator agent that helps users perform mathematical calculations.`,
+  actions: [sum, minus],
+  model: openai("gpt-4o"),
 });
 ```
 
 ### Actions
 
-Actions are discrete tasks that your agent can perform:
+Actions are functions / tools that your agent can call.
 
 - Have clear inputs and outputs
-- Maintain state through context
+- Maintain and access state through context
 - Can depend on other actions
-- Are executed in DAG order
+- Are executed in DAG (directed acyclic graph) order
 
 ```typescript
-const getCustomerInfo = createAction({
-  id: "getCustomerInfo",
-  description: "Retrieves customer information",
-  async run(context) {
-    context.state.customer = await fetchCustomer();
-    return context;
+export const sum = createAction({
+  id: "sum",
+  description: "Adds two numbers together.",
+  parameters: {
+    type: "object",
+    properties: {
+      a: { type: "number", description: "First number to add" },
+      b: { type: "number", description: "Second number to add" },
+    },
+    required: ["a", "b"],
+  },
+  async run({ parameters }): Promise<number> {
+    const { a, b } = parameters || {};
+    return a + b;
   },
 });
 ```
 
-### Context
-
-Context flows through your actions:
-
-- Preserves state between actions
-- Carries the original user input
-- Accumulates results as actions run
-
 ## Why SpinAI?
 
 - 🎯 **Focused**: Built specifically for action-oriented AI agents
-- 🔄 **Flexible**: Works with any LLM that supports chat completions
+- 🔄 **Flexible**: Works with any LLM supported by Vercel's AI SDK
 - 📦 **Simple**: Minimal boilerplate, maximum productivity
 - 🛠️ **Type-safe**: Built with TypeScript for robust development
 - 🪶 **Light**: Zero dependencies beyond your chosen LLM

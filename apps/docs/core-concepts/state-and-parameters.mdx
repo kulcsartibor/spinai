@@ -3,7 +3,10 @@ title: "State & Parameters"
 description: "How SpinAI agents can make use of state"
 ---
 
-SpinAI allows you to store and use information in actions using the `context.state` object.
+SpinAI allows you to store and use information in actions in two ways:
+
+- Returning values from actions. This is useful for values that are dynamic and need to be determined by the LLM during the task loop.
+- Using the `context.state` object. This is useful for values that are static, like user IDs or emails, which may not make sense to have an LLM determine via parameters.
 
 ## State vs Parameters
 
@@ -14,20 +17,46 @@ State is a persistent object that:
 - Can only be modified by your Actions
 - Can have a default value that you pass in when you start the interaction
 - Persists between action calls
-- Useful for tracking progress or storing computation results
 - Can be accessed via `context.state` in any action
-- Can be accessed via `context.state` after an interaction is complete
+- Can be accessed via `state` after an interaction is complete
 
-Here's how to work with state in an example action:
+### Using `context.state` in actions
+
+In some cases, you may want to use a specific value you've stored in state either in a previous action or in the initial agent call. You can do this by using the `context.state` object. This is useful if the value is static, like a user ID or email, which may not make sense to have an LLM determine via parameters.
 
 ```typescript
-  async run(context, parameters) {
-    const { a, b } = parameters;
-    // Update state with result
-    const result = a + b;
-    context.state.result = result;
-    return context;
+import { createAction } from "spinai";
+
+export const getUserInfo = createAction({
+  id: "getUserInfo",
+  description: "Gets user information.",
+  async run({ context }) {
+    const { state } = context || {};
+    const userId = state?.userId;
+    const user = await getUserById(userId);
+    return user;
   },
+});
+```
+
+### Setting `context.state` in actions
+
+In other cases, you may want to set a value in state after an action has completed. This is different than returning the value, since state can be reliable accessed within other actions, or after the agent call is done, without being stored in the agent's message history.
+
+```typescript
+import { createAction } from "spinai";
+
+export const getUserInfo = createAction({
+  id: "getUserInfo",
+  description: "Gets user information.",
+  async run({ context }) {
+    const { state } = context || {};
+    const userId = state?.userId;
+    const user = await getUserById(userId);
+    context.state.userEmail = user.email;
+    return user;
+  },
+});
 ```
 
 You can also access any variable stored in state at runtime after your agent has completed running:
@@ -63,39 +92,11 @@ parameters: {
 }
 ```
 
-SpinAI's task loop follows a two-step decision process:
+### Returning vs context.state setting
 
-1. **Action Selection**
+When you return a value from an action, it allows your agent to use the value as a parameter for other actions if needed. However, it is only accessible within the agent's message history, and to use it in actions you'll need add it as a parameter.
 
-   - First, the LLM decides which action(s) to run based on the current context and goal
-   - This decision is made using the action's description, the current state, and the user's input
-
-2. **Parameter Determination**
-   - Before executing the chosen action, SpinAI makes a separate decision to determine the exact parameters
-   - Parameters are intelligently derived from:
-     - Results of previously run actions
-     - Current application state
-     - User's original input
-     - Any other available context
-
-For example, in a calculator agent:
-
-```typescript
-// For the input "what is 5 plus 3 minus 1?"
-// First action: sum is selected
-const sumResult = await sum.run(context, {
-  a: 5, // Agent decides to pass this in from user input
-  b: 3, // Agent decides to pass this in from user input
-});
-// Result: 8 stored in state
-
-// Second action: minus is selected
-const minusResult = await minus.run(context, {
-  a: 8, // Agent decides to pass this in from previous sum result
-  b: 1, // Agent decides to pass this in from user input
-});
-// Final result: 7
-```
+On the other hand, when you set a value in `context.state`, it is accessible in other actions during runtime, and after the agent call is complete from the `state` variable.
 
 ## Best Practices
 
@@ -108,5 +109,22 @@ const minusResult = await minus.run(context, {
 
 2. **State**
    - Initialize your agent's interaction with default state variables if needed
-   - Use for persistent data across actions that won't change (i.e customer emails, and other static data)
-   - Keep state structure consistent
+   - Use for persistent data across actions that won't change (i.e customer emails, user IDs, and other static data)
+   - Use `context.state` for values that need to be shared between actions that you need your agent to determine
+
+## Next Steps
+
+<CardGroup>
+  <Card title="Task Loop" icon="arrows-spin" href="/core-concepts/task-loop">
+    Learn how actions are orchestrated
+  </Card>
+  <Card title="Actions" icon="puzzle-piece" href="/core-concepts/actions">
+    Learn how to use actions in agents
+  </Card>
+  <Card title="Observability" icon="eye" href="/core-concepts/observability">
+    Learn how to make decisions observable
+  </Card>
+  <Card title="Agents" icon="robot" href="/core-concepts/agents">
+    See how to use actions in agents
+  </Card>
+</CardGroup>

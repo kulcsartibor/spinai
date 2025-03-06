@@ -5,85 +5,94 @@ description: "How SpinAI agents make and execute decisions"
 
 ## What is the Task Loop?
 
-The task loop is SpinAI's core decision-making process that uses a planner to:
+The task loop is SpinAI's core decision-making process that orchestrates your AI agent's workflow. It handles:
 
-- Determine which actions to run
-- Prepare parameters for each action
-- Execute actions in sequence
-- Generate final responses
+- Planning which actions to run and when
+- Determining parameters for each action
+- Executing actions in parallel when possible
+- Generating reasoning and final responses
+- Maintaining state throughout the interaction
+- Comprehensive logging and cost tracking
 
 ## How it Works
 
-The task loop uses a planner that leverages your agent's LLM for three key decisions:
+The task loop uses a sophisticated planning system that leverages your agent's LLM for key decisions:
 
-1. **Planning Next Actions**
+1. **Planning and Reasoning**
 
-   - Analyzes user input and current state, including already executed actions, and results
-   - Decides which actions should run next
-   - Returns a list of action IDs to execute
+   - Analyzes user input, current state, and previous action results
+   - Provides explicit reasoning about what to do next
+   - Decides which actions should run next (if any)
+   - Returns a list of action IDs with their parameters
 
-2. **Parameter Preparation**
+2. **Parallel Action Execution**
 
-   - Before each action runs
-   - Determines exact parameters needed
-   - Uses context from previous actions and state to pass in specific parameters into your action
+   - Executes multiple actions in parallel when possible
+   - Each action receives the full context and specific parameters
+   - Results from each action are captured and added to the conversation history
+   - State is maintained and accessible across all actions
 
 3. **Response Generation**
 
-   - When no more actions are needed
-   - Creates final response to user
-   - Uses accumulated context and state
-   - Defaults to a string, but you can pass in a responseFormat to get structured JSON (see [Agents](/core-concepts/agents))
+   - When no more actions are needed, generates a final response
+   - Uses accumulated context, action results, and state
+   - Can return plain text or structured data based on your responseFormat configuration
+   - Provides detailed usage metrics (tokens, cost, duration)
 
 ## Flow Diagram
 
 ```mermaid
 graph TD
-    A[Agent Called] --> B[Plan Next Actions]
-    B --> C{Actions Needed?}
-    C -->|Yes| D[Prepare Action Parameters]
-    D --> E[Execute Action]
-    E --> B
-    C -->|No| F[Generate Final Response]
+    A[Agent Called] --> B[Initialize Context & State]
+    B --> C[Generate Planning Decision]
+    C --> D{Actions Needed?}
+    D -->|Yes| E[Execute Actions in Parallel]
+    E --> F[Capture Results]
+    F --> C
+    D -->|No| G[Generate Final Response]
+    G --> H[Return Response with State]
 ```
 
-## Example Flow
+## Technical Implementation
 
-```typescript
-// 1. Agent gets called
-const result = await agent({
-  input: "Add 5 and 3, then subtract 2",
-  state: {},
-});
+The task loop is implemented with these key components:
 
-// 2. Planner decides actions: ["sum", "minus"]
+1. **Message History Management**
 
-// 3. For first action (sum):
-// - Prepare parameters: { a: 5, b: 3 }
-// - Execute sum action
-// - Result stored in state
+   - Maintains a structured conversation history with system, user, assistant, and action result messages
+   - Each message type has a specific purpose in the planning process
 
-// 4. For second action (minus):
-// - Prepare parameters: { a: 8, b: 2 }
-// - Execute minus action
-// - Result stored in state
+2. **Planning Schema**
 
-// 5. No more actions needed
-// - Generate final response
-// - Return result to user
-```
+   - Uses a structured JSON schema for planning decisions
+   - Includes reasoning, next actions, and parameters for each action
+
+3. **Error Handling**
+
+   - Gracefully handles errors in action execution
+   - Provides error information back to the agent for recovery
+
+4. **Comprehensive Logging**
+   - Tracks planning decisions, action executions, and final responses
+   - Records performance metrics including token usage and costs
 
 ## Next Steps
 
 <CardGroup>
-  <Card title="Agents" icon="robot" href="/core-concepts/agents">
-    Learn about agent configuration
+  <Card title="Actions" icon="puzzle-piece" href="/core-concepts/actions">
+    Learn how to use actions in agents
   </Card>
   <Card
     title="State & Parameters"
-    icon="database"
+    icon="arrows-spin"
     href="/core-concepts/state-and-parameters"
   >
-    Understand state management
+    Learn how state and parameters work
+  </Card>
+  <Card title="Observability" icon="eye" href="/core-concepts/observability">
+    Learn how to make decisions observable
+  </Card>
+  <Card title="Agents" icon="robot" href="/core-concepts/agents">
+    See how to use actions in agents
   </Card>
 </CardGroup>

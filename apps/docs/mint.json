@@ -44,20 +44,16 @@
   "navigation": [
     {
       "group": "Get Started",
-      "pages": [
-        "get-started/quickstart",
-        "get-started/introduction",
-        "get-started/development"
-      ]
+      "pages": ["get-started/quickstart", "get-started/introduction"]
     },
     {
       "group": "Core Concepts",
       "pages": [
-        "core-concepts/task-loop",
         "core-concepts/agents",
         "core-concepts/actions",
         "core-concepts/state-and-parameters",
-        "core-concepts/observability"
+        "core-concepts/observability",
+        "core-concepts/task-loop"
       ]
     },
     {

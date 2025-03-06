@@ -1,40 +1,27 @@
 ---
-title: "LLM Support"
-description: "Language models supported by SpinAI."
+title: "Supported LLMs"
+description: "LLMs supported by SpinAI."
 ---
 
-SpinAI now supports multiple LLMs for agent decision making, expanding our offerings to include:
+SpinAI 2.0 and later now supports models all models available via the [AI SDK](https://sdk.vercel.ai/docs/introduction) by Vercel. This includes more than 10 different models from multiple providers. Please refer to their [documentation](https://sdk.vercel.ai/docs/introduction) for more information.
 
-- [OpenAI](/llms/openai)
-- [Anthropic](/llms/anthropic)
-- [Amazon Bedrock](/llms/bedrock)
-- [Gemini](/llms/gemini)
-- [Cloudflare](/llms/cloudflare)
-- [HTTP-based LLM](/llms/http)
-- [xAI](/llms/xai)
+Note, the AI SDK imports your API keys from environment variables, so you will need to set them in your `.env`.
 
-## Choosing an LLM
+## Usage
 
-Consider these factors when choosing an LLM:
+#### OpenAI example:
 
-- Cost per token
-- Response quality
-- API reliability
-- Token context limits
-- Time to response
+```typescript
+import { createAgent } from "spinai";
+import { openai } from "@ai-sdk/openai";
 
-## Best Practices
+const agent = createAgent({
+  instructions: "Help users with support tickets",
+  actions: [getCustomerInfo, createTicket],
+  model: openai("gpt-4o"),
+});
 
-Usually, for the agent's LLM, you'll want to choose a model that's robust in it's decision making, can handle a decent amount of tokens (depending on your context), and can respond within a reasonable amount of time. Keep in mind, for each action you expect your agent to run, you can expect 1-2 calls to your agent's base LLM each time.
-
-If response times matter for your application, you might want to use a more lightweight model under the hood.
-
-## Contributing
-
-Missing an LLM integration you'd like to see? We welcome contributions! You can:
-
-1. Open an issue to discuss the integration
-2. Submit a pull request with your implementation
-3. Check our [existing pull requests](https://github.com/Fallomai/spinai/pulls) to see if someone is already working on it
-
-We're always looking to expand our LLM support to better serve the community's needs.
+const { response } = await agent({
+  input: "I want a refund",
+});
+```

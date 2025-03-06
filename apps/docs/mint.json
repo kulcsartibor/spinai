@@ -61,17 +61,8 @@
       ]
     },
     {
-      "group": "Agent LLMs",
-      "pages": [
-        "llms/overview",
-        "llms/openai",
-        "llms/anthropic",
-        "llms/bedrock",
-        "llms/cloudflare",
-        "llms/http",
-        "llms/gemini",
-        "llms/xAi"
-      ]
+      "group": "Supported LLMs",
+      "pages": ["llms/overview"]
     },
     {
       "group": "Examples",

@@ -1,0 +1,40 @@
+{
+  "name": "spinai-mcp",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "MCP package manager for SpinAI",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Fallomai/spinai.git",
+    "directory": "packages/mcp"
+  },
+  "author": "FallomAI",
+  "license": "MIT",
+  "bin": {
+    "spinai-mcp": "./dist/index.js"
+  },
+  "files": [
+    "dist"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "tsc && chmod +x dist/index.js",
+    "dev": "tsx watch src/index.ts",
+    "clean": "rm -rf dist"
+  },
+  "dependencies": {
+    "chalk": "^5.3.0",
+    "commander": "^11.1.0",
+    "prompts": "^2.4.2"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.0",
+    "@types/prompts": "^2.4.9",
+    "typescript": "^5.3.3"
+  },
+  "engines": {
+    "node": ">=18.18.0"
+  }
+}

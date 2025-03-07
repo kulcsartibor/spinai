@@ -1,9 +1,11 @@
-export * from "./actions";
+export * from "./planning";
+export * from "./utils";
 export * from "./agents";
+export * from "./actions";
 export * from "./taskloop";
 export * from "./messages";
 export * from "./costs";
 export * from "./debug";
 export * from "./logging";
-export * from "./planning";
-export * from "./utils";
+export { createActionsFromMcpConfig } from "./mcp";
+export type { McpConfig } from "./mcp";

@@ -1,0 +1,28 @@
+{
+  "name": "spinai-basic-template",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "lint": "eslint \"src/**/*.ts*\"",
+    "check-types": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@ai-sdk/openai": "^1.1.15",
+    "@modelcontextprotocol/sdk": "^1.6.1",
+    "@smithery/sdk": "^1.0.2",
+    "dotenv": "^16.4.7",
+    "spinai": "*",
+    "tsx": "^4.7.1",
+    "ws": "^8.18.1"
+  },
+  "devDependencies": {
+    "@types/node": "^20",
+    "@types/react": "18.3.1",
+    "@types/react-dom": "18.3.0",
+    "@types/ws": "^8.18.0",
+    "typescript": "5.5.4"
+  }
+}

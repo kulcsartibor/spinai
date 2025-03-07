@@ -1,0 +1,10 @@
+{
+  "name": "simple-math-mcp",
+  "version": "1.0.0",
+  "description": "A simple MCP that provides basic math operations",
+  "main": "index.js",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.6.1",
+    "zod": "^3.22.4"
+  }
+}

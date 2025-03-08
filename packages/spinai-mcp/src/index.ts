@@ -58,7 +58,7 @@ export default {
         const newConfig = `  ${pkgId}: {
     command: "npx",
     args: ["-y", "@smithery/cli@latest", "run", "${pkg}"],
-    env: {}
+    envMapping: {}
   },\n`;
 
         if (existsSync(mcpConfigPath)) {

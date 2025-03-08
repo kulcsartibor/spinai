@@ -1,10 +1,9 @@
 #!/usr/bin/env node
-import { Command } from "commander";
+import { Command } from "commander/typings/esm.mjs";
 import { promises as fs } from "fs";
 import { existsSync } from "fs";
 import * as path from "path";
 import chalk from "chalk";
-import { execSync } from "child_process";
 
 // Remove punycode deprecation warning
 process.removeAllListeners("warning");
@@ -89,17 +88,34 @@ export default {
 
       // Show next steps
       console.log(chalk.bold("Next steps:"));
-      console.log(chalk.cyan("\n1. Import your MCP configuration:"));
+      console.log(chalk.cyan("\n1. Set up your .env file if needed:"));
+      console.log(
+        chalk.cyan(
+          "   Create a .env file in your project root and add your environment variables as needed.\n"
+        )
+      );
+      console.log(
+        chalk.cyan(
+          "   You can use envMapping in your mcp-config.js to map your environment variables to the expected names using the envMapping key\n"
+        )
+      );
+      console.log(
+        chalk.cyan(
+          "   For example:\n   envMapping: {\n     YOUR_TOKEN_NAME: 'expectedTokenName',\n   },\n"
+        )
+      );
+
+      console.log(chalk.cyan("2. Import your MCP configuration:"));
       console.log(chalk.cyan('   import mcpConfig from "./mcp-config.js";\n'));
 
-      console.log(chalk.cyan("2. Create actions from your MCPs:"));
+      console.log(chalk.cyan("3. Create actions from your MCPs:"));
       console.log(
         chalk.cyan(
           "   const actions = await createActionsFromMcpConfig(mcpConfig);\n"
         )
       );
 
-      console.log(chalk.cyan("3. Use the actions in your agent:"));
+      console.log(chalk.cyan("4. Use the actions in your agent:"));
       console.log(
         chalk.cyan(
           '   const agent = createAgent({\n     instructions: "Use MCP tools",\n     actions,\n     model: openai("gpt-4")\n   });\n'

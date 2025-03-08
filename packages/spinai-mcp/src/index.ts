@@ -36,7 +36,7 @@ program
 
     try {
       // Create or update mcp-config.js
-      const mcpConfigPath = path.join(process.cwd(), "mcp-config.js");
+      const mcpConfigPath = path.join(process.cwd(), "mcp-config.ts");
       let configContent = "";
 
       if (existsSync(mcpConfigPath)) {

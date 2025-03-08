@@ -1,5 +1,11 @@
 # spinai
 
+## 2.0.7
+
+### Patch Changes
+
+- 0e73a18: remove console logs from mcp adapter
+
 ## 2.0.6
 
 ### Patch Changes

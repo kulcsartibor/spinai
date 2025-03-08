@@ -1,5 +1,11 @@
 # spinai
 
+## 2.0.6
+
+### Patch Changes
+
+- 3c1e56c: expose and clean up mcp
+
 ## 2.0.5
 
 ### Patch Changes

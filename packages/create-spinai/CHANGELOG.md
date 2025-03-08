@@ -1,5 +1,11 @@
 # create-spinai
 
+## 1.0.4
+
+### Patch Changes
+
+- 3c1e56c: expose and clean up mcp
+
 ## 1.0.3
 
 ### Patch Changes

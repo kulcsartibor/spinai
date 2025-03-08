@@ -1,5 +1,11 @@
 # spinai
 
+## 2.0.5
+
+### Patch Changes
+
+- c141591: add mcp
+
 ## 2.0.4
 
 ### Patch Changes

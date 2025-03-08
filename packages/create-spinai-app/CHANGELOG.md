@@ -1,5 +1,11 @@
 # create-spinai-app
 
+## 2.0.8
+
+### Patch Changes
+
+- 8ab23bc: fix mcp types
+
 ## 2.0.7
 
 ### Patch Changes

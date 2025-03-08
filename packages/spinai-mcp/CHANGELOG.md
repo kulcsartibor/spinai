@@ -1,5 +1,11 @@
 # spinai-mcp
 
+## 1.0.4
+
+### Patch Changes
+
+- 8ab23bc: fix mcp types
+
 ## 1.0.3
 
 ### Patch Changes

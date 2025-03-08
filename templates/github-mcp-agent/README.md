@@ -7,7 +7,7 @@ A SpinAI agent that helps you manage GitHub repositories using MCP actions. This
 ### Option 1: Using the Template (Recommended)
 
 ```bash
-npm create spinai
+npx create-spinai
 ```
 
 Select `GitHub MCP Agent` when prompted for the template.

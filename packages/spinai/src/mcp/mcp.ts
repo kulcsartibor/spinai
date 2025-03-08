@@ -61,14 +61,9 @@ export async function createActionsFromMcpConfig(config: McpConfig) {
 
     try {
       // Connect to MCP
-      console.log("Connecting to MCP server...");
       await client.connect(transport);
-      console.log("Connected successfully!");
-
-      // Get available tools
-      console.log("Fetching tools...");
       const tools = await client.listTools();
-      console.log("Raw tools response:", JSON.stringify(tools, null, 2));
+      // console.log("Raw tools response:", JSON.stringify(tools, null, 2));
 
       // Extract tools array from response
       const toolsArray = tools.tools || [];
@@ -76,13 +71,6 @@ export async function createActionsFromMcpConfig(config: McpConfig) {
       if (Array.isArray(toolsArray)) {
         // Create a SpinAI action for each tool
         for (const tool of toolsArray) {
-          console.log(`Creating action for tool: ${tool.name}`, {
-            id: `${mcpName}_${tool.name}`,
-            description:
-              tool.description || `${mcpName} ${tool.name} operation`,
-            schema: tool.inputSchema,
-          });
-
           const action = createAction({
             id: `${mcpName}_${tool.name}`,
             description:
@@ -94,15 +82,10 @@ export async function createActionsFromMcpConfig(config: McpConfig) {
             },
             async run({ parameters }) {
               try {
-                console.log(
-                  `Running ${mcpName}_${tool.name} with parameters:`,
-                  parameters
-                );
                 const result = await client.callTool({
                   name: tool.name,
                   arguments: parameters,
                 });
-                console.log(`Got result from ${tool.name}:`, result);
 
                 // Extract result from MCP response
                 if (result?.content) {
@@ -119,11 +102,6 @@ export async function createActionsFromMcpConfig(config: McpConfig) {
           actions.push(action);
         }
       }
-
-      console.log(
-        "Created actions:",
-        actions.map((a) => a.id)
-      );
     } catch (error) {
       console.error(`Error setting up ${mcpName}:`, error);
       throw error;

@@ -18,11 +18,19 @@ In this guide, we'll create a simple GitHub assistant that can help manage repos
 - Create an agent that can interact with GitHub's API
 - Test your agent with a basic repository creation task
 
+You can follow this guide step-by-step to understand how everything works, or if you prefer, you can jump right in by running:
+
+```bash
+npm create spinai
+```
+
+and selecting the `GitHub MCP Agent` template, which will set up everything for you automatically.
+
 ## Getting Started
 
 ### 1. Create a New SpinAI Project
 
-First, let's create a new SpinAI project using the default template:
+If you're following the step-by-step guide, create a new SpinAI project using the default template:
 
 ```bash
 npx create-spinai
@@ -30,13 +38,15 @@ npx create-spinai
 
 When prompted, select the default template. This will set up a basic SpinAI project structure for us to build upon.
 
+> 💡 **Quick Start**: If you want to skip the manual setup, you can select the `GitHub MCP Agent` template instead of the default template. This will automatically configure everything we'll cover in steps 1-5, and you can jump straight to step 6!
+
 ### 2. Set Up Environment Variables
 
 Create a `.env` file in your project root and add the following variables:
 
 ```bash
-OPENAI_API_KEY=""
-GITHUB_TOKEN=""
+OPENAI_API_KEY="your_openai_api_key"
+GITHUB_TOKEN="your_github_token"
 ```
 
 You'll need:

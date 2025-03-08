@@ -1,5 +1,11 @@
 # create-spinai-app
 
+## 2.0.7
+
+### Patch Changes
+
+- 7f52674: add mcp template
+
 ## 2.0.6
 
 ### Patch Changes

@@ -1,0 +1,56 @@
+---
+title: "Creating A SpinAI Agent Powered by MCP Actions"
+description: "Learn how to use Model Context Protocol (MCP) actions in your SpinAI applications"
+---
+
+# Using MCP Actions in SpinAI
+
+SpinAI's integration with Model Context Protocol (MCP) allows you to seamlessly incorporate powerful platform actions into your AI agents. MCP actions work just like regular SpinAI actions, and can be composed with other actions in your agent's toolkit.
+
+This is extremely powerful because it has the potential to give your AI agents a whole toolbox of actions without writing any code yourself.
+
+## Let's build an example
+
+In this guide, we'll create a simple GitHub assistant that can help manage repositories using MCP actions. You'll learn how to:
+
+- Set up a SpinAI project with MCP integration
+- Configure GitHub actions through MCP
+- Create an agent that can interact with GitHub's API
+- Test your agent with a basic repository creation task
+
+## Getting Started
+
+### 1. Create a New SpinAI Project
+
+First, let's create a new SpinAI project using the default template:
+
+```bash
+npx create-spinai
+```
+
+When prompted, select the default template. This will set up a basic SpinAI project structure for us to build upon.
+
+### 2. Set Up Environment Variables
+
+Create a `.env` file in your project root and add the following variables:
+
+```bash
+OPENAI_API_KEY=""
+GITHUB_TOKEN=""
+```
+
+You'll need:
+
+1. An OpenAI API key for running the agent. We're using OpenAI's model in this example, but you can swap it for any model supported by [Vercel's AI SDK](https://sdk.vercel.ai/docs/introduction).
+
+2. A GitHub personal access token. To create one:
+   - Go to GitHub's [Developer Settings](https://github.com/settings/tokens)
+   - Click "Generate new token (classic)"
+   - Give your token a descriptive name (e.g., "SpinAI GitHub Assistant")
+   - Select only the permissions you're comfortable with. For this example, you'll need:
+     - `repo` access to create and manage repositories
+     - `read:user` for basic profile information
+   - Copy the generated token (you won't be able to see it again!)
+   - Paste it into your `.env` file as the `GITHUB_TOKEN` value
+
+⚠️ **Security Note**: Never commit your `.env` file to version control. It should belisted in your `.gitignore`, but in case it's not, make sure it is.

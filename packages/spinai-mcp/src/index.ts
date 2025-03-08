@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { Command } from "commander/typings/esm.mjs";
+import { Command } from "commander";
 import { promises as fs } from "fs";
 import { existsSync } from "fs";
 import * as path from "path";

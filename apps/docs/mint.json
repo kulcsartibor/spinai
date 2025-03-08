@@ -47,6 +47,10 @@
       "pages": ["get-started/quickstart", "get-started/introduction"]
     },
     {
+      "group": "Using Spin with MCPs",
+      "pages": ["mcp/overview"]
+    },
+    {
       "group": "Core Concepts",
       "pages": [
         "core-concepts/agents",

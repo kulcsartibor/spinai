@@ -52,7 +52,7 @@ export async function createActionsFromMcpConfig(config: McpConfig) {
       command: mcpConfig.command === "npx" ? npxPath : mcpConfig.command,
       args,
       env: {
-        ...mcpConfig.env,
+        ...mcpConfig.envMapping,
         ...(Object.fromEntries(
           Object.entries(process.env).filter(([_, v]) => v !== undefined)
         ) as Record<string, string>),

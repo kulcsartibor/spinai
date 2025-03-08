@@ -1,17 +1,9 @@
-import { createAction } from "./actions";
+import { createAction } from "../actions";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio.js";
 import { execSync } from "child_process";
 import * as path from "path";
-
-export interface McpConfig {
-  [key: string]: {
-    command: string;
-    args: string[];
-    env: Record<string, string>;
-    envMapping?: Record<string, string>; // Map from local env vars to MCP-expected vars
-  };
-}
+import { McpConfig } from "./mcp.types";
 
 /**
  * Creates SpinAI actions from an MCP configuration

@@ -7,5 +7,4 @@ export * from "./messages";
 export * from "./costs";
 export * from "./debug";
 export * from "./logging";
-export { createActionsFromMcpConfig } from "./mcp";
-export type { McpConfig } from "./mcp";
+export * from "./mcp";

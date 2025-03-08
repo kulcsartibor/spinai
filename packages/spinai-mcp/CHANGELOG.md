@@ -1,5 +1,11 @@
 # spinai-mcp
 
+## 1.0.3
+
+### Patch Changes
+
+- 468f281: env -> envMapping
+
 ## 1.0.2
 
 ### Patch Changes

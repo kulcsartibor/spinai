@@ -1,5 +1,11 @@
 # spinai-mcp
 
+## 1.0.5
+
+### Patch Changes
+
+- 938fbbe: Update MCP config
+
 ## 1.0.4
 
 ### Patch Changes

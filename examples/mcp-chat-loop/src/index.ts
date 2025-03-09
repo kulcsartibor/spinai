@@ -14,7 +14,14 @@ const rl = readline.createInterface({
 
 async function chat() {
   console.log("Setting up...");
-  const mcpActions = await createActionsFromMcpConfig(mcpConfig);
+  const mcpActions = await createActionsFromMcpConfig({
+    config: mcpConfig,
+    envMapping: {
+      GITHUB_TOKEN: "githubPersonalAccessToken",
+    },
+    excludedActions: ["smithery_ai_github_get_issue"],
+  });
+
   console.log("\n🤖 Ready! Type your message (or 'exit' to quit)\n");
 
   const agent = createAgent({

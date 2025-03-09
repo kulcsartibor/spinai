@@ -58,7 +58,6 @@ export default {
         const newConfig = `  ${pkgId}: {
     command: "npx",
     args: ["-y", "@smithery/cli@latest", "run", "${pkg}"],
-    envMapping: {}
   },\n`;
 
         if (existsSync(mcpConfigPath)) {
@@ -96,7 +95,7 @@ export default {
       );
       console.log(
         chalk.cyan(
-          "   You can use envMapping in your mcp-config.js to map your environment variables to the expected names using the envMapping key\n"
+          "   You can use the envMapping object when you import your actions using createActionsFromMcpConfig \n"
         )
       );
       console.log(

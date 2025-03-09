@@ -6,9 +6,25 @@ import * as path from "path";
 import { McpConfig } from "./mcp.types";
 
 /**
+ * Options for creating actions from MCP config
+ */
+export interface CreateActionsFromMcpConfigOptions {
+  /** The MCP configuration object */
+  config: McpConfig;
+  /** Additional environment variable mappings to apply to all MCPs */
+  envMapping?: Record<string, string>;
+  /** IDs of actions to exclude */
+  excludedActions?: string[];
+}
+
+/**
  * Creates SpinAI actions from an MCP configuration
  */
-export async function createActionsFromMcpConfig(config: McpConfig) {
+export async function createActionsFromMcpConfig({
+  config,
+  envMapping: globalEnvMapping = {},
+  excludedActions = [],
+}: CreateActionsFromMcpConfigOptions) {
   const actions = [];
 
   // Get npm prefix to find npx
@@ -33,6 +49,15 @@ export async function createActionsFromMcpConfig(config: McpConfig) {
 
     // Map environment variables if mappings are provided
     const mappedEnv: Record<string, string> = {};
+
+    // First apply global env mapping
+    for (const [envVar, mcpVar] of Object.entries(globalEnvMapping)) {
+      if (process.env[envVar]) {
+        mappedEnv[mcpVar] = process.env[envVar] as string;
+      }
+    }
+
+    // Then apply MCP-specific env mapping (takes precedence)
     if (mcpConfig.envMapping) {
       for (const [envVar, mcpVar] of Object.entries(mcpConfig.envMapping)) {
         if (process.env[envVar]) {
@@ -71,8 +96,16 @@ export async function createActionsFromMcpConfig(config: McpConfig) {
       if (Array.isArray(toolsArray)) {
         // Create a SpinAI action for each tool
         for (const tool of toolsArray) {
+          const actionId = `${mcpName}_${tool.name}`;
+
+          // Skip this action if it's in the excludedActions list
+          if (excludedActions.includes(actionId)) {
+            console.log(`Skipping excluded action: ${actionId}`);
+            continue;
+          }
+
           const action = createAction({
-            id: `${mcpName}_${tool.name}`,
+            id: actionId,
             description:
               tool.description || `${mcpName} ${tool.name} operation`,
             parameters: tool.inputSchema as {

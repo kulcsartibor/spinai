@@ -4,8 +4,6 @@ export default {
     command: "npx",
     args: ["-y", "@smithery/cli@latest", "run", "@smithery-ai/github"],
     env: {},
-    envMapping: {
-      GITHUB_TOKEN: "githubPersonalAccessToken",
-    },
+    envMapping: {},
   },
 };

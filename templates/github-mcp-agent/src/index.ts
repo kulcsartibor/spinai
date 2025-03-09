@@ -9,7 +9,7 @@ dotenv.config();
 async function main() {
   // Create actions from MCP configuration
   console.log("Setting up MCP actions...");
-  const mcpActions = await createActionsFromMcpConfig(mcpConfig);
+  const mcpActions = await createActionsFromMcpConfig({ config: mcpConfig });
 
   const agent = createAgent({
     instructions: `You are a GitHub assistant that can help with repository management.

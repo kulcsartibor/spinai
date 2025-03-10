@@ -17,11 +17,15 @@ To install an MCP locally, it's as easy as running our `npx spinai-mcp` helper f
 
 For example:
 
-`npx spinai-mcp install @smithery-ai/github --provider smithery`
+```
+npx spinai-mcp install @smithery-ai/github --provider smithery
+```
 
 To include environment variables:
 
-`npx spinai-mcp install @smithery-ai/github --provider smithery --config "{\"githubPersonalAccessToken\":\"move_my_token_to_a_dot_env_after\"}"`
+```bash
+npx spinai-mcp install @smithery-ai/github --provider smithery --config "{\"githubPersonalAccessToken\":\"move_my_token_to_a_dot_env_after\"}"
+```
 
 # Providers
 
@@ -30,6 +34,31 @@ Right now we currently support MCPs from:
 - [Smithery](https://smithery.ai/)
 
 # Using your MCP with a SpinAI Agent
+
+Example code:
+
+```ts
+import mcpConfig from "../mcp-config.ts";
+
+dotenv.config();
+
+async function main() {
+  // Create actions from MCP configuration
+  console.log("Setting up MCP actions...");
+  const mcpActions = await createActionsFromMcpConfig({
+    config: mcpConfig,
+    envMapping: {
+      githubPersonalAccessToken: process.env.GITHUB_TOKEN,
+    },
+  });
+
+  const agent = createAgent({
+    instructions: `You are a GitHub assistant that can help with repository management.
+    Use the available GitHub actions to help users with their requests.`,
+    actions: [...mcpActions], // you can add other MCP actions or regular SpinAI actions here as well!
+    model: openai("gpt-4o"),
+  });
+```
 
 To use your MCP actions within your SpinAI Agent, you can simply use the `createActionsFromMcpConfig` function to convert them to regular SpinAI Actions.
 

@@ -1,5 +1,11 @@
 # spinai
 
+## 2.0.10
+
+### Patch Changes
+
+- 0042abd: update npx command and config for createActionsFromMcpConfig
+
 ## 2.0.9
 
 ### Patch Changes

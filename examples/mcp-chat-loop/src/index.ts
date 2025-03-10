@@ -3,7 +3,7 @@ import * as dotenv from "dotenv";
 import { openai } from "@ai-sdk/openai";
 import * as readline from "readline";
 // @ts-ignore
-import mcpConfig from "../mcp-config.js";
+import mcpConfig from "../mcp-config.ts";
 
 dotenv.config();
 

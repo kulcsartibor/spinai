@@ -33,9 +33,9 @@ Right now we currently support MCPs from:
 
 To use your MCP actions within your SpinAI Agent, you can simply use the `createActionsFromMcpConfig` function to convert them to regular SpinAI Actions.
 
-| Parameter         | Type                   | Description                                                                          |
-| ----------------- | ---------------------- | ------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `config`          | `McpConfig`            | The MCP config file (mcp-config.ts).                                                 |
-| `envMapping`      | `Record<string, string | undefined>`                                                                          | Environment variable mappings to apply to all MCPs. Format: `{ "MCP_VAR_NAME": process.env.myVariable }`. If this AND one in mcp-config.ts are passed in, it will prioritize this one. |
-| `excludedActions` | `string[]`             | IDs of actions to exclude.                                                           |
-| `includedActions` | `string[]`             | IDs of actions to include (if empty, all actions except excluded ones are included). |
+| Parameter         | Type                                  | Description                                                                                                                                                                            |
+| ----------------- | ------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `config`          | `McpConfig`                           | The MCP config file (mcp-config.ts).                                                                                                                                                   |
+| `envMapping`      | `Record<string, string \| undefined>` | Environment variable mappings to apply to all MCPs. Format: `{ "MCP_VAR_NAME": process.env.myVariable }`. If this AND one in mcp-config.ts are passed in, it will prioritize this one. |
+| `excludedActions` | `string[]`                            | IDs of actions to exclude.                                                                                                                                                             |
+| `includedActions` | `string[]`                            | IDs of actions to include (if empty, all actions except excluded ones are included).                                                                                                   |

@@ -24,7 +24,7 @@ const TEMPLATES: Template[] = [
     name: "Github MPC Agent",
     description:
       "An AI Agent that uses @smithery-ai/github's MPC to execute actions without needing any custom code at all",
-    repo: "fallomai/spinai/templates/github-mpc-agent",
+    repo: "fallomai/spinai/templates/github-mcp-agent",
   },
   {
     name: "minimal",

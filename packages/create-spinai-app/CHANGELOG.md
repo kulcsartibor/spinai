@@ -1,5 +1,11 @@
 # create-spinai-app
 
+## 2.0.10
+
+### Patch Changes
+
+- c523191: fix typo for github mcp agent
+
 ## 2.0.9
 
 ### Patch Changes

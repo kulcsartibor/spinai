@@ -128,7 +128,7 @@ export async function createActionsFromMcpConfig({
       if (Array.isArray(toolsArray)) {
         // Create a SpinAI action for each tool
         for (const tool of toolsArray) {
-          const actionId = `${mcpName}_${tool.name}`;
+          const actionId = tool.name;
 
           // Skip this action if it's in the excludedActions list
           if (excludedActions.includes(actionId)) {

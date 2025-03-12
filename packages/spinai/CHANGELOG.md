@@ -1,5 +1,11 @@
 # spinai
 
+## 2.0.11
+
+### Patch Changes
+
+- 588d9d7: Remove mcp config name from toolname
+
 ## 2.0.10
 
 ### Patch Changes

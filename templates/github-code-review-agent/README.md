@@ -96,11 +96,6 @@ npm run dev
    - Add line-specific comments with suggestions
    - Add a summary comment on the PR
 
-## Customization
-
-1. **Review Focus**: Edit the prompt in `src/actions/reviewCode.ts`
-2. **Comment Style**: Modify the comment formatting in `src/actions/postReviewComments.ts`
-
 ## Development
 
 ```bash

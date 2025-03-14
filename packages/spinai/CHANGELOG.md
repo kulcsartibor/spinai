@@ -1,5 +1,11 @@
 # spinai
 
+## 2.0.12
+
+### Patch Changes
+
+- d4ef8b3: export agent type
+
 ## 2.0.11
 
 ### Patch Changes

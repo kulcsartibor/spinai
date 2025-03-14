@@ -47,3 +47,9 @@ export interface AgentResponse<T = unknown> {
   state: Record<string, unknown>;
   messages: Messages;
 }
+
+export type Agent<T extends "text" | z.ZodType<any> = "text"> = <
+  TResponseFormat extends T | "text" | z.ZodType<any> = T,
+>(
+  runConfig: AgentRunConfig<TResponseFormat>
+) => Promise<AgentResponse<InferResponseType<TResponseFormat>>>;

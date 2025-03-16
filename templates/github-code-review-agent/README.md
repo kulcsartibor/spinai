@@ -4,7 +4,7 @@ An AI-powered code review bot that automatically reviews pull requests using GPT
 ```bash
 npx create-spinai
 ```
-and choose the Github-code-reviewer template.
+and choose the `github-code-reviewer` template.
 
 
 ## Features
@@ -45,6 +45,9 @@ SPINAI_API_KEY=your_spinai_api_key_here
 # Port for the webhook server (optional)
 PORT=3000
 ```
+
+### Using it as a Github APP instead of a Personal Access Token
+To use this as a Github APP, you need to create a Github APP and install it on your repository. An example repo of how I did it can be found [here](https://github.com/Fallomai/github-reviewer).
 
 ### Getting the Required API Keys
 

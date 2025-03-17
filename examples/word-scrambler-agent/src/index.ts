@@ -11,13 +11,13 @@ import {
 
 dotenv.config();
 
-const wordScramblerAgent = createAgent<number>({
-  instructions: `You are an agent that takes in a word and performs a series of actions on it. Each action depends on the result from the action before it.`,
+const wordScramblerAgent = createAgent({
+  instructions: `You are an agent that takes in a word and performs a series of actions on it. Each action depends on the result from the action before it. Run them one at a time please and start with randomize.`,
   actions: [addExclamation, capitalizeWord, randomizeVowels, reverseWord],
-  model: openai("gpt-4o"),
+  model: openai("gpt-4o-mini"),
   // debug: "all",
-  // spinApiKey: process.env.SPINAI_API_KEY,
-  // agentId: "local-calc-test",
+  spinApiKey: process.env.SPINAI_API_KEY,
+  agentId: "word-scrambler",
 });
 
 async function main() {

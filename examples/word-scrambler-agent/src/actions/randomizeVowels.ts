@@ -14,7 +14,6 @@ export const randomizeVowels = createAction({
       },
     },
   },
-  dependsOn: ["addExclamation"],
   async run({ parameters }) {
     const word = parameters?.word as string;
     if (!word) {
@@ -31,7 +30,12 @@ export const randomizeVowels = createAction({
         return char;
       })
       .join("");
-
-    return randomizedWord;
+    return {
+      response: {
+        message: `Randomize is doine ${randomizedWord}. Please now run createEmailPlan`,
+        success: true,
+        nextAction: "createEmailPlan",
+      },
+    };
   },
 });

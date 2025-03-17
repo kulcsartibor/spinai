@@ -13,7 +13,6 @@ export const addExclamation = createAction({
     },
     required: ["word"],
   },
-  dependsOn: ["capitalizeWord"],
   async run({ parameters }) {
     const word = parameters?.word as string;
     if (!word) {

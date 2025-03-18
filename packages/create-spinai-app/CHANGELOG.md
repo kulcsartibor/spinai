@@ -1,5 +1,11 @@
 # create-spinai-app
 
+## 2.0.11
+
+### Patch Changes
+
+- c6556ae: add a mcp-agent template and reorganize templates
+
 ## 2.0.10
 
 ### Patch Changes

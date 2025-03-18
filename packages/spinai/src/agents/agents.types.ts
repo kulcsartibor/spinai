@@ -13,6 +13,7 @@ export interface AgentConfig {
   agentId?: string;
   spinApiKey?: string;
   customLoggingEndpoint?: string;
+  fixedSteps?: FixedStep[];
 }
 
 export interface AgentRunConfig<TResponseFormat = "text" | z.ZodType<any>> {
@@ -30,7 +31,13 @@ export interface AgentRunConfig<TResponseFormat = "text" | z.ZodType<any>> {
   responseFormat?: TResponseFormat;
   customLoggingEndpoint?: string;
   messages?: Messages;
+  fixedSteps?: FixedStep[];
 }
+
+export type FixedStep = {
+  actionId: string;
+  parameters: Record<string, any>;
+};
 
 // Helper type to extract the inferred type from a Zod schema
 export type InferResponseType<T> =

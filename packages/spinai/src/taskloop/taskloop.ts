@@ -39,6 +39,7 @@ export async function runTaskLoop<
     responseFormat = "text",
     customLoggingEndpoint,
     messages: initialMessages = [],
+    fixedSteps,
   } = taskLoopParams;
   const modelId = model.modelId;
   const modelProvider = model.provider;
@@ -91,33 +92,58 @@ export async function runTaskLoop<
     // THE "LOOP" IN TASKLOOP
     while (stepCount < maxSteps) {
       stepCount++;
-      // console.log("messages:", JSON.stringify(messages, null, 2));
       const stepStartTime = Date.now();
-      const { usage, object, request } = await generateObject({
-        model,
-        schema: planningSchema,
-        messages,
-        mode: "json",
-      });
 
-      const { body: rawInput } = request || {};
+      let nextActions;
+      let reasoning = "";
+      let textResponse = "";
+      let rawInput;
+      let object;
+      let usage;
 
-      const costCents = calculateCost({ usage, model: modelId });
-      totalCostCents += costCents;
-      totalPromptTokens += usage?.promptTokens;
-      totalCompletionTokens += usage?.completionTokens;
+      if (fixedSteps && stepCount <= fixedSteps.length) {
+        // Use the fixed step sequence
+        const currentStep = fixedSteps[stepCount - 1];
+        nextActions = [
+          {
+            actionId: currentStep.actionId,
+            parameters: currentStep.parameters,
+            toolCallId: `call_${Date.now()}_${uuidv4().substring(0, 8)}`,
+          },
+        ];
+        reasoning = `Executing fixed step ${stepCount}: ${currentStep.actionId}`;
+        textResponse = `Running ${currentStep.actionId} with provided parameters`;
+      } else {
+        // Normal planning flow
+        const planningResult = await generateObject({
+          model,
+          schema: planningSchema,
+          messages,
+          mode: "json",
+        });
 
-      const { nextActions, response } = object;
-      const { reasoning, textResponse } = response;
+        usage = planningResult.usage;
+        object = planningResult.object;
+        rawInput = planningResult.request?.body;
+
+        const costCents = calculateCost({ usage, model: modelId });
+        totalCostCents += costCents;
+        totalPromptTokens += usage?.promptTokens;
+        totalCompletionTokens += usage?.completionTokens;
+
+        nextActions = object.nextActions;
+        reasoning = object.response.reasoning;
+        textResponse = object.response.textResponse;
+      }
 
       // Log the planning step
       logger.logPlanning({
         reasoning,
         textResponse,
         nextActions,
-        promptTokens: usage?.promptTokens,
-        completionTokens: usage?.completionTokens,
-        costCents,
+        promptTokens: usage?.promptTokens || 0,
+        completionTokens: usage?.completionTokens || 0,
+        costCents: usage ? calculateCost({ usage, model: modelId }) : 0,
         durationMs: Date.now() - stepStartTime,
         state,
         rawInput,

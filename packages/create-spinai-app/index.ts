@@ -21,15 +21,15 @@ const TEMPLATES: Template[] = [
     repo: "fallomai/spinai/templates/default",
   },
   {
-    name: "Github MPC Agent",
-    description:
-      "An AI Agent that uses @smithery-ai/github's MPC to execute actions without needing any custom code at all",
-    repo: "fallomai/spinai/templates/github-mcp-agent",
-  },
-  {
     name: "minimal",
     description: "Minimal setup with no actions or agents created",
     repo: "fallomai/spinai/templates/minimal",
+  },
+  {
+    name: "Basic MPC Agent",
+    description:
+      "An AI Agent setup with a basic MPC configuration for executing actions",
+    repo: "fallomai/spinai/templates/basic-mcp-agent",
   },
   {
     name: "Mintlify docs updater",
@@ -41,6 +41,12 @@ const TEMPLATES: Template[] = [
     name: "github reviewer",
     description: "A GitHub pull request code review agent",
     repo: "fallomai/spinai/templates/github-code-review-agent",
+  },
+  {
+    name: "Github MPC Agent",
+    description:
+      "An AI Agent that uses @smithery-ai/github's MPC to execute actions without needing any custom code at all",
+    repo: "fallomai/spinai/templates/github-mcp-agent",
   },
   // Add new templates here like:
   // {

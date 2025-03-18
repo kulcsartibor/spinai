@@ -1,5 +1,11 @@
 # spinai
 
+## 2.0.13
+
+### Patch Changes
+
+- 14c6b53: Add the ability to pass in fixed flows
+
 ## 2.0.12
 
 ### Patch Changes

@@ -1,5 +1,11 @@
 # spinai
 
+## 2.0.15
+
+### Patch Changes
+
+- 4536d93: properly export esm
+
 ## 2.0.13
 
 ### Patch Changes

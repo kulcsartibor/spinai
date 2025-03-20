@@ -14,7 +14,7 @@ const responseSchema = z.object({
   finalNumber: z.number(),
 });
 
-const calculatorAgent = createAgent({
+export const calculatorAgent = createAgent({
   instructions: `You are a calculator agent that helps users perform mathematical calculations.
 ONLY PLAN ONE ACTION AT A TIME..`,
   actions: [sum, minus, multiply, divide],

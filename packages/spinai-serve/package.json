@@ -1,17 +1,17 @@
 {
-  "name": "spinai-mcp",
-  "version": "1.0.6",
+  "name": "spinai-serve",
+  "version": "1.0.0",
   "type": "module",
   "description": "MCP package manager for SpinAI",
   "repository": {
     "type": "git",
     "url": "https://github.com/Fallomai/spinai.git",
-    "directory": "packages/spinai-mcp"
+    "directory": "packages/spinai-serve"
   },
   "author": "FallomAI",
   "license": "MIT",
   "bin": {
-    "spinai-mcp": "./dist/index.js"
+    "spinai-serve": "./dist/index.js"
   },
   "files": [
     "dist"
@@ -25,9 +25,11 @@
     "clean": "rm -rf dist"
   },
   "dependencies": {
+    "@hono/node-server": "^1.13.8",
     "chalk": "^5.3.0",
     "commander": "^11.1.0",
-    "prompts": "^2.4.2"
+    "prompts": "^2.4.2",
+    "spinai": "*"
   },
   "devDependencies": {
     "@types/node": "^20.11.0",

@@ -36,31 +36,25 @@
     "dist"
   ],
   "scripts": {
-    "build": "tsup src/index.ts --format cjs,esm --dts --treeshake --clean",
-    "dev": "tsup src/index.ts --format cjs,esm --dts --watch",
+    "build": "tsup src/index.ts src/cli/spin.ts --format cjs,esm --dts --treeshake --clean ",
+    "dev": "tsup src/index.ts src/cli/spin.ts --format cjs,esm --dts --watch",
     "lint": "eslint \"src/**/*.ts*\"",
     "test": "jest",
     "clean": "rm -rf dist"
   },
   "dependencies": {
-    "@anthropic-ai/sdk": "^0.33.1",
-    "@aws-sdk/client-bedrock-runtime": "^3.744.0",
-    "@aws-sdk/credential-providers": "^3.749.0",
-    "@google/generative-ai": "^0.21.0",
-    "ajv": "^8.17.1",
-    "fast-uri": "^3.0.6",
-    "openai": "^4.77.0",
+    "@modelcontextprotocol/sdk": "^1.6.1",
+    "ai": "^4.1.65",
     "tsup": "^8.3.5",
-    "uuid": "^9.0.0",
-    "@modelcontextprotocol/sdk": "^1.6.1"
+    "uuid": "^9.0.0"
   },
   "devDependencies": {
     "@repo/eslint-config": "*",
     "@repo/typescript-config": "*",
     "@types/express": "^4.17.21",
     "@types/node": "^20.11.0",
-    "@types/uuid": "^9.0.7",
     "@types/shelljs": "^0.8.15",
+    "@types/uuid": "^9.0.7",
     "typescript": "^5.3.3"
   }
 }

@@ -8,7 +8,8 @@
     "start": "tsx src/index.ts",
     "build": "tsc --outDir dist",
     "lint": "eslint \"src/**/*.ts*\"",
-    "check-types": "tsc --noEmit"
+    "check-types": "tsc --noEmit",
+    "spin": "npx spinai-spin"
   },
   "dependencies": {
     "@ai-sdk/openai": "^1.1.15",
